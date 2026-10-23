@@ -64,14 +64,7 @@ android {
     targetCompatibility = JavaVersion.VERSION_11
   }
 
-  kotlinOptions {
-    jvmTarget = "11"
-    // Enable Kotlin compiler optimizations
-    freeCompilerArgs += listOf(
-      "-opt-in=kotlin.RequiresOptIn",
-      "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi"
-    )
-  }
+
 
   buildFeatures {
     compose = true
@@ -166,3 +159,4 @@ dependencies {
   ksp(libs.androidx.room.compiler)
   ksp(libs.moshi.kotlin.codegen)
 }
+
