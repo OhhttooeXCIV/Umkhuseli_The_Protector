@@ -1,0 +1,6 @@
+{
+  "name": "Sankofa Safe",
+  "description": "A dual-persona South African launcher and covert GBV/femicide safety shield with SOS lifelines, emergency directories, and secure evidence vault.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
