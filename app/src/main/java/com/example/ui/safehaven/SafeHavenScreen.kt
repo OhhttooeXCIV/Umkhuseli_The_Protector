@@ -58,6 +58,8 @@ import com.example.ui.theme.SankofaGold
 import com.example.ui.theme.SankofaSurface
 import com.example.ui.theme.TextPrimary
 import com.example.ui.theme.TextSecondary
+import com.example.data.local.entity.UserProfileEntity
+import androidx.compose.material.icons.filled.Warning
 import com.example.ui.viewmodel.SafeHavenTab
 
 @Composable
@@ -123,7 +125,10 @@ fun SafeHavenScreen(
     onOpenFindMyDevice: () -> Unit = {},
     currentAreaName: String = "Detecting Area...",
     statusNotification: String?,
-    onClearStatusNotification: () -> Unit
+    onClearStatusNotification: () -> Unit,
+    userProfile: UserProfileEntity? = null,
+    onSaveUserProfile: (UserProfileEntity) -> Unit = {},
+    onOpenSetupWizard: () -> Unit = {}
 ) {
     // Back gesture instantly triggers camouflage exit to facade
     BackHandler {
@@ -253,7 +258,9 @@ fun SafeHavenScreen(
                             onCloseAddModal = onCloseAddIncidentModal,
                             onSaveIncident = onSaveIncident,
                             exportedSummary = exportedSummary,
-                            onDismissExportDialog = onDismissExportDialog
+                            onDismissExportDialog = onDismissExportDialog,
+                            userProfile = userProfile,
+                            onSaveUserProfile = onSaveUserProfile
                         )
                     }
                     SafeHavenTab.SAFETY_PLAN -> {

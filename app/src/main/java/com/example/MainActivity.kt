@@ -22,6 +22,7 @@ import com.example.di.ViewModelFactory
 import com.example.ui.components.SafetyTriggerOverlay
 import com.example.ui.launcher.LauncherFacadeScreen
 import com.example.ui.safehaven.SafeHavenScreen
+import com.example.ui.onboarding.SetupWizardScreen
 import com.example.ui.theme.SankofaDarkBg
 import com.example.ui.theme.SankofaSafeTheme
 import com.example.ui.viewmodel.AppMode
@@ -39,12 +40,14 @@ class MainActivity : FragmentActivity() {
         val factory = ViewModelFactory(container)
 
         setContent {
-            SankofaSafeTheme {
+            val viewModel: SankofaViewModel = viewModel(factory = factory)
+            val useDynamicTheme by viewModel.useDynamicTheme.collectAsStateWithLifecycle()
+
+            SankofaSafeTheme(dynamicColor = useDynamicTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = SankofaDarkBg
                 ) {
-                    val viewModel: SankofaViewModel = viewModel(factory = factory)
                     val safetyTriggerViewModel: SafetyTriggerViewModel = viewModel(factory = factory)
 
                     // Request runtime permissions required for emergency features
@@ -126,13 +129,27 @@ fun SankofaRootApp(
     val exportedSummary by viewModel.exportedSummary.collectAsStateWithLifecycle()
     val statusNotification by viewModel.statusNotification.collectAsStateWithLifecycle()
     val safetySignalState by safetyTriggerViewModel.signalState.collectAsStateWithLifecycle()
+    val userProfile by viewModel.userProfile.collectAsStateWithLifecycle()
+    val isProfileCreated by viewModel.isProfileCreated.collectAsStateWithLifecycle()
+    val showOnboardingWizard by viewModel.showOnboardingWizard.collectAsStateWithLifecycle()
 
     // Derive current area from the last known signal dispatch for display
     val currentAreaName = (safetySignalState as? com.example.ui.viewmodel.SafetySignalState.Dispatched)
         ?.currentArea ?: "Detecting Area..."
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Crossfade(targetState = currentMode, label = "app_mode_crossfade") { mode ->
+        if (showOnboardingWizard) {
+            SetupWizardScreen(
+                initialUserProfile = userProfile,
+                onCompleteProfileAndSetup = { profile, guardiansList ->
+                    viewModel.saveOnboardingProfileAndGuardians(profile, guardiansList)
+                },
+                onContinueLimitedAccess = {
+                    viewModel.dismissOnboardingWizard()
+                }
+            )
+        } else {
+            Crossfade(targetState = currentMode, label = "app_mode_crossfade") { mode ->
             when (mode) {
                 AppMode.FACADE_LAUNCHER -> {
                     LauncherFacadeScreen(
@@ -202,10 +219,15 @@ fun SankofaRootApp(
                         onOpenFindMyDevice = { viewModel.openFindMyDevice() },
                         currentAreaName = currentAreaName,
                         statusNotification = statusNotification,
-                        onClearStatusNotification = { viewModel.clearStatusNotification() }
+                        onClearStatusNotification = { viewModel.clearStatusNotification() },
+                        userProfile = userProfile,
+                        onSaveUserProfile = { viewModel.saveUserProfile(it) },
+                        onOpenSetupWizard = { viewModel.startOnboardingWizard() }
                     )
                 }
             }
+        }
+
         }
 
         // State-driven Quick-Access SOS Overlay (armed countdown, cancel, dispatch confirmation)

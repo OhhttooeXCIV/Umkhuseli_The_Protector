@@ -73,6 +73,7 @@ import com.example.ui.theme.SankofaSurface
 import com.example.ui.theme.TextMuted
 import com.example.ui.theme.TextPrimary
 import com.example.ui.theme.TextSecondary
+import com.example.data.local.entity.UserProfileEntity
 
 @Composable
 fun EvidenceVaultSection(
@@ -96,7 +97,9 @@ fun EvidenceVaultSection(
         policeObNumber: String
     ) -> Unit,
     exportedSummary: String?,
-    onDismissExportDialog: () -> Unit
+    onDismissExportDialog: () -> Unit,
+    userProfile: UserProfileEntity? = null,
+    onSaveUserProfile: (UserProfileEntity) -> Unit = {}
 ) {
     LazyColumn(
         modifier = Modifier
@@ -330,11 +333,13 @@ fun EvidenceVaultSection(
         )
     }
 
-    // Modal: Export Form 2 Court Summary
+    // Modal: Swipeable Form 2 Protection Order Record Viewer & PDF Exporter
     if (exportedSummary != null) {
-        ExportSummaryDialog(
-            summaryText = exportedSummary,
-            onDismiss = onDismissExportDialog
+        Form2RecordViewer(
+            incidents = incidents,
+            userProfile = userProfile,
+            onDismiss = onDismissExportDialog,
+            onSaveUserProfile = onSaveUserProfile
         )
     }
 }

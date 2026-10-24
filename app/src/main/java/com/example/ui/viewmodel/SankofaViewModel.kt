@@ -22,6 +22,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import com.example.data.local.entity.UserProfileEntity
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -61,6 +63,21 @@ class SankofaViewModel(
 
     private val incidentDao = database.incidentDao()
     private val guardianDao = database.guardianDao()
+    private val userProfileDao = database.userProfileDao()
+
+    val userProfile: StateFlow<UserProfileEntity?> = userProfileDao.getProfileFlow()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    val isProfileCreated: StateFlow<Boolean> = userProfileDao.getProfileFlow()
+        .map { it != null && it.isProfileCompleted }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    val useDynamicTheme: StateFlow<Boolean> = userProfileDao.getProfileFlow()
+        .map { it?.useDynamicLauncherTheme ?: false }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    private val _showOnboardingWizard = MutableStateFlow(false)
+    val showOnboardingWizard: StateFlow<Boolean> = _showOnboardingWizard.asStateFlow()
 
     // ── Navigation state ──────────────────────────────────────────────────────
     private val _currentMode = MutableStateFlow(AppMode.FACADE_LAUNCHER)
@@ -468,6 +485,34 @@ class SankofaViewModel(
     }
 
     fun dismissExportDialog() { _exportedSummary.value = null }
+
+    fun startOnboardingWizard() { _showOnboardingWizard.value = true }
+    fun dismissOnboardingWizard() { _showOnboardingWizard.value = false }
+
+    fun saveUserProfile(profile: UserProfileEntity) {
+        viewModelScope.launch {
+            userProfileDao.upsertProfile(profile)
+            _statusNotification.value = "Complainant legal particulars updated securely."
+        }
+    }
+
+    fun saveOnboardingProfileAndGuardians(profile: UserProfileEntity, guardiansList: List<GuardianEntity>) {
+        viewModelScope.launch {
+            userProfileDao.upsertProfile(profile)
+            guardiansList.forEach { g ->
+                guardianDao.insertGuardian(g)
+            }
+            _showOnboardingWizard.value = false
+            _statusNotification.value = "Shield activated: Protection profile and ICE guardians confirmed."
+        }
+    }
+
+    fun toggleDynamicLauncherTheme(enabled: Boolean) {
+        viewModelScope.launch {
+            val current = userProfile.value ?: UserProfileEntity()
+            userProfileDao.upsertProfile(current.copy(useDynamicLauncherTheme = enabled))
+        }
+    }
 
     // ── Seed helpers ──────────────────────────────────────────────────────────
 
