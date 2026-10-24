@@ -10,6 +10,7 @@ import com.example.data.repository.ProverbsRepository
 import com.example.data.repository.SafetyResourcesRepository
 import com.example.data.repository.ThuthuzelaRepository
 import com.example.service.EmergencyDispatchHelper
+import com.example.service.EmergencyService
 import com.example.service.VaultEncryptionHelper
 import com.example.ui.viewmodel.SafetySignalState
 import com.example.ui.viewmodel.SafetyTriggerViewModel
@@ -23,7 +24,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [36])
+@Config(sdk = [34])
 class ExampleRobolectricTest {
 
     @Test
@@ -74,7 +75,10 @@ class ExampleRobolectricTest {
     @Test
     fun `safety trigger view model arms and logs distress timestamp to room database`() = runTest {
         val app = ApplicationProvider.getApplicationContext<Application>()
-        val viewModel = SafetyTriggerViewModel(app, coroutineScope = this)
+        val db = AppDatabase.getInstance(app)
+        val emergencyService = EmergencyService(app)
+        val emergencyDispatchHelper = EmergencyDispatchHelper(app)
+        val viewModel = SafetyTriggerViewModel(db, emergencyService, emergencyDispatchHelper)
 
         assertEquals(SafetySignalState.Idle, viewModel.signalState.value)
 
@@ -97,7 +101,6 @@ class ExampleRobolectricTest {
         assertTrue(dispatched.formattedTime.isNotBlank())
 
         // 4. Verify record in Room Database
-        val db = AppDatabase.getInstance(app)
         val incident = db.incidentDao().getIncidentById(dispatched.incidentId)
         assertTrue("Incident should exist in Room database", incident != null)
         assertEquals("Emergency SOS Distress Signal", incident?.incidentType)

@@ -104,6 +104,34 @@ enum class SortOrder {
     SEVERITY_ASC
 }
 
+/**
+ * Pure filtering and sorting engine for Form 2 Protection Order incidents.
+ * Filters by abuse category and SAPS OB status, then sorts by timestamp or severity.
+ */
+fun filterAndSortIncidents(
+    incidents: List<IncidentEntity>,
+    sortOrder: SortOrder = SortOrder.DATE_DESC,
+    selectedTypeFilter: String = "All",
+    filterByPoliceOb: Boolean = false
+): List<IncidentEntity> {
+    var list = incidents
+
+    if (selectedTypeFilter != "All") {
+        list = list.filter { it.incidentType.equals(selectedTypeFilter, ignoreCase = true) }
+    }
+
+    if (filterByPoliceOb) {
+        list = list.filter { it.policeObNumber.isNotBlank() }
+    }
+
+    return when (sortOrder) {
+        SortOrder.DATE_DESC -> list.sortedByDescending { it.timestamp }
+        SortOrder.DATE_ASC -> list.sortedBy { it.timestamp }
+        SortOrder.SEVERITY_DESC -> list.sortedByDescending { it.severityLevel }
+        SortOrder.SEVERITY_ASC -> list.sortedBy { it.severityLevel }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Form2RecordViewer(
@@ -129,22 +157,7 @@ fun Form2RecordViewer(
     // Filter & Sort Logic
     val filteredIncidents by remember(incidents, sortOrder, selectedTypeFilter, filterByPoliceOb) {
         derivedStateOf {
-            var list = incidents
-
-            if (selectedTypeFilter != "All") {
-                list = list.filter { it.incidentType.equals(selectedTypeFilter, ignoreCase = true) }
-            }
-
-            if (filterByPoliceOb) {
-                list = list.filter { it.policeObNumber.isNotBlank() }
-            }
-
-            when (sortOrder) {
-                SortOrder.DATE_DESC -> list.sortedByDescending { it.timestamp }
-                SortOrder.DATE_ASC -> list.sortedBy { it.timestamp }
-                SortOrder.SEVERITY_DESC -> list.sortedByDescending { it.severityLevel }
-                SortOrder.SEVERITY_ASC -> list.sortedBy { it.severityLevel }
-            }
+            filterAndSortIncidents(incidents, sortOrder, selectedTypeFilter, filterByPoliceOb)
         }
     }
 

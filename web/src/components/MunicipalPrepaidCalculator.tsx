@@ -128,10 +128,11 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
         <div className="bg-slate-800/80 backdrop-blur rounded-2xl p-5 border border-slate-700 shadow-xl mb-6">
           <form onSubmit={handleCalculate} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1.5">
+              <label htmlFor="muniSelect" className="block text-xs font-semibold text-slate-400 mb-1.5">
                 Municipality / Supply Authority
               </label>
               <select
+                id="muniSelect"
                 value={selectedMuni.name}
                 onChange={(e) => {
                   const m = MUNICIPALITIES.find((x) => x.name === e.target.value);
@@ -148,10 +149,11 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1.5">
+              <label htmlFor="meterNumberInput" className="block text-xs font-semibold text-slate-400 mb-1.5">
                 Prepaid Meter Number (11 Digits)
               </label>
               <input
+                id="meterNumberInput"
                 type="text"
                 value={meterNumber}
                 onChange={(e) => setMeterNumber(e.target.value)}
@@ -161,7 +163,7 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-400 mb-1.5">
+              <label htmlFor="amountInput" className="block text-xs font-semibold text-slate-400 mb-1.5">
                 Purchase Amount (ZAR)
               </label>
               <div className="relative">
@@ -169,6 +171,7 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
                   R
                 </span>
                 <input
+                  id="amountInput"
                   type="text"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
