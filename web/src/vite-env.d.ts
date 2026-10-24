@@ -1,0 +1,29 @@
+/// <reference types="vite/client" />
+
+declare module 'lucide-react' {
+  import React from 'react';
+  export const Shield: React.FC<any>;
+  export const Zap: React.FC<any>;
+  export const Receipt: React.FC<any>;
+  export const CheckCircle: React.FC<any>;
+  export const Info: React.FC<any>;
+  export const Lock: React.FC<any>;
+  export const Unlock: React.FC<any>;
+  export const ShieldAlert: React.FC<any>;
+  export const PhoneCall: React.FC<any>;
+  export const MapPin: React.FC<any>;
+  export const PlusCircle: React.FC<any>;
+  export const FileText: React.FC<any>;
+  export const AlertTriangle: React.FC<any>;
+  export const Sparkles: React.FC<any>;
+  export const EyeOff: React.FC<any>;
+  export const Volume2: React.FC<any>;
+  export const VolumeX: React.FC<any>;
+  export const Send: React.FC<any>;
+  export const CheckCircle2: React.FC<any>;
+  export const Users: React.FC<any>;
+  export const ArrowLeft: React.FC<any>;
+  export const ArrowRight: React.FC<any>;
+  export const ChevronRight: React.FC<any>;
+  export const ExternalLink: React.FC<any>;
+}

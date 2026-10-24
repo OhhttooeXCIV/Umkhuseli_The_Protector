@@ -1,0 +1,36 @@
+{
+  "name": "Umkhuseli: The Protector",
+  "alias": "Sankofa Safe",
+  "version": "1.0.0",
+  "description": "A low-data, dual-persona Android & Web GBV emergency safety shield and court-admissible legal evidence vault for South Africa, disguised as an innocuous launcher and municipal prepaid electricity calculator.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/OhhttooeXCIV/Umkhuseli_The_Protector.git"
+  },
+  "homepage": "https://github.com/OhhttooeXCIV/Umkhuseli_The_Protector#readme",
+  "license": "Apache-2.0",
+  "author": "OhhttooeXCIV",
+  "keywords": [
+    "android",
+    "kotlin",
+    "jetpack-compose",
+    "gbv-response",
+    "south-africa",
+    "popia-compliant",
+    "evidence-vault",
+    "aes-256-gcm",
+    "strongbox",
+    "dual-persona",
+    "camouflage",
+    "thuthuzela-care-centres",
+    "saps-10111",
+    "ussd-zero-airtime",
+    "form-2-protection-order",
+    "pwa",
+    "supabase-zero-knowledge"
+  ],
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

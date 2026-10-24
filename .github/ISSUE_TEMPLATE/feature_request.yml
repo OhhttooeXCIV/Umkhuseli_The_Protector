@@ -1,0 +1,38 @@
+name: Feature Request
+description: Propose a new feature, improvement, or safety capability
+title: "[FEAT]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        We welcome feature proposals designed to enhance user safety, stealth, low-data resilience, or evidentiary readiness in South Africa.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: Is your feature request related to a specific challenge or limitation? (e.g., "In rural Eastern Cape, cell coverage drops to 2G...")
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed Solution / Feature
+      description: Describe your proposed solution clearly.
+    validations:
+      required: true
+  - type: textarea
+    id: safety_impact
+    attributes:
+      label: Safety & Threat Model Considerations
+      description: Does this feature affect the 0ms panic exit, POPIA compliance, or physical adversary evasion?
+    validations:
+      required: true
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority / Urgency
+      options:
+        - "Low (Nice to have)"
+        - "Medium (Quality of Life / Usability)"
+        - "High (Critical Safety / Legal Requirement)"
