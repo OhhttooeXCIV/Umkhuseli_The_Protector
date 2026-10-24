@@ -7,6 +7,8 @@ import com.example.data.model.Province
 import com.example.data.repository.ProverbsRepository
 import com.example.data.repository.SafetyResourcesRepository
 import com.example.data.repository.ThuthuzelaRepository
+import com.example.service.DeviceTelemetryInfo
+import com.example.service.EmergencyDispatchHelper
 import com.example.ui.safehaven.SortOrder
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -17,7 +19,7 @@ import org.junit.Test
 /**
  * High-speed pure JVM Unit Tests for Umkhuseli / Sankofa Safe.
  * Tests domain models, legal particulars, Domestic Violence Act Section 4(2) address withholding,
- * Form 2 filter and sort engine, safety repositories, and provincial coverage.
+ * Form 2 filter and sort engine, safety repositories, provincial coverage, and 72-hour emergency beacon formatting.
  */
 class UmkhuseliUnitTest {
 
@@ -214,5 +216,86 @@ class UmkhuseliUnitTest {
             assertTrue(proverb.englishMeaning.isNotBlank())
             assertTrue(proverb.sourceCulture.isNotBlank())
         }
+    }
+
+    @Test
+    fun `emergency dispatch helper formats 72 hour beacon with live location and Google Find My Device tracker`() {
+        val helper = EmergencyDispatchHelper()
+        val telemetry = DeviceTelemetryInfo(
+            deviceModel = "Samsung Galaxy S24 Ultra",
+            androidVersion = "Android 14 (API 34)",
+            batteryPercentage = 84,
+            isCharging = false,
+            currentArea = "Braamfontein, Johannesburg"
+        )
+        val contact = GuardianEntity(
+            name = "Thabo",
+            surname = "Mokoena",
+            mobileNumber1 = "0821234567",
+            tiktokHandle = "thabo_protect",
+            instagramHandle = "thabo_ice",
+            facebookProfile = "thabo.mokoena",
+            hasWhatsAppAccess = true
+        )
+
+        val messageNoLoc = helper.build72HourDistressMessage(null, telemetry, contact)
+        assertTrue(messageNoLoc.contains("URGENT ICE ALERT FOR THABO MOKOENA:"))
+        assertTrue(messageNoLoc.contains("LIVE LOCATION (72-HR BEACON): Location unavailable (Check Find My Device)"))
+        assertTrue(messageNoLoc.contains("• CURRENT AREA: Braamfontein, Johannesburg"))
+        assertTrue(messageNoLoc.contains("• GOOGLE FIND MY DEVICE TRACKER: https://www.google.com/android/find"))
+        assertTrue(messageNoLoc.contains("• DEVICE BATTERY: 84%"))
+        assertFalse(messageNoLoc.contains("(Charging)"))
+        assertTrue(messageNoLoc.contains("• HANDSET: Samsung Galaxy S24 Ultra"))
+        assertTrue(messageNoLoc.contains("IG: @thabo_ice"))
+        assertTrue(messageNoLoc.contains("TikTok: @thabo_protect"))
+        assertTrue(messageNoLoc.contains("FB: thabo.mokoena"))
+        assertTrue(messageNoLoc.contains("SAPS 10111"))
+        assertTrue(messageNoLoc.contains("0800 428 428"))
+    }
+
+    @Test
+    fun `emergency dispatch helper charging indicator and pending GPS lock format correctly`() {
+        val helper = EmergencyDispatchHelper()
+        val telemetry = DeviceTelemetryInfo(
+            deviceModel = "Pixel 8",
+            androidVersion = "Android 15 (API 35)",
+            batteryPercentage = 15,
+            isCharging = true,
+            currentArea = "Area pending GPS lock"
+        )
+
+        val message = helper.build72HourDistressMessage(null, telemetry, null)
+        assertTrue(message.contains("EMERGENCY DISTRESS BEACON:"))
+        assertTrue(message.contains("• DEVICE BATTERY: 15% (Charging)"))
+        assertTrue(message.contains("• CURRENT AREA: Area pending GPS lock"))
+    }
+
+    @Test
+    fun `emergency dispatch helper area name defaults to pending lock when location is null`() {
+        val helper = EmergencyDispatchHelper()
+        val area = helper.getAreaNameFromLocation(null)
+        assertEquals("Area pending GPS lock", area)
+    }
+
+    @Test
+    fun `emergency dispatch helper omits social media line if guardian has no handles`() {
+        val helper = EmergencyDispatchHelper()
+        val telemetry = DeviceTelemetryInfo(
+            deviceModel = "Test Phone",
+            androidVersion = "Android 14",
+            batteryPercentage = 90,
+            isCharging = false,
+            currentArea = "Cape Town"
+        )
+        val guardian = GuardianEntity(
+            name = "Kagiso",
+            surname = "Molefe",
+            mobileNumber1 = "0820001111"
+        )
+
+        val message = helper.build72HourDistressMessage(null, telemetry, guardian)
+
+        assertTrue(message.contains("URGENT ICE ALERT FOR KAGISO MOLEFE:"))
+        assertFalse(message.contains("• ICE GUARDIAN HANDLES:"))
     }
 }
