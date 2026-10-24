@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from "react";
-import { Shield, Zap, Receipt, CheckCircle, Info, Lock } from "lucide-react";
+import React, { useState, useRef } from "react";
+import { Shield, Zap, Receipt, CheckCircle, Info, AlertOctagon, AlertTriangle, X } from "lucide-react";
 
 interface MunicipalityTariff {
   name: string;
@@ -20,6 +20,15 @@ interface Props {
   onDuressTrigger: () => void;
 }
 
+export interface DecoyResult {
+  unitsKwh: number;
+  vat: number;
+  net: number;
+  token: string;
+  isDuress?: boolean;
+  errorCode?: string;
+}
+
 export const MunicipalPrepaidCalculator: React.FC<Props> = ({
   onUnlockSafeHaven,
   onDuressTrigger
@@ -27,12 +36,8 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
   const [selectedMuni, setSelectedMuni] = useState(MUNICIPALITIES[0]);
   const [meterNumber, setMeterNumber] = useState("04182948192");
   const [amount, setAmount] = useState("200");
-  const [result, setResult] = useState<{
-    unitsKwh: number;
-    vat: number;
-    net: number;
-    token: string;
-  } | null>(null);
+  const [result, setResult] = useState<DecoyResult | null>(null);
+  const [showStsErrorModal, setShowStsErrorModal] = useState(false);
 
   // Covert 3-tap gesture tracking
   const tapCountRef = useRef(0);
@@ -65,14 +70,16 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
     }
 
     // Check for Duress PIN (displays fake token & triggers silent SOS)
-    if (cleanAmount === "9999" || cleanMeter.endsWith("9999")) {
+    if (cleanAmount === "9999" || cleanMeter.endsWith("9999") || cleanAmount === "30") {
       onDuressTrigger();
       const val = 200;
       setResult({
         unitsKwh: val / selectedMuni.ratePerKwh,
         vat: (val * 0.15) / 1.15,
         net: val - (val * 0.15) / 1.15,
-        token: "4819 0281 9481 0294 8812"
+        token: "4819 0281 9481 0294 8812",
+        isDuress: true,
+        errorCode: "STS-ERR-30"
       });
       return;
     }
@@ -247,6 +254,90 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
               <div className="font-mono text-base font-bold text-amber-400 tracking-wider">
                 {result.token}
               </div>
+            </div>
+
+            {/* Feature 2: Duress STS Reverse-Decoy Warning & Diagnostic Trigger */}
+            {result.isDuress && (
+              <div className="mt-3 bg-rose-950/40 border border-rose-500/40 rounded-xl p-3.5 text-xs text-rose-200 animate-in fade-in duration-300">
+                <div className="flex items-center gap-2 font-bold text-rose-400 mb-1">
+                  <AlertOctagon className="w-4 h-4 text-rose-400 shrink-0" />
+                  <span>STS System Notice: Meter KRN2 Rollover Required</span>
+                </div>
+                <p className="text-[11px] text-slate-300 leading-relaxed mb-2.5">
+                  Warning: Gateway response code <span className="font-mono font-bold text-amber-300">0x8830 (Error 30)</span>. 
+                  Token generated under Key Revision 1. If your wall meter rejects this token with <span className="font-mono text-rose-300">"REJECT"</span> or <span className="font-mono text-rose-300">"Error 30"</span>, 
+                  meter vending is suspended for TID Rollover. Ref: <span className="font-mono text-slate-200">ESK-2026-8819</span>.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowStsErrorModal(true)}
+                  className="w-full bg-rose-900/60 hover:bg-rose-900 border border-rose-600/50 text-rose-200 text-[11px] font-bold py-1.5 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-colors"
+                >
+                  <AlertTriangle className="w-3.5 h-3.5 text-rose-300" />
+                  <span>View STS Diagnostic Terminal Screen</span>
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Feature 2: Authentic STS Meter Hardware Error Modal */}
+        {showStsErrorModal && (
+          <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+            <div className="bg-slate-950 border-2 border-rose-600 rounded-2xl max-w-sm w-full p-5 shadow-2xl font-mono text-xs text-slate-200 space-y-4">
+              <div className="flex items-center justify-between border-b border-rose-900/60 pb-3">
+                <div className="flex items-center gap-2 text-rose-500 font-bold text-sm tracking-wider">
+                  <AlertOctagon className="w-5 h-5 animate-pulse" />
+                  <span>STS ERROR 30</span>
+                </div>
+                <button
+                  onClick={() => setShowStsErrorModal(false)}
+                  className="text-slate-400 hover:text-white p-1 rounded-lg"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="space-y-2 bg-slate-900 p-3 rounded-xl border border-slate-800 text-[11px] leading-relaxed">
+                <div>
+                  <span className="text-slate-500">METER NO:</span>{" "}
+                  <span className="text-amber-400 font-bold">{meterNumber}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500">AUTHORITY:</span>{" "}
+                  <span className="text-white">{selectedMuni.name.toUpperCase()}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500">STATUS:</span>{" "}
+                  <span className="text-rose-400 font-bold">TRANSACTION HALTED (0x8830)</span>
+                </div>
+                <div>
+                  <span className="text-slate-500">FAULT:</span>{" "}
+                  <span className="text-slate-300">
+                    Meter Key Revision Expired. Meter rejected key rollover window.
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-500">HELPDESK:</span>{" "}
+                  <span className="text-sky-400">Eskom 08600 37566 / City Power 0860 562 874</span>
+                </div>
+                <div>
+                  <span className="text-slate-500">REF TICKET:</span>{" "}
+                  <span className="text-amber-300">ESK-ZA-8841-KRN2</span>
+                </div>
+              </div>
+
+              <p className="text-[10px] text-slate-400 text-center font-sans">
+                Official STS Association diagnostic standard IEC 62055-41. Do not re-enter invalid voucher to avoid meter lockout.
+              </p>
+
+              <button
+                type="button"
+                onClick={() => setShowStsErrorModal(false)}
+                className="w-full bg-slate-800 hover:bg-slate-700 text-white font-sans font-bold py-2.5 rounded-xl text-xs transition-colors"
+              >
+                Acknowledge & Close Diagnostic
+              </button>
             </div>
           </div>
         )}

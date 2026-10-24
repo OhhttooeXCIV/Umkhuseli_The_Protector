@@ -226,3 +226,127 @@ AS $$
     )
     ORDER BY distance_meters ASC;
 $$;
+
+-- ============================================================================
+-- 10. ADVANCED JOURNEYS, 72-HOUR BEACONS, CONTACTS & GHOST BEACONS
+-- ============================================================================
+
+-- Private Registered Contact Hashes (HMAC/SHA-256 phone matching)
+CREATE TABLE IF NOT EXISTS public.registered_contact_hashes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    phone_hash TEXT NOT NULL UNIQUE,
+    display_alias TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_contact_hashes_hash ON public.registered_contact_hashes(phone_hash);
+ALTER TABLE public.registered_contact_hashes ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can manage their own registered contact hash"
+    ON public.registered_contact_hashes
+    FOR ALL
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+
+-- RPC: Match Address Book Hashes (Private Discovery)
+CREATE OR REPLACE FUNCTION match_registered_contacts(
+    lookup_hashes TEXT[]
+)
+RETURNS TABLE (
+    user_id UUID,
+    phone_hash TEXT,
+    display_alias TEXT
+)
+LANGUAGE sql
+SECURITY DEFINER
+AS $$
+    SELECT 
+        user_id,
+        phone_hash,
+        display_alias
+    FROM public.registered_contact_hashes
+    WHERE phone_hash = ANY(lookup_hashes)
+      AND user_id != auth.uid();
+$$;
+
+-- Safe Journeys with Dynamic 3km Geofence and 1km Fuzzy Safe Home Return
+CREATE TABLE IF NOT EXISTS public.safe_journeys (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    activity_title TEXT NOT NULL,
+    destination_name TEXT NOT NULL,
+    destination_lat DOUBLE PRECISION,
+    destination_lng DOUBLE PRECISION,
+    origin_lat DOUBLE PRECISION,
+    origin_lng DOUBLE PRECISION,
+    departure_radius_km NUMERIC DEFAULT 3.0,
+    home_fuzzy_radius_km NUMERIC DEFAULT 1.0,
+    status TEXT NOT NULL DEFAULT 'ACTIVE', -- 'ACTIVE', 'DEVIATION_ALERT', 'SAFE_RETURN', 'TERMINATED'
+    selected_guardians JSONB NOT NULL DEFAULT '[]'::jsonb,
+    started_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+    ended_at TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_safe_journeys_user ON public.safe_journeys(user_id);
+ALTER TABLE public.safe_journeys ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can manage their own safe journeys"
+    ON public.safe_journeys
+    FOR ALL
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+
+-- 72-Hour Ephemeral Live Beacons
+CREATE TABLE IF NOT EXISTS public.live_beacons (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    token TEXT UNIQUE NOT NULL,
+    last_lat DOUBLE PRECISION,
+    last_lng DOUBLE PRECISION,
+    accuracy NUMERIC,
+    battery_pct INT,
+    is_charging BOOLEAN DEFAULT FALSE,
+    device_model TEXT DEFAULT '',
+    current_area TEXT DEFAULT '',
+    is_active BOOLEAN DEFAULT TRUE,
+    expires_at TIMESTAMPTZ NOT NULL DEFAULT (TIMEZONE('utc'::text, NOW()) + INTERVAL '72 hours'),
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_live_beacons_token ON public.live_beacons(token);
+ALTER TABLE public.live_beacons ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can create and manage their own live beacons"
+    ON public.live_beacons
+    FOR ALL
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Public read for active unexpired live beacons by token"
+    ON public.live_beacons
+    FOR SELECT
+    USING (is_active = TRUE AND expires_at > TIMEZONE('utc'::text, NOW()));
+
+-- Ghost Beacons (Silent 6-Hour Hardware Tracking)
+CREATE TABLE IF NOT EXISTS public.ghost_beacons (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    hardware_id TEXT NOT NULL,
+    user_declared_imei TEXT,
+    battery_level INT,
+    network_carrier TEXT,
+    approx_lat DOUBLE PRECISION,
+    approx_lng DOUBLE PRECISION,
+    synced_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_ghost_beacons_hardware ON public.ghost_beacons(hardware_id);
+ALTER TABLE public.ghost_beacons ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can manage their own ghost beacons"
+    ON public.ghost_beacons
+    FOR ALL
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+

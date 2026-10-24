@@ -14,4 +14,8 @@ class SankofaApplication : Application() {
     val container: AppContainer by lazy {
         AppContainer(applicationContext)
     }
+
+    override fun onCreate() {
+        super.onCreate()
+    }
 }

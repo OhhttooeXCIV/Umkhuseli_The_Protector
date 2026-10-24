@@ -58,12 +58,23 @@ class SankofaViewModel(
     private val vaultEncryptionHelper: VaultEncryptionHelper,
     private val emergencyDispatchHelper: EmergencyDispatchHelper,
     @Suppress("unused") private val networkPolicyHelper: NetworkPolicyHelper,
-    private val appLauncherRepository: AppLauncherRepository
+    private val appLauncherRepository: AppLauncherRepository,
+    val contactDiscoveryHelper: com.example.service.ContactDiscoveryHelper? = null,
+    val safeJourneyManager: com.example.service.SafeJourneyManager? = null,
+    val hardwareIdentifierHelper: com.example.service.HardwareIdentifierHelper? = null
 ) : ViewModel() {
 
     private val incidentDao = database.incidentDao()
     private val guardianDao = database.guardianDao()
     private val userProfileDao = database.userProfileDao()
+    private val safeJourneyDao = database.safeJourneyDao()
+    private val registeredContactDao = database.registeredContactDao()
+
+    val activeJourney: StateFlow<com.example.data.local.entity.SafeJourneyEntity?> = safeJourneyDao.observeActiveJourney()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    val registeredAppFriends: StateFlow<List<com.example.data.local.entity.RegisteredContactEntity>> = registeredContactDao.getRegisteredAppFriends()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val userProfile: StateFlow<UserProfileEntity?> = userProfileDao.getProfileFlow()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
@@ -71,6 +82,17 @@ class SankofaViewModel(
     val isProfileCreated: StateFlow<Boolean> = userProfileDao.getProfileFlow()
         .map { it != null && it.isProfileCompleted }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    val userRole: StateFlow<com.example.service.UserAccessRole> = userProfileDao.getProfileFlow()
+        .map { profile ->
+            when (profile?.userRole) {
+                "FEMALE_PRIMARY" -> com.example.service.UserAccessRole.FEMALE_PRIMARY
+                "MALE_GUARDIAN_RESPONDER" -> com.example.service.UserAccessRole.MALE_GUARDIAN_RESPONDER
+                "BLOCKED_OFFENDER" -> com.example.service.UserAccessRole.BLOCKED_OFFENDER
+                else -> com.example.service.UserAccessRole.TIER_0_GUEST
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), com.example.service.UserAccessRole.TIER_0_GUEST)
 
     val useDynamicTheme: StateFlow<Boolean> = userProfileDao.getProfileFlow()
         .map { it?.useDynamicLauncherTheme ?: false }
@@ -512,6 +534,123 @@ class SankofaViewModel(
             val current = userProfile.value ?: UserProfileEntity()
             userProfileDao.upsertProfile(current.copy(useDynamicLauncherTheme = enabled))
         }
+    }
+
+    // ── Safe Journey & Dynamic Geofence Operations ────────────────────────────
+
+    fun startSafeJourney(
+        activityTitle: String,
+        destinationName: String,
+        destinationLat: Double?,
+        destinationLng: Double?,
+        recipientIds: List<String>
+    ) {
+        viewModelScope.launch {
+            val origin = emergencyService.getLastKnownLocation()
+            safeJourneyManager?.startJourney(
+                activityTitle = activityTitle,
+                destinationName = destinationName,
+                destinationLat = destinationLat,
+                destinationLng = destinationLng,
+                originLat = origin?.latitude,
+                originLng = origin?.longitude,
+                recipientIds = recipientIds
+            )
+            _statusNotification.value = "Safe journey active: 3km departure corridor & 1km safe home return armed."
+        }
+    }
+
+    fun endSafeJourney(journeyId: Long) {
+        viewModelScope.launch {
+            safeJourneyManager?.endJourney(journeyId)
+            _statusNotification.value = "Safe journey completed and terminated."
+        }
+    }
+
+    // ── Statutory Zero-Airtime USSD Please Call Me ────────────────────────────
+
+    fun sendAutoPleaseCallMe() {
+        val primary = guardians.value.firstOrNull { it.isPrimary } ?: guardians.value.firstOrNull()
+        if (primary != null) {
+            val sent = emergencyService.sendAutoPleaseCallMe(primary.phoneNumber)
+            if (sent) {
+                _statusNotification.value = "Zero-airtime Please Call Me dispatched to ${primary.fullName}."
+            }
+        } else {
+            _statusNotification.value = "Please configure an ICE contact first."
+        }
+    }
+
+    // ── 72-Hour Live Location Dispatcher ──────────────────────────────────────
+
+    fun dispatch72HourLiveBeacon() {
+        val primary = guardians.value.firstOrNull { it.isPrimary } ?: guardians.value.firstOrNull()
+        val loc = emergencyService.getLastKnownLocation()
+        val telemetry = emergencyDispatchHelper.getDeviceTelemetry(loc)
+        if (primary != null) {
+            emergencyDispatchHelper.launchWhatsAppEmergencyDispatch(primary, loc, telemetry)
+            _statusNotification.value = "72-Hour Live Beacon shared via WhatsApp with ${primary.name}."
+        } else {
+            _statusNotification.value = "No primary ICE contact found. Add an ICE guardian first."
+        }
+    }
+
+    // ── Proximity Emergency Facilities Lookup ─────────────────────────────────
+
+    fun getNearestEmergencyFacilities(): Pair<Pair<com.example.data.model.ThuthuzelaCenter, Double>?, Pair<com.example.data.model.PoliceStation, Double>?> {
+        val loc = emergencyService.getLastKnownLocation()
+        val nearestTcc = emergencyDispatchHelper.findNearestTcc(loc)
+        val nearestPolice = emergencyDispatchHelper.findNearestPoliceStation(loc)
+        return nearestTcc to nearestPolice
+    }
+
+    fun callNearestFacility(phone: String) {
+        emergencyService.makeCall(phone)
+    }
+
+    // ── Statutory User Profiling & South African ID Verification ──────────────
+
+    fun validateIdAndApplyRole(
+        idNumber: String,
+        isIceContact: Boolean = false
+    ): com.example.service.SaIdValidationResult {
+        val result = com.example.service.SouthAfricanIdValidator.validateAndProfile(idNumber, isIceContact)
+        if (result.isValid) {
+            viewModelScope.launch {
+                val current = userProfile.value ?: UserProfileEntity()
+                userProfileDao.upsertProfile(
+                    current.copy(
+                        userRole = result.determinedRole.name,
+                        gender = result.gender.name,
+                        dateOfBirth = result.dateOfBirthFormatted,
+                        hashedIdNumber = result.hashedId,
+                        isNrsoCleared = !result.isNrsoBlacklisted,
+                        isDeviceBlocked = result.isNrsoBlacklisted
+                    )
+                )
+                if (result.determinedRole == com.example.service.UserAccessRole.MALE_GUARDIAN_RESPONDER) {
+                    _statusNotification.value = "Guardian Responder Mode active: Registered as trusted ICE ally."
+                } else if (result.determinedRole == com.example.service.UserAccessRole.FEMALE_PRIMARY) {
+                    _statusNotification.value = "Identity verified: Full Sanctuary & Evidence Vault access unlocked."
+                }
+            }
+        } else if (result.isNrsoBlacklisted) {
+            viewModelScope.launch {
+                val current = userProfile.value ?: UserProfileEntity()
+                userProfileDao.upsertProfile(
+                    current.copy(
+                        userRole = com.example.service.UserAccessRole.BLOCKED_OFFENDER.name,
+                        isNrsoCleared = false,
+                        isDeviceBlocked = true
+                    )
+                )
+                val loc = emergencyService.getLastKnownLocation()
+                val telemetry = emergencyDispatchHelper.getDeviceTelemetry(loc)
+                val hwId = hardwareIdentifierHelper?.getHardwareIdentity()?.hardwareId ?: "UNKNOWN_HW"
+                android.util.Log.e("SAPS_TRAPDOOR", "CRITICAL: Offender register flag on HW: $hwId | HASH: ${result.hashedId} | LOC: ${telemetry.currentArea}")
+            }
+        }
+        return result
     }
 
     // ── Seed helpers ──────────────────────────────────────────────────────────

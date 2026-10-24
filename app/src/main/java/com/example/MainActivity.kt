@@ -132,6 +132,7 @@ fun SankofaRootApp(
     val userProfile by viewModel.userProfile.collectAsStateWithLifecycle()
     val isProfileCreated by viewModel.isProfileCreated.collectAsStateWithLifecycle()
     val showOnboardingWizard by viewModel.showOnboardingWizard.collectAsStateWithLifecycle()
+    val activeJourney by viewModel.activeJourney.collectAsStateWithLifecycle()
 
     // Derive current area from the last known signal dispatch for display
     val currentAreaName = (safetySignalState as? com.example.ui.viewmodel.SafetySignalState.Dispatched)
@@ -222,7 +223,17 @@ fun SankofaRootApp(
                         onClearStatusNotification = { viewModel.clearStatusNotification() },
                         userProfile = userProfile,
                         onSaveUserProfile = { viewModel.saveUserProfile(it) },
-                        onOpenSetupWizard = { viewModel.startOnboardingWizard() }
+                        onOpenSetupWizard = { viewModel.startOnboardingWizard() },
+                        onSendAutoPleaseCallMe = { viewModel.sendAutoPleaseCallMe() },
+                        onDispatch72HourBeacon = { viewModel.dispatch72HourLiveBeacon() },
+                        activeJourneyTitle = activeJourney?.activityTitle,
+                        onStartSafeJourney = {
+                            viewModel.startSafeJourney("Commute", "Campus / Transit", null, null, emptyList())
+                        },
+                        onEndSafeJourney = {
+                            activeJourney?.id?.let { viewModel.endSafeJourney(it) }
+                        },
+                        onCallNearestFacility = { phone -> viewModel.callNearestFacility(phone) }
                     )
                 }
             }
