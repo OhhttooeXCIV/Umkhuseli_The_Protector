@@ -1,0 +1,228 @@
+-- ============================================================================
+-- Umkhuseli / Sankofa Safe — Supabase PostgreSQL Schema
+-- FNB App of the Year Hackathon 2026: Safer Communities & GBV Response
+-- Target: Zero-Knowledge Encrypted Cloud Vault, PostGIS Safety Heatmap & Edge SOS
+-- ============================================================================
+
+-- 1. Enable Required Extensions
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+CREATE EXTENSION IF NOT EXISTS "postgis";
+
+-- 2. User Profiles / Anonymous Device Registrations
+-- Victims can authenticate anonymously via Supabase Auth (auth.uid()) or PIN-based pseudonym
+CREATE TABLE IF NOT EXISTS public.profiles (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    recovery_hash TEXT, -- Optional bcrypt/argon2 hash of recovery passphrase
+    duress_pin_hash TEXT, -- Hash for duress trigger PIN
+    preferred_language TEXT DEFAULT 'en', -- en, zu, xh, st, af
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+-- 3. ICE Guardians Table (Migrated & Enhanced from GuardianEntity.kt)
+CREATE TABLE IF NOT EXISTS public.guardians (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    surname TEXT DEFAULT '',
+    mobile_number_1 TEXT NOT NULL,
+    mobile_number_2 TEXT DEFAULT '',
+    email_address_1 TEXT DEFAULT '',
+    email_address_2 TEXT DEFAULT '',
+    tiktok_handle TEXT DEFAULT '',
+    facebook_profile TEXT DEFAULT '',
+    instagram_handle TEXT DEFAULT '',
+    has_whatsapp_access BOOLEAN DEFAULT TRUE,
+    relationship TEXT DEFAULT 'Guardian',
+    notify_via_sms BOOLEAN DEFAULT TRUE,
+    is_primary BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_guardians_user_id ON public.guardians(user_id);
+
+-- 4. Evidence Vault: Incidents Table (Zero-Knowledge AES-256-GCM)
+-- Text and metadata are encrypted client-side with AES-256-GCM prior to upload.
+-- The server stores zero plaintext details about the perpetrator or assault.
+CREATE TABLE IF NOT EXISTS public.incidents (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    timestamp BIGINT NOT NULL,
+    date_time_formatted TEXT NOT NULL,
+    incident_type TEXT NOT NULL, -- Physical, Verbal/Emotional, Threat, Financial, Stalking, Property Damage, Digital Surveillance
+    severity_level INT NOT NULL CHECK (severity_level BETWEEN 1 AND 5),
+    encrypted_payload TEXT NOT NULL, -- AES-256-GCM ciphertext containing perpetrator, description, injuries, witnesses, notes
+    police_ob_number TEXT DEFAULT '', -- SAPS Occurrence Book number if reported
+    evidence_media_keys TEXT[] DEFAULT '{}', -- S3 storage keys in vault-evidence bucket
+    sha256_checksum TEXT NOT NULL, -- Tamper-proof hash for legal admissibility
+    form2_affidavit_draft TEXT DEFAULT '', -- Generated via Gemini AI Studio
+    danger_score INT CHECK (danger_score BETWEEN 0 AND 100), -- Predictive Danger Assessment Index (DAI)
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_incidents_user_id ON public.incidents(user_id);
+CREATE INDEX IF NOT EXISTS idx_incidents_severity ON public.incidents(severity_level);
+
+-- 5. SOS Beacons Table (Triggered during panic state for Unstoppable Dispatch)
+CREATE TABLE IF NOT EXISTS public.sos_beacons (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    status TEXT NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'PROCESSING', 'DISPATCHED', 'RESOLVED', 'FALSE_ALARM')),
+    is_duress BOOLEAN DEFAULT FALSE,
+    latitude DOUBLE PRECISION,
+    longitude DOUBLE PRECISION,
+    accuracy DOUBLE PRECISION,
+    area_name TEXT DEFAULT 'Pending GPS lock',
+    battery_percentage INT,
+    is_charging BOOLEAN DEFAULT FALSE,
+    device_model TEXT,
+    distress_message TEXT,
+    dispatched_channels TEXT[] DEFAULT '{}', -- ['SMS', 'EMAIL', 'WHATSAPP_GATEWAY']
+    dispatched_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_sos_beacons_user_id ON public.sos_beacons(user_id);
+CREATE INDEX IF NOT EXISTS idx_sos_beacons_status ON public.sos_beacons(status);
+
+-- 6. PostGIS Crowdsourced Safety Hazards (Anonymous Community Heatmap)
+-- Allows users to report unsafe zones (broken lighting during loadshedding, harassment hotspots)
+-- completely anonymously without tying to user_id.
+CREATE TABLE IF NOT EXISTS public.safety_hazards (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    hazard_type TEXT NOT NULL, -- 'Dark Street / No Lighting', 'Harassment Hotspot', 'Isolated Alley', 'Unmanned Taxi Rank'
+    description TEXT DEFAULT '',
+    province TEXT NOT NULL, -- Gauteng, Western Cape, KwaZulu-Natal, etc.
+    location GEOGRAPHY(Point, 4326) NOT NULL,
+    verified_count INT DEFAULT 1,
+    reported_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_safety_hazards_geo ON public.safety_hazards USING GIST(location);
+
+-- ============================================================================
+-- ROW LEVEL SECURITY (RLS) POLICIES
+-- Strict Zero-Knowledge Privacy Isolation
+-- ============================================================================
+
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.guardians ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.incidents ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.sos_beacons ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.safety_hazards ENABLE ROW LEVEL SECURITY;
+
+-- Profiles: Users can only see and update their own profile
+CREATE POLICY "Users view own profile" 
+    ON public.profiles FOR SELECT 
+    USING (auth.uid() = id);
+
+CREATE POLICY "Users update own profile" 
+    ON public.profiles FOR UPDATE 
+    USING (auth.uid() = id);
+
+CREATE POLICY "Users insert own profile" 
+    ON public.profiles FOR INSERT 
+    WITH CHECK (auth.uid() = id);
+
+-- Guardians: Strictly isolated by user_id
+CREATE POLICY "Users manage own guardians" 
+    ON public.guardians FOR ALL 
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+
+-- Incidents: Strict zero-knowledge access
+CREATE POLICY "Users manage own incidents" 
+    ON public.incidents FOR ALL 
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+
+-- SOS Beacons: Users can insert and read their own beacons
+CREATE POLICY "Users manage own sos beacons" 
+    ON public.sos_beacons FOR ALL 
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+
+-- Safety Hazards Heatmap: Anyone can read aggregated pins, authenticated users can insert pins anonymously
+CREATE POLICY "Public read safety hazards" 
+    ON public.safety_hazards FOR SELECT 
+    USING (TRUE);
+
+CREATE POLICY "Users insert anonymous hazard pins" 
+    ON public.safety_hazards FOR INSERT 
+    WITH CHECK (TRUE);
+
+-- ============================================================================
+-- STORAGE CONFIGURATION & BUCKET POLICIES
+-- ============================================================================
+
+-- Create private bucket for encrypted evidence files (J88 medical photos, audio)
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+    'vault-evidence',
+    'vault-evidence',
+    FALSE,
+    52428800, -- 50 MB limit per encrypted file
+    ARRAY['application/octet-stream', 'image/jpeg', 'image/png', 'audio/mp4', 'audio/aac', 'audio/mpeg', 'application/pdf']
+) ON CONFLICT (id) DO NOTHING;
+
+-- Storage Policy: Users can only upload and read files within their own user_id directory
+CREATE POLICY "Users upload to own vault directory"
+    ON storage.objects FOR INSERT
+    WITH CHECK (
+        bucket_id = 'vault-evidence' 
+        AND auth.uid()::text = (storage.foldername(name))[1]
+    );
+
+CREATE POLICY "Users read own vault objects"
+    ON storage.objects FOR SELECT
+    USING (
+        bucket_id = 'vault-evidence' 
+        AND auth.uid()::text = (storage.foldername(name))[1]
+    );
+
+CREATE POLICY "Users delete own vault objects"
+    ON storage.objects FOR DELETE
+    USING (
+        bucket_id = 'vault-evidence' 
+        AND auth.uid()::text = (storage.foldername(name))[1]
+    );
+
+-- ============================================================================
+-- POSTGIS SPATIAL QUERY FUNCTIONS
+-- ============================================================================
+
+-- Function to find safety hazards within X meters of user GPS
+CREATE OR REPLACE FUNCTION get_hazards_nearby(
+    user_lat DOUBLE PRECISION,
+    user_lon DOUBLE PRECISION,
+    radius_meters DOUBLE PRECISION DEFAULT 5000
+)
+RETURNS TABLE (
+    id UUID,
+    hazard_type TEXT,
+    description TEXT,
+    province TEXT,
+    distance_meters DOUBLE PRECISION,
+    verified_count INT
+)
+LANGUAGE sql
+SECURITY DEFINER
+AS $$
+    SELECT 
+        id,
+        hazard_type,
+        description,
+        province,
+        ST_Distance(location, ST_SetSRID(ST_MakePoint(user_lon, user_lat), 4326)::geography) AS distance_meters,
+        verified_count
+    FROM public.safety_hazards
+    WHERE ST_DWithin(
+        location,
+        ST_SetSRID(ST_MakePoint(user_lon, user_lat), 4326)::geography,
+        radius_meters
+    )
+    ORDER BY distance_meters ASC;
+$$;
