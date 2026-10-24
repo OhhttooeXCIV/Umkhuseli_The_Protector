@@ -197,6 +197,7 @@ fun SetupWizardScreen(
                     onAutoScrubMediaChange = { autoScrubMedia = it },
                     onBack = { currentStep = OnboardingStep.STEP_2_GUARDIANS },
                     onFinish = {
+                        val validation = com.example.service.SouthAfricanIdValidator.validateAndProfile(idNumber)
                         val profile = UserProfileEntity(
                             id = 1L,
                             fullLegalNames = legalNames.ifBlank { "Registered User" },
@@ -209,7 +210,13 @@ fun SetupWizardScreen(
                             useDynamicLauncherTheme = useLauncherTheme,
                             duressPin = duressPin,
                             autoScrubMedia = autoScrubMedia,
-                            isProfileCompleted = true
+                            isProfileCompleted = true,
+                            userRole = validation.determinedRole.name,
+                            gender = validation.gender.name,
+                            dateOfBirth = validation.dateOfBirthFormatted,
+                            hashedIdNumber = validation.hashedId,
+                            isNrsoCleared = !validation.isNrsoBlacklisted,
+                            isDeviceBlocked = validation.isNrsoBlacklisted
                         )
                         onCompleteProfileAndSetup(profile, guardiansList.toList())
                     }
@@ -796,10 +803,46 @@ fun Step3OptimizationView(
             OutlinedTextField(
                 value = idNumber,
                 onValueChange = onIdNumberChange,
-                label = { Text("SA ID Number / Passport") },
+                label = { Text("South African 13-Digit ID Number") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
+
+            if (idNumber.length == 13 && idNumber.all { it.isDigit() }) {
+                val validation = com.example.service.SouthAfricanIdValidator.validateAndProfile(idNumber)
+                if (validation.isValid) {
+                    val isFemale = validation.gender == com.example.service.SouthAfricanGender.FEMALE
+                    val badgeColor = if (isFemale) SafetyGreen else Color(0xFF00B0FF)
+                    val badgeText = if (isFemale) {
+                        "✓ Verified: Female Primary Sanctuary Access (DOB: ${validation.dateOfBirthFormatted})"
+                    } else {
+                        "ℹ Verified: Male Ally • Guardian Responder Mode (DOB: ${validation.dateOfBirthFormatted})"
+                    }
+                    Text(
+                        text = badgeText,
+                        color = badgeColor,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(start = 4.dp, top = 2.dp)
+                    )
+                } else if (validation.isNrsoBlacklisted) {
+                    Text(
+                        text = "⚠ System Verification Notice: DHA-701 Verification Required",
+                        color = SafetyRed,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(start = 4.dp, top = 2.dp)
+                    )
+                } else {
+                    Text(
+                        text = "⚠ ${validation.errorMessage ?: "Invalid South African ID"}",
+                        color = SafetyAmber,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(start = 4.dp, top = 2.dp)
+                    )
+                }
+            }
             OutlinedTextField(
                 value = contactPhone,
                 onValueChange = onContactPhoneChange,

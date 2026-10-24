@@ -439,4 +439,72 @@ class UmkhuseliUnitTest {
         val hashAgain = com.example.service.HardwareIdentifierHelper.computeHash(input)
         assertEquals(hash, hashAgain)
     }
+
+    // ── FEATURE 5 TESTS: SA ID VALIDATION, RBAC GATING & NRSO OFFENDER SCREEN ──
+
+    @Test
+    fun `sa id validator accepts valid female id and assigns female primary sanctuary role`() {
+        val femaleId = "9201010123086" // Digit 7 is '0' -> Female
+        val result = com.example.service.SouthAfricanIdValidator.validateAndProfile(femaleId)
+
+        assertTrue(result.isValid)
+        assertEquals(com.example.service.SouthAfricanGender.FEMALE, result.gender)
+        assertEquals("1992-01-01", result.dateOfBirthFormatted)
+        assertEquals(com.example.service.UserAccessRole.FEMALE_PRIMARY, result.determinedRole)
+        assertFalse(result.isNrsoBlacklisted)
+        assertTrue(result.hashedId.length == 64)
+    }
+
+    @Test
+    fun `sa id validator accepts valid male id and assigns male guardian responder role`() {
+        val maleId = "9505155678088" // Digit 7 is '5' -> Male
+        val result = com.example.service.SouthAfricanIdValidator.validateAndProfile(maleId, isIceContactRegistration = true)
+
+        assertTrue(result.isValid)
+        assertEquals(com.example.service.SouthAfricanGender.MALE, result.gender)
+        assertEquals("1995-05-15", result.dateOfBirthFormatted)
+        assertEquals(com.example.service.UserAccessRole.MALE_GUARDIAN_RESPONDER, result.determinedRole)
+        assertFalse(result.isNrsoBlacklisted)
+    }
+
+    @Test
+    fun `sa id validator rejects invalid luhn checksum`() {
+        val corruptedChecksumId = "9201010123089" // Invalid Luhn checksum
+        val result = com.example.service.SouthAfricanIdValidator.validateAndProfile(corruptedChecksumId)
+
+        assertFalse(result.isValid)
+        assertEquals(com.example.service.SouthAfricanGender.INVALID, result.gender)
+        assertTrue(result.errorMessage?.contains("Luhn verification failed") == true)
+    }
+
+    @Test
+    fun `sa id validator rejects invalid non 13 digit string`() {
+        val invalidLengthId = "9201010123"
+        val result = com.example.service.SouthAfricanIdValidator.validateAndProfile(invalidLengthId)
+
+        assertFalse(result.isValid)
+        assertTrue(result.errorMessage?.contains("13 numeric digits") == true)
+    }
+
+    @Test
+    fun `sa id validator detects nrso blacklisted offender and triggers silent trapdoor lockout`() {
+        val blacklistedId = "8501015800085"
+        val result = com.example.service.SouthAfricanIdValidator.validateAndProfile(blacklistedId)
+
+        assertFalse(result.isValid)
+        assertTrue(result.isNrsoBlacklisted)
+        assertEquals(com.example.service.UserAccessRole.BLOCKED_OFFENDER, result.determinedRole)
+        assertTrue(result.errorMessage?.contains("DHA-701") == true)
+    }
+
+    @Test
+    fun `popia salted id hash is deterministic and strictly protects raw id digits`() {
+        val id = "9201010123086"
+        val hash1 = com.example.service.SouthAfricanIdValidator.hashSaId(id)
+        val hash2 = com.example.service.SouthAfricanIdValidator.hashSaId(id)
+
+        assertEquals(hash1, hash2)
+        assertEquals(64, hash1.length)
+        assertFalse(hash1.contains(id))
+    }
 }

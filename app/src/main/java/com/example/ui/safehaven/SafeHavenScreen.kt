@@ -270,22 +270,36 @@ fun SafeHavenScreen(
                         )
                     }
                     SafeHavenTab.EVIDENCE_VAULT -> {
-                        EvidenceVaultSection(
-                            incidents = incidents,
-                            isVaultUnlocked = isVaultUnlocked,
-                            onTriggerBiometricAuth = onTriggerBiometricAuth,
-                            onLockVault = onLockVault,
-                            onOpenAddModal = onOpenAddIncidentModal,
-                            onDeleteIncident = onDeleteIncident,
-                            onExportSummary = onExportSummary,
-                            showAddModal = showAddIncidentModal,
-                            onCloseAddModal = onCloseAddIncidentModal,
-                            onSaveIncident = onSaveIncident,
-                            exportedSummary = exportedSummary,
-                            onDismissExportDialog = onDismissExportDialog,
-                            userProfile = userProfile,
-                            onSaveUserProfile = onSaveUserProfile
-                        )
+                        if (userProfile?.userRole == "MALE_GUARDIAN_RESPONDER") {
+                            GuardianResponderSection(
+                                nearestTccName = nearestTccName,
+                                nearestTccDistance = nearestTccDistance,
+                                nearestTccPhone = nearestTccPhone,
+                                nearestSapsName = nearestSapsName,
+                                nearestSapsDistance = nearestSapsDistance,
+                                nearestSapsPhone = nearestSapsPhone,
+                                onCallNearestFacility = onCallNearestFacility,
+                                onCallSaps = { onCallNearestFacility("10111") },
+                                onCallGbvcc = { onCallNearestFacility("0800428428") }
+                            )
+                        } else {
+                            EvidenceVaultSection(
+                                incidents = incidents,
+                                isVaultUnlocked = isVaultUnlocked,
+                                onTriggerBiometricAuth = onTriggerBiometricAuth,
+                                onLockVault = onLockVault,
+                                onOpenAddModal = onOpenAddIncidentModal,
+                                onDeleteIncident = onDeleteIncident,
+                                onExportSummary = onExportSummary,
+                                showAddModal = showAddIncidentModal,
+                                onCloseAddModal = onCloseAddIncidentModal,
+                                onSaveIncident = onSaveIncident,
+                                exportedSummary = exportedSummary,
+                                onDismissExportDialog = onDismissExportDialog,
+                                userProfile = userProfile,
+                                onSaveUserProfile = onSaveUserProfile
+                            )
+                        }
                     }
                     SafeHavenTab.SAFETY_PLAN -> {
                         SafetyPlanSection(
@@ -353,16 +367,17 @@ fun SafeHavenScreen(
                     modifier = Modifier.testTag("nav_tab_centers")
                 )
 
+                val isGuardian = userProfile?.userRole == "MALE_GUARDIAN_RESPONDER"
                 NavigationBarItem(
                     selected = currentTab == SafeHavenTab.EVIDENCE_VAULT,
                     onClick = { onSelectTab(SafeHavenTab.EVIDENCE_VAULT) },
                     icon = {
                         Icon(
-                            imageVector = Icons.Default.Lock,
-                            contentDescription = "Vault"
+                            imageVector = if (isGuardian) Icons.Default.Shield else Icons.Default.Lock,
+                            contentDescription = if (isGuardian) "Guardian HQ" else "Vault"
                         )
                     },
-                    label = { Text("Vault", fontSize = 11.sp) },
+                    label = { Text(if (isGuardian) "Guardian" else "Vault", fontSize = 11.sp) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Color(0xFF141006),
                         selectedTextColor = SankofaGold,
