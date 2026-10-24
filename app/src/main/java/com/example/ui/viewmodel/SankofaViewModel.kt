@@ -58,12 +58,23 @@ class SankofaViewModel(
     private val vaultEncryptionHelper: VaultEncryptionHelper,
     private val emergencyDispatchHelper: EmergencyDispatchHelper,
     @Suppress("unused") private val networkPolicyHelper: NetworkPolicyHelper,
-    private val appLauncherRepository: AppLauncherRepository
+    private val appLauncherRepository: AppLauncherRepository,
+    val contactDiscoveryHelper: com.example.service.ContactDiscoveryHelper? = null,
+    val safeJourneyManager: com.example.service.SafeJourneyManager? = null,
+    val hardwareIdentifierHelper: com.example.service.HardwareIdentifierHelper? = null
 ) : ViewModel() {
 
     private val incidentDao = database.incidentDao()
     private val guardianDao = database.guardianDao()
     private val userProfileDao = database.userProfileDao()
+    private val safeJourneyDao = database.safeJourneyDao()
+    private val registeredContactDao = database.registeredContactDao()
+
+    val activeJourney: StateFlow<com.example.data.local.entity.SafeJourneyEntity?> = safeJourneyDao.observeActiveJourney()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    val registeredAppFriends: StateFlow<List<com.example.data.local.entity.RegisteredContactEntity>> = registeredContactDao.getRegisteredAppFriends()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val userProfile: StateFlow<UserProfileEntity?> = userProfileDao.getProfileFlow()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
@@ -511,6 +522,90 @@ class SankofaViewModel(
         viewModelScope.launch {
             val current = userProfile.value ?: UserProfileEntity()
             userProfileDao.upsertProfile(current.copy(useDynamicLauncherTheme = enabled))
+        }
+    }
+
+    // ── Safe Journey & Dynamic Geofence Operations ────────────────────────────
+
+    fun startSafeJourney(
+        activityTitle: String,
+        destinationName: String,
+        destinationLat: Double?,
+        destinationLng: Double?,
+        recipientIds: List<String>
+    ) {
+        viewModelScope.launch {
+            val origin = emergencyService.getLastKnownLocation()
+            safeJourneyManager?.startJourney(
+                activityTitle = activityTitle,
+                destinationName = destinationName,
+                destinationLat = destinationLat,
+                destinationLng = destinationLng,
+                originLat = origin?.latitude,
+                originLng = origin?.longitude,
+                recipientIds = recipientIds
+            )
+            _statusNotification.value = "Safe journey active: 3km departure corridor & 1km safe home return armed."
+        }
+    }
+
+    fun endSafeJourney(journeyId: Long) {
+        viewModelScope.launch {
+            safeJourneyManager?.endJourney(journeyId)
+            _statusNotification.value = "Safe journey completed and terminated."
+        }
+    }
+
+    // ── Statutory Zero-Airtime USSD Please Call Me ────────────────────────────
+
+    fun sendAutoPleaseCallMe() {
+        val primary = guardians.value.firstOrNull { it.isPrimary } ?: guardians.value.firstOrNull()
+        if (primary != null) {
+            val sent = emergencyService.sendAutoPleaseCallMe(primary.phoneNumber)
+            if (sent) {
+                _statusNotification.value = "Zero-airtime Please Call Me dispatched to ${primary.fullName}."
+            }
+        } else {
+            _statusNotification.value = "Please configure an ICE contact first."
+        }
+    }
+
+    // ── 72-Hour Live Location Dispatcher ──────────────────────────────────────
+
+    fun dispatch72HourLiveBeacon() {
+        val primary = guardians.value.firstOrNull { it.isPrimary } ?: guardians.value.firstOrNull()
+        val loc = emergencyService.getLastKnownLocation()
+        val telemetry = emergencyDispatchHelper.getDeviceTelemetry(loc)
+        if (primary != null) {
+            emergencyDispatchHelper.launchWhatsAppEmergencyDispatch(primary, loc, telemetry)
+            _statusNotification.value = "72-Hour Live Beacon shared via WhatsApp with ${primary.name}."
+        } else {
+            _statusNotification.value = "No primary ICE contact found. Add an ICE guardian first."
+        }
+    }
+
+    // ── Proximity Emergency Facilities Lookup ─────────────────────────────────
+
+    fun getNearestEmergencyFacilities(): Pair<Pair<com.example.data.model.ThuthuzelaCenter, Double>?, Pair<com.example.data.model.PoliceStation, Double>?> {
+        val loc = emergencyService.getLastKnownLocation()
+        val nearestTcc = emergencyDispatchHelper.findNearestTcc(loc)
+        val nearestPolice = emergencyDispatchHelper.findNearestPoliceStation(loc)
+        return nearestTcc to nearestPolice
+    }
+
+    fun callNearestFacility(phone: String) {
+        emergencyService.makeCall(phone)
+    }
+
+    // ── Ghost Beacon & Hardware Tracking ──────────────────────────────────────
+
+    fun setGhostBeaconTracking(enabled: Boolean, context: android.content.Context) {
+        if (enabled) {
+            com.example.service.StealthBeaconWorker.schedulePeriodicGhostBeacon(context)
+            _statusNotification.value = "Ghost Beacon enabled: 6-hour hardware sync active."
+        } else {
+            com.example.service.StealthBeaconWorker.cancelPeriodicGhostBeacon(context)
+            _statusNotification.value = "Ghost Beacon disabled."
         }
     }
 

@@ -25,7 +25,10 @@ class ViewModelFactory(private val container: AppContainer) : ViewModelProvider.
                     vaultEncryptionHelper = container.vaultEncryptionHelper,
                     emergencyDispatchHelper = container.emergencyDispatchHelper,
                     networkPolicyHelper = container.networkPolicyHelper,
-                    appLauncherRepository = container.appLauncherRepository
+                    appLauncherRepository = container.appLauncherRepository,
+                    contactDiscoveryHelper = container.contactDiscoveryHelper,
+                    safeJourneyManager = container.safeJourneyManager,
+                    hardwareIdentifierHelper = container.hardwareIdentifierHelper
                 ) as T
             }
             modelClass.isAssignableFrom(SafetyTriggerViewModel::class.java) -> {

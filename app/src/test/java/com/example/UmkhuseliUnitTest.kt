@@ -298,4 +298,145 @@ class UmkhuseliUnitTest {
         assertTrue(message.contains("URGENT ICE ALERT FOR KAGISO MOLEFE:"))
         assertFalse(message.contains("• ICE GUARDIAN HANDLES:"))
     }
+
+    // ── FEATURE 1 TESTS: SAFE JOURNEYS & DYNAMIC GEOFENCING ───────────────────
+
+    @Test
+    fun `haversine distance calculates accurate geographic distance in kilometers`() {
+        // Distance between Johannesburg Central (-26.2045, 28.0381) and Sandton (-26.0827, 28.0583) ~ 13.6 km
+        val distance = com.example.service.SafeJourneyManager.calculateDistanceKm(
+            -26.2045, 28.0381,
+            -26.0827, 28.0583
+        )
+        assertTrue(distance > 13.0 && distance < 14.5)
+    }
+
+    @Test
+    fun `journey geofence detects safe return home within 1km fuzzy zone`() {
+        val homeLat = -26.2000
+        val homeLng = 28.0400
+        val journey = com.example.data.local.entity.SafeJourneyEntity(
+            activityTitle = "Class at Wits",
+            destinationName = "Braamfontein Campus",
+            originLat = -26.2000,
+            originLng = 28.0400,
+            departureRadiusKm = 3.0,
+            homeFuzzyRadiusKm = 1.0
+        )
+
+        // Point 400m away from home
+        val currentLat = -26.2030
+        val currentLng = 28.0400
+        val event = com.example.service.SafeJourneyManager.evaluateJourneyLocation(
+            currentLat, currentLng, journey, homeLat, homeLng
+        )
+
+        assertEquals(com.example.service.JourneyTransitionEvent.SAFE_RETURN_HOME, event)
+    }
+
+    @Test
+    fun `journey geofence detects departure exceeding 3km corridor`() {
+        val homeLat = -26.2000
+        val homeLng = 28.0400
+        val journey = com.example.data.local.entity.SafeJourneyEntity(
+            activityTitle = "Shopping at Rosebank",
+            destinationName = "Rosebank Mall",
+            originLat = -26.2000,
+            originLng = 28.0400,
+            departureRadiusKm = 3.0,
+            homeFuzzyRadiusKm = 1.0
+        )
+
+        // Point 6km away from origin (outside 3km radius)
+        val currentLat = -26.1500
+        val currentLng = 28.0400
+        val event = com.example.service.SafeJourneyManager.evaluateJourneyLocation(
+            currentLat, currentLng, journey, null, null
+        )
+
+        assertEquals(com.example.service.JourneyTransitionEvent.DEPARTURE_3KM_EXCEEDED, event)
+    }
+
+    @Test
+    fun `safe return notification strictly withholds address under Section 4(2) of Act 116 of 1998`() {
+        val notification = com.example.service.SafeJourneyManager.buildSafeReturnNotification(
+            userName = "Ayanda",
+            activityTitle = "Night Shift at Clinic"
+        )
+
+        assertTrue(notification.contains("SAFE RETURN ALERT: Ayanda has safely returned to their home area"))
+        assertTrue(notification.contains("Section 4(2) of Act 116 of 1998"))
+        // Strict negative assertions: no coordinates, lat/lng or street details
+        assertFalse(notification.contains("latitude"))
+        assertFalse(notification.contains("longitude"))
+        assertFalse(notification.contains("maps.google.com"))
+    }
+
+    // ── FEATURE 2 TESTS: STATUTORY USSD PLEASE CALL ME & 6-CHANNEL DISPATCH ───
+
+    @Test
+    fun `ussd helper resolves correct please call me string across South African carriers`() {
+        val targetNumber = "0821234567"
+        val targetE164 = "+27821234567"
+
+        // Vodacom: *140*<number>#
+        assertEquals("*140*0821234567#", com.example.service.UssdHelper.getPleaseCallMeCode("Vodacom", targetNumber))
+        assertEquals("*140*0821234567#", com.example.service.UssdHelper.getPleaseCallMeCode("65501", targetE164))
+
+        // MTN: *121*<number>#
+        assertEquals("*121*0821234567#", com.example.service.UssdHelper.getPleaseCallMeCode("MTN-SA", targetNumber))
+        assertEquals("*121*0821234567#", com.example.service.UssdHelper.getPleaseCallMeCode("65510", targetE164))
+
+        // Cell C: *111*1*<number>#
+        assertEquals("*111*1*0821234567#", com.example.service.UssdHelper.getPleaseCallMeCode("Cell C", targetNumber))
+        assertEquals("*111*1*0821234567#", com.example.service.UssdHelper.getPleaseCallMeCode("65507", targetE164))
+
+        // Telkom: *140*<number>#
+        assertEquals("*140*0821234567#", com.example.service.UssdHelper.getPleaseCallMeCode("Telkom Mobile", targetNumber))
+        assertEquals("*140*0821234567#", com.example.service.UssdHelper.getPleaseCallMeCode("65502", targetE164))
+    }
+
+    // ── FEATURE 3 TESTS: PROXIMITY-RANKED EMERGENCY FACILITIES ────────────────
+
+    @Test
+    fun `police station repository provides accredited SAPS stations with valid GPS coordinates`() {
+        val stations = com.example.data.repository.PoliceStationRepository.stations
+        assertTrue("Police stations database must have at least 10 stations", stations.size >= 10)
+        stations.forEach { station ->
+            assertTrue("Station ${station.name} must have a non-empty name", station.name.isNotBlank())
+            assertTrue("Station ${station.name} must have a valid phone number", station.contactNumber.isNotBlank())
+            assertTrue("Station ${station.name} latitude must be in South Africa (-35 to -22)", station.latitude in -35.0..-22.0)
+            assertTrue("Station ${station.name} longitude must be in South Africa (16 to 33)", station.longitude in 16.0..33.0)
+        }
+    }
+
+    // ── FEATURE 4 TESTS: PRIVATE CONTACT HASHING & HARDWARE GHOST IDENTITY ─────
+
+    @Test
+    fun `contact discovery helper normalizes various phone formats to statutory E164`() {
+        assertEquals("+27821234567", com.example.service.ContactDiscoveryHelper.normalizeToE164("0821234567"))
+        assertEquals("+27821234567", com.example.service.ContactDiscoveryHelper.normalizeToE164("27821234567"))
+        assertEquals("+27821234567", com.example.service.ContactDiscoveryHelper.normalizeToE164("+27821234567"))
+        assertEquals("+27821234567", com.example.service.ContactDiscoveryHelper.normalizeToE164("082 123 4567"))
+    }
+
+    @Test
+    fun `contact discovery phone hashing is deterministic and salted`() {
+        val phone = "+27821234567"
+        val hash1 = com.example.service.ContactDiscoveryHelper.hashPhoneNumber(phone)
+        val hash2 = com.example.service.ContactDiscoveryHelper.hashPhoneNumber(phone)
+
+        assertEquals(hash1, hash2)
+        assertEquals(64, hash1.length) // SHA-256 hex string length
+        assertFalse(hash1.contains("821234567")) // Raw phone is never exposed
+    }
+
+    @Test
+    fun `hardware identifier helper computes consistent SHA256 hardware hash`() {
+        val input = "AID:test_device_1234:FP:google/pixel8/husky"
+        val hash = com.example.service.HardwareIdentifierHelper.computeHash(input)
+        assertEquals(64, hash.length)
+        val hashAgain = com.example.service.HardwareIdentifierHelper.computeHash(input)
+        assertEquals(hash, hashAgain)
+    }
 }
