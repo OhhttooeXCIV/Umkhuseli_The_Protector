@@ -1,0 +1,75 @@
+name: Bug Report
+description: Create a report to help us resolve a defect or unexpected behavior
+title: "[BUG]: "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue in **Umkhuseli: The Protector (Sankofa Safe)**.
+        Please provide detailed information so our engineering team can isolate and reproduce the bug safely.
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component
+      description: Select the module or layer where the problem occurs.
+      options:
+        - "Camouflage Launcher / Facade UI"
+        - "Municipal Prepaid Calculator Decoy (Web/PWA)"
+        - "SOS Dispatch & Tactile Countdown State Machine"
+        - "Biometric Authentication & Vault Storage (Room / SQLite)"
+        - "AES-256-GCM Encryption / KeyStore StrongBox"
+        - "Form 2 Protection Order Exporter / Record Viewer"
+        - "Thuthuzela Care Centres Directory (Offline Cache / Search)"
+        - "Supabase Edge Functions / E2EE Cloud Sync"
+        - "Build & Tooling (AGP, Gradle, ProGuard/R8, KSP)"
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of the bug.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Numbered steps to reproduce the issue.
+      placeholder: |
+        1. Open Camouflage Launcher
+        2. Enter secret PIN or triple-tap emblem
+        3. Observe behaviour...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should happen under correct operation.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Device & OS Environment
+      description: "e.g., Samsung Galaxy A14, Android 14 (API 34), Chrome 122 (PWA)"
+    validations:
+      required: true
+  - type: dropdown
+    id: network
+    attributes:
+      label: Network Connectivity State
+      options:
+        - "Offline (Airplane Mode)"
+        - "Mobile Data (Metered / Low Data)"
+        - "Wi-Fi (Unmetered)"
+        - "Zero-Airtime (USSD / SMS only)"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error Logs or Stack Trace (Scrubbed)
+      description: Please ensure all personal phone numbers, names, or locations are redacted before pasting.
