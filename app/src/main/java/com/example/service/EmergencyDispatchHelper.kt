@@ -20,13 +20,15 @@ data class DeviceTelemetryInfo(
     val findMyDeviceUrl: String = "https://www.google.com/android/find"
 )
 
-class EmergencyDispatchHelper(private val context: Context) {
+class EmergencyDispatchHelper(private val context: Context? = null) {
 
     fun getDeviceTelemetry(location: Location?): DeviceTelemetryInfo {
         // Battery info
-        val batteryStatus: Intent? = IntentFilter(Intent.ACTION_BATTERY_CHANGED).let { filter ->
-            context.registerReceiver(null, filter)
-        }
+        val batteryStatus: Intent? = if (context != null) {
+            IntentFilter(Intent.ACTION_BATTERY_CHANGED).let { filter ->
+                context.registerReceiver(null, filter)
+            }
+        } else null
         val level: Int = batteryStatus?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
         val scale: Int = batteryStatus?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
         val batteryPct: Int = if (level >= 0 && scale > 0) (level * 100 / scale) else 50
@@ -48,6 +50,7 @@ class EmergencyDispatchHelper(private val context: Context) {
 
     fun getAreaNameFromLocation(location: Location?): String {
         if (location == null) return "Area pending GPS lock"
+        if (context == null) return "Area: ${location.latitude}, ${location.longitude}"
         return try {
             val geocoder = Geocoder(context, Locale.getDefault())
             @Suppress("DEPRECATION")
@@ -109,6 +112,7 @@ class EmergencyDispatchHelper(private val context: Context) {
         location: Location?,
         telemetry: DeviceTelemetryInfo
     ): Boolean {
+        if (context == null) return false
         val message = build72HourDistressMessage(location, telemetry, contact)
         val cleanPhone = contact.mobileNumber1.filter { it.isDigit() }
         val formattedPhone = if (cleanPhone.startsWith("0") && cleanPhone.length == 10) {
@@ -138,6 +142,7 @@ class EmergencyDispatchHelper(private val context: Context) {
     }
 
     fun promptDownloadOfflineGoogleMaps(location: Location?) {
+        if (context == null) return
         val lat = location?.latitude ?: -26.2041
         val lon = location?.longitude ?: 28.0473
         // Direct intent launching Google Maps centered on location for offline map caching
@@ -161,6 +166,7 @@ class EmergencyDispatchHelper(private val context: Context) {
         location: Location?,
         telemetry: DeviceTelemetryInfo
     ): Boolean {
+        if (context == null) return false
         val message = build72HourDistressMessage(location, telemetry, contact)
         val emails = listOfNotNull(
             contact.emailAddress1.ifBlank { null },
@@ -202,6 +208,7 @@ class EmergencyDispatchHelper(private val context: Context) {
         location: Location?,
         telemetry: DeviceTelemetryInfo
     ): Boolean {
+        if (context == null) return false
         val message = build72HourDistressMessage(location, telemetry, contact)
         val url = when (platform.lowercase()) {
             "instagram" -> if (contact.instagramHandle.isNotBlank()) "https://instagram.com/${contact.instagramHandle}" else null
@@ -237,6 +244,7 @@ class EmergencyDispatchHelper(private val context: Context) {
     }
 
     fun openFindMyDeviceService() {
+        if (context == null) return
         val uri = Uri.parse("https://www.google.com/android/find")
         val intent = Intent(Intent.ACTION_VIEW, uri).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

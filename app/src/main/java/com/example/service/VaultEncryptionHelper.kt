@@ -80,7 +80,12 @@ class VaultEncryptionHelper {
             System.arraycopy(iv, 0, combined, 0, iv.size)
             System.arraycopy(encryptedBytes, 0, combined, iv.size, encryptedBytes.size)
 
-            "ENC:" + Base64.encodeToString(combined, Base64.NO_WRAP)
+            val base64Encoded = try {
+                Base64.encodeToString(combined, Base64.NO_WRAP)
+            } catch (_: Throwable) {
+                java.util.Base64.getEncoder().encodeToString(combined)
+            }
+            "ENC:$base64Encoded"
         } catch (_: Exception) {
             plainText
         }
@@ -92,7 +97,11 @@ class VaultEncryptionHelper {
         }
         val rawBase64 = encryptedText.removePrefix("ENC:")
         return try {
-            val combined = Base64.decode(rawBase64, Base64.NO_WRAP)
+            val combined = try {
+                Base64.decode(rawBase64, Base64.NO_WRAP)
+            } catch (_: Throwable) {
+                java.util.Base64.getDecoder().decode(rawBase64)
+            }
             if (combined.size <= 12) return encryptedText
 
             val iv = ByteArray(12)
