@@ -9,6 +9,10 @@ import android.net.Uri
 import android.os.BatteryManager
 import android.os.Build
 import com.example.data.local.entity.GuardianEntity
+import com.example.data.model.PoliceStation
+import com.example.data.model.ThuthuzelaCenter
+import com.example.data.repository.PoliceStationRepository
+import com.example.data.repository.ThuthuzelaRepository
 import java.util.Locale
 
 data class DeviceTelemetryInfo(
@@ -19,6 +23,30 @@ data class DeviceTelemetryInfo(
     val currentArea: String,
     val findMyDeviceUrl: String = "https://www.google.com/android/find"
 )
+
+object UssdHelper {
+    /**
+     * Resolves the statutory South African zero-rated "Please Call Me" USSD string
+     * for the detected cellular network carrier.
+     */
+    fun getPleaseCallMeCode(carrierNameOrMcc: String, targetPhoneNumber: String): String {
+        val cleanPhone = targetPhoneNumber.filter { it.isDigit() }
+        val localPhone = when {
+            cleanPhone.startsWith("27") && cleanPhone.length == 11 -> "0" + cleanPhone.substring(2)
+            cleanPhone.startsWith("0") && cleanPhone.length == 10 -> cleanPhone
+            else -> cleanPhone
+        }
+
+        val carrier = carrierNameOrMcc.lowercase()
+        return when {
+            carrier.contains("vodacom") || carrier.contains("65501") -> "*140*$localPhone#"
+            carrier.contains("mtn") || carrier.contains("65510") -> "*121*$localPhone#"
+            carrier.contains("cell c") || carrier.contains("cellc") || carrier.contains("65507") -> "*111*1*$localPhone#"
+            carrier.contains("telkom") || carrier.contains("65502") -> "*140*$localPhone#"
+            else -> "*140*$localPhone#"
+        }
+    }
+}
 
 class EmergencyDispatchHelper(private val context: Context? = null) {
 
@@ -73,6 +101,37 @@ class EmergencyDispatchHelper(private val context: Context? = null) {
         }
     }
 
+    fun findNearestTcc(location: Location?): Pair<ThuthuzelaCenter, Double>? {
+        if (location == null) return null
+        return ThuthuzelaRepository.centers
+            .filter { it.latitude != 0.0 && it.longitude != 0.0 }
+            .map { center ->
+                val dist = SafeJourneyManager.calculateDistanceKm(
+                    location.latitude,
+                    location.longitude,
+                    center.latitude,
+                    center.longitude
+                )
+                center to dist
+            }
+            .minByOrNull { it.second }
+    }
+
+    fun findNearestPoliceStation(location: Location?): Pair<PoliceStation, Double>? {
+        if (location == null) return null
+        return PoliceStationRepository.stations
+            .map { station ->
+                val dist = SafeJourneyManager.calculateDistanceKm(
+                    location.latitude,
+                    location.longitude,
+                    station.latitude,
+                    station.longitude
+                )
+                station to dist
+            }
+            .minByOrNull { it.second }
+    }
+
     fun build72HourDistressMessage(
         location: Location?,
         telemetry: DeviceTelemetryInfo,
@@ -96,6 +155,17 @@ class EmergencyDispatchHelper(private val context: Context? = null) {
             if (telemetry.isCharging) append(" (Charging)")
             append("\n")
             append("• HANDSET: ").append(telemetry.deviceModel).append("\n")
+
+            // Proximity Ranked Nearest Emergency Facilities
+            val nearestTcc = findNearestTcc(location)
+            if (nearestTcc != null) {
+                append("• NEAREST TCC (GBV MEDICAL/FORENSIC): ${nearestTcc.first.name} (${"%.1f".format(Locale.US, nearestTcc.second)} km) - Call ${nearestTcc.first.contactNumber}\n")
+            }
+            val nearestPolice = findNearestPoliceStation(location)
+            if (nearestPolice != null) {
+                append("• NEAREST SAPS STATION: ${nearestPolice.first.name} (${"%.1f".format(Locale.US, nearestPolice.second)} km) - Call ${nearestPolice.first.contactNumber}\n")
+            }
+
             if (contact != null && (contact.tiktokHandle.isNotBlank() || contact.facebookProfile.isNotBlank() || contact.instagramHandle.isNotBlank())) {
                 append("• ICE GUARDIAN HANDLES: ")
                 if (contact.instagramHandle.isNotBlank()) append("IG: @${contact.instagramHandle} ")
@@ -130,7 +200,6 @@ class EmergencyDispatchHelper(private val context: Context? = null) {
             context.startActivity(intent)
             true
         } catch (_: Exception) {
-            // WhatsApp not installed, fallback to general share intent
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "text/plain"
                 putExtra(Intent.EXTRA_TEXT, message)
@@ -145,7 +214,6 @@ class EmergencyDispatchHelper(private val context: Context? = null) {
         if (context == null) return
         val lat = location?.latitude ?: -26.2041
         val lon = location?.longitude ?: 28.0473
-        // Direct intent launching Google Maps centered on location for offline map caching
         val uri = Uri.parse("geo:$lat,$lon?q=offline+maps")
         val mapIntent = Intent(Intent.ACTION_VIEW, uri).apply {
             setPackage("com.google.android.apps.maps")
@@ -204,7 +272,7 @@ class EmergencyDispatchHelper(private val context: Context? = null) {
 
     fun launchSocialEmergencyDispatch(
         contact: GuardianEntity,
-        platform: String, // "instagram", "tiktok", "facebook"
+        platform: String,
         location: Location?,
         telemetry: DeviceTelemetryInfo
     ): Boolean {

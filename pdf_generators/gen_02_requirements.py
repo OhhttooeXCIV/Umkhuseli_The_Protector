@@ -195,26 +195,26 @@ def build_pdf(output_path):
 
     use_cases = [
         ("UC-01: Covert Safe Haven Unlock & Biometric Challenge",
-         "<b>Actors:</b> Survivor (Primary)<br>"
-         "<b>Preconditions:</b> App running in proverbs facade launcher mode.<br>"
-         "<b>Trigger:</b> User enters secret PIN 1234 or triple-taps the sacred Sankofa adinkra emblem.<br>"
-         "<b>Main Flow:</b> 1. Launcher captures trigger sequence without audio/visual feedback. 2. Prompts BiometricPrompt challenge. 3. User authenticates via Fingerprint or Face. 4. Master key retrieved from AndroidKeyStore. 5. Safe Haven screen rendered with encrypted vault diary.<br>"
-         "<b>Alternative Flow:</b> If duress PIN 9999 entered, execute UC-07 (Duress Deception & Silent Dispatch).<br>"
+         "<b>Actors:</b> Survivor (Primary)<br/>"
+         "<b>Preconditions:</b> App running in proverbs facade launcher mode.<br/>"
+         "<b>Trigger:</b> User enters secret PIN 1234 or triple-taps the sacred Sankofa adinkra emblem.<br/>"
+         "<b>Main Flow:</b> 1. Launcher captures trigger sequence without audio/visual feedback. 2. Prompts BiometricPrompt challenge. 3. User authenticates via Fingerprint or Face. 4. Master key retrieved from AndroidKeyStore. 5. Safe Haven screen rendered with encrypted vault diary.<br/>"
+         "<b>Alternative Flow:</b> If duress PIN 9999 entered, execute UC-07 (Duress Deception & Silent Dispatch).<br/>"
          "<b>Postconditions:</b> Vault unlocked; memory session active."),
 
         ("UC-02: Armed SOS Emergency Distress Broadcast",
-         "<b>Actors:</b> Survivor, ICE Guardians (5 contacts), SAPS Emergency Flying Squad<br>"
-         "<b>Preconditions:</b> At least one active ICE guardian configured with mobile number.<br>"
-         "<b>Trigger:</b> User presses Emergency SOS button.<br>"
-         "<b>Main Flow:</b> 1. SafetyTriggerViewModel transitions to Armed state. 2. 3-second tactile countdown begins with distinct haptic pulses. 3. Grace timer expires. 4. Device queries last known GPS coordinates and battery telemetry. 5. Persists distress incident to Room DB. 6. Transmits 72-hour beacon SMS to all active guardians.<br>"
-         "<b>Alternative Flow:</b> User taps Cancel during 3-second countdown; state resets to Cancelled; no SMS sent.<br>"
+         "<b>Actors:</b> Survivor, ICE Guardians (5 contacts), SAPS Emergency Flying Squad<br/>"
+         "<b>Preconditions:</b> At least one active ICE guardian configured with mobile number.<br/>"
+         "<b>Trigger:</b> User presses Emergency SOS button.<br/>"
+         "<b>Main Flow:</b> 1. SafetyTriggerViewModel transitions to Armed state. 2. 3-second tactile countdown begins with distinct haptic pulses. 3. Grace timer expires. 4. Device queries last known GPS coordinates and battery telemetry. 5. Persists distress incident to Room DB. 6. Transmits 72-hour beacon SMS to all active guardians.<br/>"
+         "<b>Alternative Flow:</b> User taps Cancel during 3-second countdown; state resets to Cancelled; no SMS sent.<br/>"
          "<b>Postconditions:</b> SOS dispatched; incident logged to legal vault."),
 
         ("UC-03: 0-Millisecond Panic Camouflage Scrub",
-         "<b>Actors:</b> Survivor, Threat Actor (Physical Inspector)<br>"
-         "<b>Preconditions:</b> Safe Haven vault is actively open.<br>"
-         "<b>Trigger:</b> User presses hardware Back button, recents key, or top panic bar.<br>"
-         "<b>Main Flow:</b> 1. Back handler intercepts event synchronously. 2. In-memory decrypted strings and cryptographic pointers zeroed immediately. 3. Facade proverbs launcher instantly displayed in 0 ms. 4. Recents task thumbnail blanked.<br>"
+         "<b>Actors:</b> Survivor, Threat Actor (Physical Inspector)<br/>"
+         "<b>Preconditions:</b> Safe Haven vault is actively open.<br/>"
+         "<b>Trigger:</b> User presses hardware Back button, recents key, or top panic bar.<br/>"
+         "<b>Main Flow:</b> 1. Back handler intercepts event synchronously. 2. In-memory decrypted strings and cryptographic pointers zeroed immediately. 3. Facade proverbs launcher instantly displayed in 0 ms. 4. Recents task thumbnail blanked.<br/>"
          "<b>Postconditions:</b> No safety traces present; device displays innocent cultural proverbs launcher.")
     ]
 
@@ -229,3 +229,4 @@ def build_pdf(output_path):
 if __name__ == "__main__":
     out = r"C:\Users\thoso\Sankofa_mvp\Umkhuseli_The_Protector\public\requirements_and_use_cases\Umkhuseli_Requirements_and_Use_Cases.pdf"
     build_pdf(out)
+
