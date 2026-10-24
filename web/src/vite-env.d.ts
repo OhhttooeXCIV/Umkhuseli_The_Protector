@@ -26,4 +26,14 @@ declare module 'lucide-react' {
   export const ArrowRight: React.FC<any>;
   export const ChevronRight: React.FC<any>;
   export const ExternalLink: React.FC<any>;
+  export const Battery: React.FC<any>;
+  export const Clock: React.FC<any>;
+  export const Radio: React.FC<any>;
+  export const Navigation: React.FC<any>;
+  export const AlertOctagon: React.FC<any>;
+  export const X: React.FC<any>;
+  export const WifiOff: React.FC<any>;
+  export const MessageSquare: React.FC<any>;
+  export const FileDown: React.FC<any>;
+  export const Copy: React.FC<any>;
 }
