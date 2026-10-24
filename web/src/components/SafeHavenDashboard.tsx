@@ -7,26 +7,22 @@ import {
   Unlock,
   PlusCircle,
   FileText,
-  AlertTriangle,
   Sparkles,
   EyeOff,
-  Volume2,
-  VolumeX,
-  Send,
   CheckCircle2,
-  Users
+  Users,
+  WifiOff,
+  Zap,
+  MessageSquare
 } from "lucide-react";
 import {
   NATIONAL_LIFELINES,
   THUTHUZELA_CENTERS,
-  SA_PROVINCES,
-  ThuthuzelaCenter
+  SA_PROVINCES
 } from "../data/saSafetyData";
 import {
   vaultIncident,
-  dispatchServerSos,
-  IncidentInput,
-  GuardianInput
+  dispatchServerSos
 } from "../services/supabase";
 
 interface Props {
@@ -43,6 +39,11 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock }) => {
   const [isArmed, setIsArmed] = useState(false);
   const [countdown, setCountdown] = useState(3);
   const [sosStatus, setSosStatus] = useState<string | null>(null);
+  const [isOfflineSosActive, setIsOfflineSosActive] = useState(false);
+  const [offlineSmsBody, setOfflineSmsBody] = useState(
+    "EMERGENCY GBV DISTRESS ALERT! I need urgent assistance. Dispatched via Umkhuseli Safe."
+  );
+  const [copiedSms, setCopiedSms] = useState(false);
 
   // TCC state
   const [selectedProvince, setSelectedProvince] = useState<string>("All");
@@ -63,6 +64,30 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock }) => {
   const [isGeneratingAiForm2, setIsGeneratingAiForm2] = useState(false);
   const [aiForm2Result, setAiForm2Result] = useState<any | null>(null);
 
+  // Auto-sync offline queue when internet recovers (e.g. after Loadshedding power returns)
+  useEffect(() => {
+    const handleOnline = async () => {
+      try {
+        const rawQueue = localStorage.getItem("umkhuseli_offline_sos_queue");
+        if (rawQueue) {
+          const queue = JSON.parse(rawQueue);
+          if (Array.isArray(queue) && queue.length > 0) {
+            for (const item of queue) {
+              await dispatchServerSos(item);
+            }
+            localStorage.removeItem("umkhuseli_offline_sos_queue");
+            setSosStatus("✓ Loadshedding cleared: Offline distress queue synchronized with cloud network.");
+          }
+        }
+      } catch (e) {
+        console.warn("Offline queue sync deferred:", e);
+      }
+    };
+
+    window.addEventListener("online", handleOnline);
+    return () => window.removeEventListener("online", handleOnline);
+  }, []);
+
   // SOS Countdown Timer
   useEffect(() => {
     let timer: any;
@@ -77,19 +102,53 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock }) => {
 
   const handleServerSosDispatch = async () => {
     setSosStatus("Dispatching unstoppable 72-hr emergency beacon...");
+    const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
+
+    // Default telemetry values
+    let batteryLevel = 85;
+    let coordsText = "Location approx: South Africa";
+    let formattedSms = `EMERGENCY GBV ALERT! Urgent assistance required. ${coordsText}. Sent via Umkhuseli Safe Haven.`;
+
     try {
+      // Feature 4: Loadshedding / Network Drop check
+      if (!isOnline) {
+        throw new Error("Device offline / Loadshedding grid outage detected");
+      }
+
       // Gather browser telemetry
       const res = await dispatchServerSos({
         areaName: "South Africa (Web Beacon)",
-        batteryPercentage: 85,
+        batteryPercentage: batteryLevel,
         isCharging: false,
         deviceModel: navigator.userAgent.includes("Android") ? "Android Web" : "Web Client",
         isDuress: false
       });
       setSosStatus("Beacon successfully registered with emergency response network!");
     } catch (err: any) {
-      setSosStatus("Beacon dispatched via local offline emergency queue.");
+      // Save to offline local queue
+      try {
+        const queue = JSON.parse(localStorage.getItem("umkhuseli_offline_sos_queue") || "[]");
+        queue.push({
+          timestamp: new Date().toISOString(),
+          batteryPercentage: batteryLevel,
+          isOffline: true
+        });
+        localStorage.setItem("umkhuseli_offline_sos_queue", JSON.stringify(queue));
+      } catch (storageErr) {
+        // Storage access may be restricted in private browsing
+      }
+
+      setOfflineSmsBody(formattedSms);
+      setIsOfflineSosActive(true);
+      setSosStatus("Beacon queued locally. Loadshedding / No Mobile Data Fallback activated.");
     }
+  };
+
+  const triggerManualOfflineSms = () => {
+    setIsOfflineSosActive(true);
+    setOfflineSmsBody(
+      "EMERGENCY GBV ALERT! Urgent police/medical assistance required. Sent via Umkhuseli Safe Haven."
+    );
   };
 
   const cancelArmedSos = () => {
@@ -249,7 +308,90 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock }) => {
                   {sosStatus}
                 </div>
               )}
+
+              {/* Loadshedding Fallback Mode Toggle */}
+              <div className="flex items-center justify-between pt-3 border-t border-slate-800 mt-4">
+                <span className="text-[11px] text-slate-400">Grid / Signal Status:</span>
+                <button
+                  type="button"
+                  onClick={() => setIsOfflineSosActive(!isOfflineSosActive)}
+                  className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 font-semibold bg-amber-950/40 border border-amber-600/40 px-2.5 py-1 rounded-lg transition-colors"
+                >
+                  <Zap className="w-3.5 h-3.5" />
+                  <span>{isOfflineSosActive ? "Hide Offline SMS" : "Loadshedding / SMS Mode"}</span>
+                </button>
+              </div>
             </div>
+
+            {/* Feature 4: Loadshedding Offline SMS Dispatch Panel */}
+            {isOfflineSosActive && (
+              <div className="bg-amber-950/30 border-2 border-amber-500/60 rounded-2xl p-4 text-xs text-amber-200 space-y-3 animate-in fade-in duration-300">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 font-bold text-amber-400">
+                    <WifiOff className="w-4 h-4 text-amber-400" />
+                    <span className="uppercase tracking-wide text-[11px]">Loadshedding / Offline SOS Fallback</span>
+                  </div>
+                  <span className="bg-amber-500/20 text-amber-300 text-[10px] font-mono px-2 py-0.5 rounded border border-amber-500/30">
+                    0 Data Required
+                  </span>
+                </div>
+
+                <p className="text-[11px] text-slate-300 leading-relaxed">
+                  Mobile data grid disconnected or loadshedding active. Dispatch distress beacon directly via cellular SMS (requires 0 data) or free national USSD lifelines:
+                </p>
+
+                <div className="grid grid-cols-1 gap-2 pt-1">
+                  {/* SMS to SAPS 10111 */}
+                  <a
+                    href={`sms:10111?body=${encodeURIComponent(offlineSmsBody)}`}
+                    className="bg-rose-600 hover:bg-rose-500 active:scale-95 transition-transform text-white font-bold py-2.5 px-3 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-rose-900/50"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    <span>Send Emergency SMS to SAPS (10111)</span>
+                  </a>
+
+                  {/* SMS to GBV Command 31531 */}
+                  <a
+                    href={`sms:31531?body=${encodeURIComponent(offlineSmsBody)}`}
+                    className="bg-amber-600 hover:bg-amber-500 active:scale-95 transition-transform text-slate-950 font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-2"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    <span>SMS National GBV Command (31531)</span>
+                  </a>
+
+                  {/* Zero-Rated USSD */}
+                  <a
+                    href="tel:*120*7867%23"
+                    className="bg-slate-800 hover:bg-slate-700 text-amber-400 font-bold py-2 px-3 rounded-xl flex items-center justify-center gap-2 border border-slate-700"
+                  >
+                    <PhoneCall className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Dial Free USSD Callback (*120*7867#)</span>
+                  </a>
+                </div>
+
+                <div className="bg-slate-950/70 p-2.5 rounded-lg border border-slate-800">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                      Pre-Formatted Dispatch Payload:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (typeof navigator !== "undefined" && navigator.clipboard) {
+                          navigator.clipboard.writeText(offlineSmsBody);
+                          setCopiedSms(true);
+                          setTimeout(() => setCopiedSms(false), 2000);
+                        }
+                      }}
+                      className="text-[10px] text-sky-400 hover:underline"
+                    >
+                      {copiedSms ? "Copied!" : "Copy Text"}
+                    </button>
+                  </div>
+                  <p className="text-[10px] font-mono text-slate-300 break-words">{offlineSmsBody}</p>
+                </div>
+              </div>
+            )}
 
             {/* National Lifelines Directory */}
             <div className="space-y-2.5">

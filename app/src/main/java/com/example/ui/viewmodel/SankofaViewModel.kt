@@ -83,6 +83,17 @@ class SankofaViewModel(
         .map { it != null && it.isProfileCompleted }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
+    val userRole: StateFlow<com.example.service.UserAccessRole> = userProfileDao.getProfileFlow()
+        .map { profile ->
+            when (profile?.userRole) {
+                "FEMALE_PRIMARY" -> com.example.service.UserAccessRole.FEMALE_PRIMARY
+                "MALE_GUARDIAN_RESPONDER" -> com.example.service.UserAccessRole.MALE_GUARDIAN_RESPONDER
+                "BLOCKED_OFFENDER" -> com.example.service.UserAccessRole.BLOCKED_OFFENDER
+                else -> com.example.service.UserAccessRole.TIER_0_GUEST
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), com.example.service.UserAccessRole.TIER_0_GUEST)
+
     val useDynamicTheme: StateFlow<Boolean> = userProfileDao.getProfileFlow()
         .map { it?.useDynamicLauncherTheme ?: false }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
@@ -597,16 +608,49 @@ class SankofaViewModel(
         emergencyService.makeCall(phone)
     }
 
-    // ── Ghost Beacon & Hardware Tracking ──────────────────────────────────────
+    // ── Statutory User Profiling & South African ID Verification ──────────────
 
-    fun setGhostBeaconTracking(enabled: Boolean, context: android.content.Context) {
-        if (enabled) {
-            com.example.service.StealthBeaconWorker.schedulePeriodicGhostBeacon(context)
-            _statusNotification.value = "Ghost Beacon enabled: 6-hour hardware sync active."
-        } else {
-            com.example.service.StealthBeaconWorker.cancelPeriodicGhostBeacon(context)
-            _statusNotification.value = "Ghost Beacon disabled."
+    fun validateIdAndApplyRole(
+        idNumber: String,
+        isIceContact: Boolean = false
+    ): com.example.service.SaIdValidationResult {
+        val result = com.example.service.SouthAfricanIdValidator.validateAndProfile(idNumber, isIceContact)
+        if (result.isValid) {
+            viewModelScope.launch {
+                val current = userProfile.value ?: UserProfileEntity()
+                userProfileDao.upsertProfile(
+                    current.copy(
+                        userRole = result.determinedRole.name,
+                        gender = result.gender.name,
+                        dateOfBirth = result.dateOfBirthFormatted,
+                        hashedIdNumber = result.hashedId,
+                        isNrsoCleared = !result.isNrsoBlacklisted,
+                        isDeviceBlocked = result.isNrsoBlacklisted
+                    )
+                )
+                if (result.determinedRole == com.example.service.UserAccessRole.MALE_GUARDIAN_RESPONDER) {
+                    _statusNotification.value = "Guardian Responder Mode active: Registered as trusted ICE ally."
+                } else if (result.determinedRole == com.example.service.UserAccessRole.FEMALE_PRIMARY) {
+                    _statusNotification.value = "Identity verified: Full Sanctuary & Evidence Vault access unlocked."
+                }
+            }
+        } else if (result.isNrsoBlacklisted) {
+            viewModelScope.launch {
+                val current = userProfile.value ?: UserProfileEntity()
+                userProfileDao.upsertProfile(
+                    current.copy(
+                        userRole = com.example.service.UserAccessRole.BLOCKED_OFFENDER.name,
+                        isNrsoCleared = false,
+                        isDeviceBlocked = true
+                    )
+                )
+                val loc = emergencyService.getLastKnownLocation()
+                val telemetry = emergencyDispatchHelper.getDeviceTelemetry(loc)
+                val hwId = hardwareIdentifierHelper?.getHardwareIdentity()?.hardwareId ?: "UNKNOWN_HW"
+                android.util.Log.e("SAPS_TRAPDOOR", "CRITICAL: Offender register flag on HW: $hwId | HASH: ${result.hashedId} | LOC: ${telemetry.currentArea}")
+            }
         }
+        return result
     }
 
     // ── Seed helpers ──────────────────────────────────────────────────────────

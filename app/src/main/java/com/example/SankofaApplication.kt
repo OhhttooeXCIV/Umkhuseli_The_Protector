@@ -2,7 +2,6 @@ package com.example
 
 import android.app.Application
 import com.example.di.AppContainer
-import com.example.service.StealthBeaconWorker
 
 /**
  * Application entry point. Initialises the [AppContainer] dependency graph once for
@@ -18,10 +17,5 @@ class SankofaApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        try {
-            StealthBeaconWorker.schedulePeriodicGhostBeacon(applicationContext)
-        } catch (_: Exception) {
-            // Ignore in testing or uninitialized WorkManager environments
-        }
     }
 }

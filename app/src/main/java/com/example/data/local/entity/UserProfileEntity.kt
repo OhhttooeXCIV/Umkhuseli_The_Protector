@@ -8,7 +8,7 @@ import androidx.room.PrimaryKey
  * Stores statutory legal particulars required under Section 4 of the
  * South African Domestic Violence Act 116 of 1998 (amended by Act 14 of 2021)
  * for the Form 2 Application for Protection Order, as well as operational
- * stealth settings.
+ * stealth settings and verified demographic access tiering.
  */
 @Entity(tableName = "user_profile")
 data class UserProfileEntity(
@@ -27,5 +27,11 @@ data class UserProfileEntity(
     val isProfileCompleted: Boolean = false,
     val isBatteryOptimizationDismissed: Boolean = false,
     val autoScrubMedia: Boolean = true,
+    val userRole: String = "TIER_0_GUEST", // FEMALE_PRIMARY, MALE_GUARDIAN_RESPONDER, TIER_0_GUEST, BLOCKED_OFFENDER
+    val gender: String = "",               // FEMALE, MALE
+    val dateOfBirth: String = "",
+    val hashedIdNumber: String = "",       // POPIA salted SHA-256 hash
+    val isNrsoCleared: Boolean = true,
+    val isDeviceBlocked: Boolean = false,
     val createdAt: Long = System.currentTimeMillis()
 )

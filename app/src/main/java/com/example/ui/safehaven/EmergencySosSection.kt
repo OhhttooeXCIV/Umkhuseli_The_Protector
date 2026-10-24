@@ -586,7 +586,7 @@ fun LifelineCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = resource.name,
+                        text = resource.title,
                         style = MaterialTheme.typography.titleSmall.copy(
                             fontWeight = FontWeight.Bold,
                             color = TextPrimary
@@ -614,7 +614,7 @@ fun LifelineCard(
                     modifier = Modifier.padding(top = 4.dp)
                 )
                 Text(
-                    text = resource.phoneNumber,
+                    text = resource.dialString,
                     style = MaterialTheme.typography.labelMedium.copy(
                         color = SankofaGold,
                         fontWeight = FontWeight.SemiBold
@@ -626,7 +626,7 @@ fun LifelineCard(
             Button(
                 onClick = onCall,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (resource.type == LifelineType.POLICE_EMERGENCY) SafetyRed else SankofaCardBg
+                    containerColor = if (resource.id == "saps_police") SafetyRed else SankofaCardBg
                 ),
                 shape = RoundedCornerShape(14.dp),
                 border = CardDefaults.outlinedCardBorder().copy(
@@ -636,8 +636,8 @@ fun LifelineCard(
             ) {
                 Icon(
                     imageVector = Icons.Default.Phone,
-                    contentDescription = "Call ${resource.name}",
-                    tint = if (resource.type == LifelineType.POLICE_EMERGENCY) Color.White else SankofaGold,
+                    contentDescription = "Call ${resource.title}",
+                    tint = if (resource.id == "saps_police") Color.White else SankofaGold,
                     modifier = Modifier.size(20.dp)
                 )
             }
