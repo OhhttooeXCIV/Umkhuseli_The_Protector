@@ -5,17 +5,16 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
-import android.location.LocationListener
 import android.location.LocationManager
 import android.media.AudioManager
 import android.media.ToneGenerator
 import android.net.Uri
 import android.os.Build
-import android.os.Bundle
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
 import android.telephony.SmsManager
+import android.telephony.TelephonyManager
 import androidx.core.content.ContextCompat
 import com.example.data.local.entity.GuardianEntity
 
@@ -76,6 +75,18 @@ class EmergencyService(private val context: Context) {
             }
             context.startActivity(fallback)
         }
+    }
+
+    /**
+     * Dispatches statutory South African Please Call Me USSD string
+     * to the designated ICE guardian using carrier auto-detection.
+     */
+    fun sendAutoPleaseCallMe(guardianPhoneNumber: String): Boolean {
+        val tm = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+        val carrier = tm?.networkOperatorName ?: tm?.simOperator ?: "Vodacom"
+        val ussdCode = UssdHelper.getPleaseCallMeCode(carrier, guardianPhoneNumber)
+        triggerUssd(ussdCode)
+        return true
     }
 
     fun getLastKnownLocation(): Location? {

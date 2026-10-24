@@ -23,5 +23,18 @@ data class ThuthuzelaCenter(
     val altContactNumber: String = "",
     val address: String,
     val operates24Hours: Boolean = true,
-    val services: List<String> = listOf("Forensic Medical Exam", "HIV PEP Prophylaxis", "Trauma Counseling", "SAPS IO Assistance", "Court Preparation")
+    val services: List<String> = listOf("Forensic Medical Exam", "HIV PEP Prophylaxis", "Trauma Counseling", "SAPS IO Assistance", "Court Preparation"),
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0
+)
+
+data class PoliceStation(
+    val id: String,
+    val name: String,
+    val precinctOrArea: String,
+    val province: Province,
+    val contactNumber: String,
+    val address: String,
+    val latitude: Double,
+    val longitude: Double
 )

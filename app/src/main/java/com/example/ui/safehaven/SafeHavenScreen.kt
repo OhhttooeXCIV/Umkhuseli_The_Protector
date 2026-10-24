@@ -128,7 +128,19 @@ fun SafeHavenScreen(
     onClearStatusNotification: () -> Unit,
     userProfile: UserProfileEntity? = null,
     onSaveUserProfile: (UserProfileEntity) -> Unit = {},
-    onOpenSetupWizard: () -> Unit = {}
+    onOpenSetupWizard: () -> Unit = {},
+    onSendAutoPleaseCallMe: () -> Unit = {},
+    onDispatch72HourBeacon: () -> Unit = {},
+    activeJourneyTitle: String? = null,
+    onStartSafeJourney: () -> Unit = {},
+    onEndSafeJourney: () -> Unit = {},
+    nearestTccName: String? = null,
+    nearestTccDistance: String? = null,
+    nearestTccPhone: String? = null,
+    nearestSapsName: String? = null,
+    nearestSapsDistance: String? = null,
+    nearestSapsPhone: String? = null,
+    onCallNearestFacility: (String) -> Unit = {}
 ) {
     // Back gesture instantly triggers camouflage exit to facade
     BackHandler {
@@ -233,7 +245,19 @@ fun SafeHavenScreen(
                             isSirenActive = isSirenActive,
                             onCallResource = onCallResource,
                             onSendGuardianSos = onSendGuardianSos,
-                            onToggleSiren = onToggleSiren
+                            onToggleSiren = onToggleSiren,
+                            onSendAutoPleaseCallMe = onSendAutoPleaseCallMe,
+                            onDispatch72HourBeacon = onDispatch72HourBeacon,
+                            activeJourneyTitle = activeJourneyTitle,
+                            onStartSafeJourney = onStartSafeJourney,
+                            onEndSafeJourney = onEndSafeJourney,
+                            nearestTccName = nearestTccName,
+                            nearestTccDistance = nearestTccDistance,
+                            nearestTccPhone = nearestTccPhone,
+                            nearestSapsName = nearestSapsName,
+                            nearestSapsDistance = nearestSapsDistance,
+                            nearestSapsPhone = nearestSapsPhone,
+                            onCallNearestFacility = onCallNearestFacility
                         )
                     }
                     SafeHavenTab.TCC_CENTERS -> {
