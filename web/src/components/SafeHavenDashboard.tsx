@@ -13,7 +13,10 @@ import {
   Users,
   WifiOff,
   Zap,
-  MessageSquare
+  MessageSquare,
+  FileDown,
+  Copy,
+  ExternalLink
 } from "lucide-react";
 import {
   NATIONAL_LIFELINES,
@@ -24,12 +27,14 @@ import {
   vaultIncident,
   dispatchServerSos
 } from "../services/supabase";
+import { exportEctaAffidavitPdf, EctaAffidavitInput } from "../services/ectaSection15Pdf";
 
 interface Props {
   onPanicLock: () => void;
+  onOpenGuardianTracker?: () => void;
 }
 
-export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock }) => {
+export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardianTracker }) => {
   const [activeTab, setActiveTab] = useState<"sos" | "tcc" | "vault" | "plan">("sos");
   const [isVaultUnlocked, setIsVaultUnlocked] = useState(false);
   const [pinInput, setPinInput] = useState("");
@@ -63,6 +68,9 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock }) => {
   // Form 2 AI state
   const [isGeneratingAiForm2, setIsGeneratingAiForm2] = useState(false);
   const [aiForm2Result, setAiForm2Result] = useState<any | null>(null);
+  const [lastVaultedIncident, setLastVaultedIncident] = useState<EctaAffidavitInput | null>(null);
+  const [pdfExportStatus, setPdfExportStatus] = useState<string | null>(null);
+  const [copiedGuardianLink, setCopiedGuardianLink] = useState(false);
 
   // Auto-sync offline queue when internet recovers (e.g. after Loadshedding power returns)
   useEffect(() => {
