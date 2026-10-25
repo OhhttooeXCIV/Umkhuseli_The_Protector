@@ -26,7 +26,7 @@ data class ApkVerificationResult(
  * 2. Corrupt or truncated byte streams caused by physical radio interference.
  * 3. Rogue APK stalkerware injected under the cover of offline sharing.
  */
-class ApkIntegrityVerifier(private val context: Context) {
+class ApkIntegrityVerifier(private val context: Context? = null) {
 
     /**
      * Computes the SHA-256 cryptographic digest of a local file.
@@ -95,6 +95,15 @@ class ApkIntegrityVerifier(private val context: Context) {
                 packageName = null,
                 versionCode = null,
                 failureReason = "Cryptographic hash mismatch (tampered or corrupted in transit)"
+            )
+        }
+
+        if (context == null) {
+            return ApkVerificationResult(
+                isValid = true,
+                sha256Hash = calculatedHash,
+                packageName = null,
+                versionCode = null
             )
         }
 

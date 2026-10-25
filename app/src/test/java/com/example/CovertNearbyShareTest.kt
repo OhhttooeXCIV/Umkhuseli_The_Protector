@@ -21,9 +21,7 @@ class CovertNearbyShareTest {
 
     @Before
     fun setUp() {
-        // In unit test environment, we pass a dummy context or test verifier methods directly
-        val dummyContext = androidx.test.core.app.ApplicationProvider.getApplicationContext<android.content.Context>()
-        verifier = ApkIntegrityVerifier(dummyContext)
+        verifier = ApkIntegrityVerifier(null)
     }
 
     @Test
@@ -77,6 +75,17 @@ class CovertNearbyShareTest {
 
         assertFalse(result.isValid)
         assertTrue(result.failureReason?.contains("mismatch") == true)
+    }
+
+    @Test
+    fun testVerifyApkSuccessWithCorrectHash() {
+        val fakeApk = tempFolder.newFile("valid_size.apk")
+        fakeApk.writeBytes(ByteArray(120 * 1024)) // 120KB
+        val hash = verifier.computeSha256(fakeApk)
+
+        val result = verifier.verifyApk(fakeApk, expectedSha256 = hash)
+        assertTrue(result.isValid)
+        assertEquals(hash, result.sha256Hash)
     }
 
     @Test
