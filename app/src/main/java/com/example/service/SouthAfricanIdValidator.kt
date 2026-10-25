@@ -1,8 +1,6 @@
 package com.example.service
 
 import java.security.MessageDigest
-import java.text.SimpleDateFormat
-import java.util.Date
 import java.util.Locale
 
 enum class SouthAfricanGender {
@@ -113,6 +111,9 @@ object SouthAfricanIdValidator {
      * Evaluates a South African ID against format, Luhn algorithm, gender classification,
      * and statutory NRSO offender registry.
      *
+     * Blacklist resolution happens before checksum rejection so known offenders are
+     * silently blocked even before Luhn validation runs.
+     *
      * @param rawId 13-digit National ID string.
      * @param isIceContactRegistration True if a male user is being registered as an authorized ICE guardian.
      */
@@ -122,6 +123,7 @@ object SouthAfricanIdValidator {
     ): SaIdValidationResult {
         val clean = rawId.filter { it.isDigit() }
 
+        // Basic structural validation first
         if (clean.length != 13) {
             return SaIdValidationResult(
                 isValid = false,
@@ -130,14 +132,7 @@ object SouthAfricanIdValidator {
             )
         }
 
-        if (!isLuhnValid(clean)) {
-            return SaIdValidationResult(
-                isValid = false,
-                gender = SouthAfricanGender.INVALID,
-                errorMessage = "Invalid South African ID checksum (Luhn verification failed)."
-            )
-        }
-
+        // Known offender lookup runs before Luhn rejection so silent trapdoor lockout is enforced.
         val hashed = hashSaId(clean)
         val isOffender = KNOWN_OFFENDER_HASHES.contains(hashed)
 
@@ -152,6 +147,14 @@ object SouthAfricanIdValidator {
             )
         }
 
+        if (!isLuhnValid(clean)) {
+            return SaIdValidationResult(
+                isValid = false,
+                gender = SouthAfricanGender.INVALID,
+                errorMessage = "Invalid South African ID checksum (Luhn verification failed)."
+            )
+        }
+
         val gender = extractGender(clean)
         val dob = extractDateOfBirth(clean)
         val isCitizen = clean[10] == '0'
@@ -159,7 +162,7 @@ object SouthAfricanIdValidator {
         val role = when {
             gender == SouthAfricanGender.FEMALE -> UserAccessRole.FEMALE_PRIMARY
             gender == SouthAfricanGender.MALE && isIceContactRegistration -> UserAccessRole.MALE_GUARDIAN_RESPONDER
-            gender == SouthAfricanGender.MALE -> UserAccessRole.MALE_GUARDIAN_RESPONDER // Ally Responder mode
+            gender == SouthAfricanGender.MALE -> UserAccessRole.MALE_GUARDIAN_RESPONDER
             else -> UserAccessRole.TIER_0_GUEST
         }
 
