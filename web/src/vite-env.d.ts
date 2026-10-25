@@ -41,7 +41,12 @@ declare module 'lucide-react' {
   export const Search: React.FC<any>;
   export const Cross: React.FC<any>;
   export const Heart: React.FC<any>;
+  export const Share: React.FC<any>;
   export const Share2: React.FC<any>;
+  export const PlusSquare: React.FC<any>;
+  export const SquarePlus: React.FC<any>;
+  export const Fingerprint: React.FC<any>;
+  export const FingerprintPattern: React.FC<any>;
   export const Sun: React.FC<any>;
   export const KeyRound: React.FC<any>;
   export const Check: React.FC<any>;
