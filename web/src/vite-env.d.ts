@@ -50,4 +50,8 @@ declare module 'lucide-react' {
   export const Sun: React.FC<any>;
   export const KeyRound: React.FC<any>;
   export const Check: React.FC<any>;
+  export const Download: React.FC<any>;
+  export const Smartphone: React.FC<any>;
+  export const Monitor: React.FC<any>;
+  export const ShieldCheck: React.FC<any>;
 }
