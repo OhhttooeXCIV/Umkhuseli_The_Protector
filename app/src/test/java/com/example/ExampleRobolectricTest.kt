@@ -81,53 +81,44 @@ class ExampleRobolectricTest {
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-@Before
-fun setUp() {
-    Dispatchers.setMain(StandardTestDispatcher())
-}
+    @Test
+    fun `safety trigger view model arms and logs distress timestamp to room database`() = runTest {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        try {
+            val app = ApplicationProvider.getApplicationContext<Application>()
+            val db = AppDatabase.getInstance(app)
+            val emergencyService = EmergencyService(app)
+            val emergencyDispatchHelper = EmergencyDispatchHelper(app)
+            val viewModel = SafetyTriggerViewModel(db, emergencyService, emergencyDispatchHelper)
 
-@OptIn(ExperimentalCoroutinesApi::class)
-@After
-fun tearDown() {
-    Dispatchers.resetMain()
-}
+            assertEquals(SafetySignalState.Idle, viewModel.signalState.value)
 
-@OptIn(ExperimentalCoroutinesApi::class)
-@Test
-fun `safety trigger view model arms and logs distress timestamp to room database`() = runTest {
-    val app = ApplicationProvider.getApplicationContext<Application>()
-    val db = AppDatabase.getInstance(app)
-    val emergencyService = EmergencyService(app)
-    val emergencyDispatchHelper = EmergencyDispatchHelper(app)
-    val viewModel = SafetyTriggerViewModel(db, emergencyService, emergencyDispatchHelper)
+            viewModel.armQuickAccessSos(countdownSeconds = 3)
+            assertTrue(viewModel.signalState.value is SafetySignalState.Armed)
 
-    assertEquals(SafetySignalState.Idle, viewModel.signalState.value)
+            viewModel.cancelArmedSos("Cancelled in test")
+            assertTrue(viewModel.signalState.value is SafetySignalState.Cancelled)
 
-    viewModel.armQuickAccessSos(countdownSeconds = 3)
-    assertTrue(viewModel.signalState.value is SafetySignalState.Armed)
+            val job = viewModel.triggerInstantSos("Immediate danger distress test alert")
+            job.join()
 
-    viewModel.cancelArmedSos("Cancelled in test")
-    assertTrue(viewModel.signalState.value is SafetySignalState.Cancelled)
+            val state = viewModel.signalState.value
+            assertTrue(state is SafetySignalState.Dispatched)
 
-    viewModel.triggerInstantSos("Immediate danger distress test alert")
-    advanceUntilIdle()
+            val dispatched = state as SafetySignalState.Dispatched
+            assertTrue(dispatched.incidentId > 0)
+            assertTrue(dispatched.timestamp > 0)
+            assertTrue(dispatched.formattedTime.isNotBlank())
 
-    val state = viewModel.signalState.value
-    assertTrue(state is SafetySignalState.Dispatched)
-
-    val dispatched = state as SafetySignalState.Dispatched
-    assertTrue(dispatched.incidentId > 0)
-    assertTrue(dispatched.timestamp > 0)
-    assertTrue(dispatched.formattedTime.isNotBlank())
-
-    val incident = db.incidentDao().getIncidentById(dispatched.incidentId)
-    assertTrue(incident != null)
-    assertEquals("Emergency SOS Distress Signal", incident?.incidentType)
-    assertEquals(5, incident?.severityLevel)
-    assertEquals(dispatched.timestamp, incident?.timestamp)
-
-    // viewModel.onCleared() is protected
-}
+            val incident = db.incidentDao().getIncidentById(dispatched.incidentId)
+            assertTrue(incident != null)
+            assertEquals("Emergency SOS Distress Signal", incident?.incidentType)
+            assertEquals(5, incident?.severityLevel)
+            assertEquals(dispatched.timestamp, incident?.timestamp)
+        } finally {
+            Dispatchers.resetMain()
+        }
+    }
 
     @Test
     fun `vault encryption helper encrypts and decrypts sensitive incident notes`() {
