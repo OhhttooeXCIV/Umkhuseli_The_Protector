@@ -36,4 +36,13 @@ declare module 'lucide-react' {
   export const MessageSquare: React.FC<any>;
   export const FileDown: React.FC<any>;
   export const Copy: React.FC<any>;
+  export const BookOpen: React.FC<any>;
+  export const Bookmark: React.FC<any>;
+  export const Search: React.FC<any>;
+  export const Cross: React.FC<any>;
+  export const Heart: React.FC<any>;
+  export const Share2: React.FC<any>;
+  export const Sun: React.FC<any>;
+  export const KeyRound: React.FC<any>;
+  export const Check: React.FC<any>;
 }

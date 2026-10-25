@@ -21,6 +21,7 @@ vi.mock('../services/supabase', () => ({
 describe('Camouflage Secret Unlock & Duress Emergency Triggers', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
   });
 
   describe('Secret Safe Haven Unlock PIN (8426)', () => {
@@ -266,16 +267,23 @@ describe('Camouflage Secret Unlock & Duress Emergency Triggers', () => {
 
       const rootContainer = screen.getByTestId('root-panic-container');
 
+      const dateSpy = vi.spyOn(Date, 'now');
+      let simulatedTime = 50000;
+      dateSpy.mockImplementation(() => simulatedTime);
+
       // First tap
       fireEvent.click(rootContainer);
       expect(screen.getByText(/Safe Haven Active/i)).toBeInTheDocument();
 
-      // Rapid second tap within 350ms
+      // Rapid second tap within 350ms (simulated 100ms later)
+      simulatedTime += 100;
       fireEvent.click(rootContainer);
 
       // Decoy is restored instantly in 0ms
       expect(screen.getByText('Prepaid Electricity Portal')).toBeInTheDocument();
       expect(screen.queryByText(/Safe Haven Active/i)).not.toBeInTheDocument();
+
+      dateSpy.mockRestore();
     });
 
     it('immediately reverts to Decoy mode on hardware Escape keydown event', () => {
