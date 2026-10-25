@@ -75,21 +75,27 @@ flowchart TD
     SafeHavenCore -->|Adversary Approaches| P1 --> P2 --> A
 ```
 
-1. **Native Android Launcher Facade**: Appears as "Sankofa Wisdom Launcher", a lightweight launcher showing African proverbs and standard app launcher functionality.
-2. **Web / PWA Decoy Calculator**: Masquerades as a municipal utility tool that calculates residential electricity units (Block 1 & 2 Lifeline tariffs, 15% VAT) and generates authentic 20-digit STS recharge vouchers.
-3. **0-Millisecond Panic Camouflage**: Hitting the hardware Back button or any top panic bar instantly zeroes sensitive in-memory state and restores the decoy within 0 ms without recents snapshots.
+### Multi-Platform Deployment & Disguise Modes
+- **Native Android APK (Two Disguise Options)**:
+  1. *Option A (Launcher Mode):* **Sankofa Wisdom Launcher** — Replaces the entire Android home screen with an authentic African proverb generator and innocent app drawer.
+  2. *Option B (App Decoy Mode):* **PowerCal SA** — Municipal Prepaid Electricity Calculator with Eskom/City Power Incline Block Tariffs and 20-digit STS voucher simulation.
+- **Web SPA (Vercel) & iOS Safari PWA**:
+  - Pure **PowerCal SA** web utility. Allows survivors facing intense device surveillance to run the app in an incognito mobile browser leaving **zero Google Play or Apple App Store installation traces**, no battery/data usage logs, and no launcher icons.
+- **0-Millisecond Panic Camouflage**: Hitting the hardware Back button, Escape key, or panic tap instantly zeroes in-memory state and restores the disguise in <10 ms without recents snapshot artifacts.
 
 ---
 
-## ✨ Key Features
+## ✨ The 5 Definitive MVP Features (FNBAOTY Baseline)
 
-- **Camouflage Facade & 0ms Exit**: Disguised as an innocent launcher; secret gestures or PIN unlocks the Safe Haven in 0 ms, with an instant memory purge when an abuser approaches.
-- **Biometric Evidence Vault**: Hardware-backed AES-256-GCM encryption with `AndroidKeyStore` master keys and `BiometricPrompt` (`BIOMETRIC_STRONG`), encrypting incident descriptions, injuries, and witness statements.
-- **State-Driven SOS Dispatch**: Configurable armed grace countdown with tactile haptic vibration, automated SMS broadcasting with 72-hour GPS tracker links to up to 5 ICE guardians.
-- **Zero-Airtime Lifelines**: Integrated zero-rated USSD callback support (`*120*7867#` and `*134*7355#`) and direct-dialing for SAPS (`10111`) and GBV Command Centre (`0800 428 428`).
-- **Complete Thuthuzela Care Centres (TCC) Directory**: Comprehensive, offline-cached directory across all 9 South African provinces with 24/7 helpline calling and GPS navigation guidance.
-- **Court-Ready Form 2 Generator**: Standardized incident logger mapping directly to South African Department of Justice Form 2 Domestic Violence Protection Order affidavits with SAPS OB numbers and J88 medical notes.
-- **Zero-Knowledge Cloud Sync (Supabase)**: Client-side E2EE sync allowing cross-device vault backup without server-side plaintext leakage.
+Following guidance from **First National Bank App of the Year (FNBAOTY)** mentors, the hackathon baseline focuses on 5 robust, failure-proof features engineered specifically for South African conditions:
+
+1. **Chameleon Camouflage & 0ms Exit**: Dual-persona disguised access across Android (*Sankofa Wisdom* / *PowerCal SA*) and Web/iOS (*PowerCal SA* on Vercel) with instant memory scrub on panic trigger.
+2. **ECTA Section 15 Tamper-Evident Evidence Vault**: On-device AES-256-GCM authenticated encryption paired with SHA-256 hash chaining to provide contemporaneous record integrity under Section 15 of South Africa's Electronic Communications and Transactions Act (Act 25 of 2002).
+3. **Loadshedding-Resilient Emergency Dispatch & Duress Flow**: Duress PIN `9999` masquerading as a fake meter voucher receipt while silently dispatching SOS beacons; tactile 3-second abort countdown; carrier-aware offline SMS/GPS fallback for cellular tower blackouts.
+4. **Statutory Form 2 DVA Court Preparation Pack**: Empathetic, structured incident intake mapping survivor narratives directly into the statutory format of **Form 2 (Application for Protection Order)** under Act 116 of 1998 (as amended by Act 14 of 2021) for Magistrates Court clerks.
+5. **Offline 9-Province Thuthuzela Care Centre (TCC) & 72-Hour PEP Navigator**: Complete preloaded offline directory of all public TCCs across all 9 provinces with critical guidance for HIV PEP, STI prophylaxis, and J88 clinical exam forensics.
+
+> **Future Horizons (Post-Hackathon Roadmap)**: 7 additional repository modules (Bolt/Taxi Trip Sentinel, Audio Sentry acoustic distress classifier, OPRF PSI Private Contact Discovery, P2P Wi-Fi Direct Mesh Share, Citizen First-Responder KYC Network, Direct Carrier VAS Airtime Tokens, and Geofenced Community Forum) are scheduled for subsequent production phases.
 
 ---
 

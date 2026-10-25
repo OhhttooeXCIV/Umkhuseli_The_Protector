@@ -1,108 +1,126 @@
-# Umkhuseli: The Protector — Project & Kanban Board
+# Umkhuseli: The Protector — Final Project Roadmap & Kanban Board
 
-> **Live Project Tracking, Workflows, Sprint Planning, and Task Delivery Matrix**
+> **Live Project Tracking, Multi-Platform Architecture, and FNBAOTY Mentor Feedback Alignment Matrix**  
+> *Target Version: 2.4.0-PROD | Hackathon MVP Scope: 5 Definitive Core Features*  
 > *Dual-Persona Covert GBV Response & Court-Admissible Evidence Vault for South Africa*
 
 ---
 
-## 1. Kanban Board Overview
+## 1. FNBAOTY Mentor Feedback Alignment Matrix
 
-This Kanban board tracks engineering, design, security audits, and field-readiness tasks across the **Android Native App**, **Web PWA Decoy Calculator**, and **Supabase Zero-Knowledge Cloud Services**.
+This roadmap incorporates the guidance provided by the First National Bank App of the Year (FNBAOTY) hackathon mentors:
 
-### Workflow Columns & WIP Limits
-- **Backlog**: Prioritized tasks ready for scoping and architectural review (No limit).
-- **In Progress**: Actively being implemented or optimized (WIP Limit: 4).
-- **Review / Verification**: Functional testing, Robolectric / Vitest suites, cryptographic validation, and physical adversary threat modeling (WIP Limit: 3).
-- **Done / Production Ready**: Verified, tested, security reviewed, and merged into `main` branch.
+| Mentor Guidance & Risk Vector | Mentor Recommendation | Umkhuseli 2.4.0 Production Architecture Response |
+|---|---|---|
+| **Scope Overload** | *"Narrow the scope and prioritise a small number of features that you can demonstrate reliably during the hackathon."* | **Locked to 5 Definitive Core Features**: Chameleon Camouflage, ECTA Evidence Vault, Loadshedding Emergency Dispatch, Form 2 Court Prep, and 72-Hour TCC Navigator. All other 7 features re-allocated to Future Horizons. |
+| **Competitor Differentiation** | *"Conduct a competitor analysis of existing GBV response applications... identify what gaps remain."* | **Covert Decoy vs Overt Panic Apps**: Unlike Namola, Bright Sky SA, or Tears Foundation (which place dangerous branded icons on phones), Umkhuseli delivers authentic disguises (*PowerCal SA* & Wisdom Launcher), offline resilience during Stage 6 loadshedding, and Section 15 ECTA court alignment. |
+| **Safety & Forensic Traces** | *"A hidden interface or panic-close cannot guarantee that an abusive person will not discover the app... deleting local files does not remove all traces."* | **Multi-Platform Zero-Trace Architecture**: For survivors facing intense device inspection, the **Web PWA on Vercel** runs in private/incognito browser mode leaving **zero Google Play or Apple App Store download history**, no battery/data usage entries, and no system launcher icons. |
+| **Legal Admissibility** | *"Encrypted evidence, timestamps and location data do not automatically make records legally admissible."* | **Section 15 ECTA Alignment**: We do NOT claim "guaranteed court admissibility". The vault generates tamper-evident, SHA-256 hashed **contemporaneous records** designed under Section 15 of the Electronic Communications and Transactions Act (Act 25 of 2002) to corroborate sworn affidavits and J88 clinical notes. |
+| **AI Protection Orders** | *"AI-generated protection-order statements should be reviewed against current legal requirements and by appropriate experts."* | **Structured Intake Assistant (Not Unchecked AI)**: Maps survivor statements directly to statutory sections of **Form 2 (Domestic Violence Act 116 of 1998 / Act 14 of 2021)** for review by Magistrates Court clerks, with clear legal disclaimers. |
 
 ---
 
-## 2. Interactive Project Board Matrix
+## 2. Multi-Platform Deployment & Disguise Strategy
 
-```mermaid
-kanban
-  Backlog
-    [UMK-101] Zero-Rated USSD Carrier Gateway
-    [UMK-102] Form 2 Digital PDF Export Engine
-    [UMK-103] Community Worker Bulk TCC Sync
-  In Progress
-    [UMK-084] Android 14+ Doze Mode GPS Resiliency
-    [UMK-088] E2EE Supabase Edge Function Sync
-    [UMK-092] Offline PWA Loads-shedding Cache
-  Review / QA
-    [UMK-077] Form 2 Protection Order Swiper
-    [UMK-079] Municipal Prepaid Decoy Vitest Suite
-    [UMK-081] AES-GCM IV Collision Protection
-  Done
-    [UMK-001] Dual-Persona Facade Launcher UI
-    [UMK-010] 0ms Camouflage Panic Wipe
-    [UMK-022] BiometricPrompt Hardware Keystore
-    [UMK-031] Room SQLite AES-256 Encrypted DAO
-    [UMK-045] Offline 9-Province TCC Directory
-    [UMK-050] Tactile 3-Second SOS Grace Countdown
-    [UMK-060] Municipal Prepaid Decoy Calculator
+```
+                                  ┌──────────────────────────────────────────────┐
+                                  │      UMKHUSELI MULTI-PLATFORM SUITE          │
+                                  └──────────────────────────────────────────────┘
+                                                         │
+                        ┌────────────────────────────────┴────────────────────────────────┐
+                        ▼                                                                 ▼
+         ┌──────────────────────────────┐                                  ┌──────────────────────────────┐
+         │     Native Android APK       │                                  │      Web SPA (Vercel)        │
+         └──────────────────────────────┘                                  └──────────────────────────────┘
+                        │                                                                 │
+         ┌──────────────┴──────────────┐                                                  ▼
+         ▼                             ▼                                   ┌──────────────────────────────┐
+  [Disguise Mode A]             [Disguise Mode B]                          │  PowerCal SA (PWA & iOS)     │
+  Sankofa Wisdom Launcher       PowerCal SA App Decoy                      • Zero App Store trace         │
+  • Full system launcher        • Municipal prepaid electricity            • Incognito browser safe       │
+  • Daily African proverbs      • Real Eskom / City Power tariffs          • Safari Add to Home Screen    │
+  • Neutral app drawer          • 20-digit STS token generator             • WebCrypto AES-256-GCM        │
+  • Proverb secret tap gesture  • Equation trigger (1234=)                 • Duress PIN 9999              │
 ```
 
 ---
 
-## 3. Detailed Kanban Task Cards
+## 3. The Definitive 5-Feature Hackathon MVP (Production Baseline)
 
-### 🟢 Done / Production Delivered
+The hackathon demonstration focuses exclusively on executing these 5 features with 100% reliability:
 
-| Card ID | Epic | Task Title & Deliverable | Assignee | Completion Date | Verification Artifact |
-|---|---|---|---|---|---|
-| **UMK-001** | *Camouflage* | Dual-Persona Android Launcher Facade (Sankofa Wisdom Launcher) with African proverb generator and innocent drawer | `@OhhttooeXCIV` | 2026-10-23 | Verified in `app-debug.apk` |
-| **UMK-010** | *Security* | 0-Millisecond Panic Camouflage Wipe: instant memory clearing and facade switch on hardware Back or panic tap | `@OhhttooeXCIV` | 2026-10-23 | `SankofaViewModel.kt` |
-| **UMK-022** | *Security* | Hardware-backed Biometric Authentication (`BIOMETRIC_STRONG` / device PIN) protecting the Safe Haven | `@OhhttooeXCIV` | 2026-10-23 | BiometricPrompt integration |
-| **UMK-031** | *Vault* | AES-256-GCM encrypted Room Database with master key in `AndroidKeyStore` (`ENC:` ciphertext tags) | `@OhhttooeXCIV` | 2026-10-23 | `VaultEncryptionHelper.kt` |
-| **UMK-045** | *Directory* | Offline Thuthuzela Care Centre (TCC) directory covering all 9 SA provinces with 24/7 direct dial & USSD callback | `@OhhttooeXCIV` | 2026-10-23 | `TccData.kt` (all provinces) |
-| **UMK-050** | *Dispatch* | State-driven emergency SOS dispatch with tactile 3-second abort countdown, GPS coordinate beacon, and ICE SMS | `@OhhttooeXCIV` | 2026-10-24 | `SafetyTriggerOverlay.kt` |
-| **UMK-060** | *Decoy* | Municipal Prepaid Electricity Calculator Decoy with authentic Eskom/City Power tariffs and STS token generator | `@OhhttooeXCIV` | 2026-10-24 | `web/src/components/` |
-| **UMK-065** | *Decoy* | Duress PIN (`9999`) silent dispatch trigger masquerading as a fake electricity purchase receipt | `@OhhttooeXCIV` | 2026-10-24 | `camouflageTriggers.test.tsx` |
-| **UMK-070** | *Architecture* | Manual Dependency Injection via centralized `AppContainer` and `ViewModelFactory` | `@OhhttooeXCIV` | 2026-10-24 | `AppContainer.kt` |
-| **UMK-072** | *Optimization* | R8 / ProGuard shrinking and minification rules preventing reverse engineering of vault classes | `@OhhttooeXCIV` | 2026-10-24 | `proguard-rules.pro` |
-
----
-
-### 🟡 Review & Quality Assurance
-
-| Card ID | Epic | Task Title & Scope | Priority | Test Coverage | Target Milestone |
-|---|---|---|---|---|---|
-| **UMK-077** | *Court Prep* | **Form 2 Protection Order Swipeable Viewer**: Swiping through recorded incidents with court case numbers, J88 medical notes, and SAPS OB numbers | **High** | Unit test created in `Form2RecordViewerTest.kt` | Milestone 4 |
-| **UMK-079** | *Decoy Test* | **Municipal Decoy Vitest Test Suite**: 46 unit & integration tests validating tariff arithmetic, secret gestures, and duress flows | **High** | 46/46 Passing in `web/src/__tests__` | Milestone 4 |
-| **UMK-081** | *Security* | **AES-GCM Nonce / IV Collision Hardening**: Cryptographic random 12-byte IV prepended to raw bytes with base64 serialization | **Critical** | Tested in `crypto.test.ts` & `VaultEncryptionHelperTest.kt` | Milestone 2 |
-| **UMK-082** | *Field QA* | **Live Device UAT Test Plan & Feedback Guide**: End-to-end device acceptance testing covering stealth facades, 0ms panic wipes, and loadshedding outbox | **High** | Detailed in `docs/USER_ACCEPTANCE_TEST_PLAN.md` | Milestone 4 |
-
----
-
-### 🔵 In Progress
-
-| Card ID | Epic | Task & Scope | Assignee | Priority | Blocking Dependencies |
-|---|---|---|---|---|---|
-| **UMK-084** | *Dispatch* | **Android 14+ Doze Mode GPS Resiliency**: Background foreground service sticky dispatch to preserve GPS tracking when screen turns off | `@OhhttooeXCIV` | **High** | `ACCESS_BACKGROUND_LOCATION` policy review |
-| **UMK-088** | *Cloud Sync* | **Zero-Knowledge Supabase Sync**: Client-side AES-GCM encrypted cloud backup for cross-device survivor migration without server-side plaintext access | `@OhhttooeXCIV` | **Medium** | Edge function security review (`sync-vault`) |
-| **UMK-092** | *Resilience* | **Offline PWA Load-shedding Cache**: Workbox service worker caching for 100% offline functionality during Stage 6 power outages | `@OhhttooeXCIV` | **High** | Service worker cache invalidation strategy |
+```mermaid
+kanban
+  5-Feature MVP Baseline (Verified)
+    [FEAT-01] Chameleon Disguise Engine (Launcher + PowerCal SA)
+    [FEAT-02] ECTA Section 15 Tamper-Evident Evidence Vault
+    [FEAT-03] Loadshedding-Resilient Emergency Dispatch & Duress 9999
+    [FEAT-04] Statutory Form 2 DVA Court Preparation Pack
+    [FEAT-05] Offline 9-Province Thuthuzela Care Centre (TCC) Directory
+  Review & Live Pitch Rehearsal
+    [QA-01] 3-Minute Live Hackathon Demo Run-Sheet
+    [QA-02] ECTA Sec 15 Disclaimers in Safe Haven UI
+    [QA-03] Android 14+ Doze Mode Background Location Service
+  Future Horizons: Horizon 1 (Phase 2)
+    [H1-01] Safe Journey E-Hailing Corridor Sentinel
+    [H1-02] Audio Sentry Ambient Acoustic Distress Classifier
+    [H1-03] Direct Carrier VAS Airtime & Data Tokens
+  Future Horizons: Horizon 2 (Phase 3)
+    [H2-01] OPRF PSI Private Set Intersection Contact Discovery
+    [H2-02] Touched by an Angel Citizen First-Responder KYC Network
+    [H2-03] P2P Wi-Fi Direct Covert Mesh Share
+    [H2-04] Ward-Level Geofenced Community Forum
+```
 
 ---
 
-### ⚪ Backlog (Upcoming Epics)
+## 4. Feature Specifications: 5 MVP Features vs Future Horizons
 
-| Card ID | Epic | Feature Description | Complexity | Target Release |
-|---|---|---|---|---|
-| **UMK-101** | *Telecom* | **Zero-Rated USSD Carrier Integration**: Partnership with Vodacom, MTN, Telkom, and Cell C for zero-airtime emergency reverse-billing | High | Phase 6 |
-| **UMK-102** | *Legal* | **One-Tap Form 2 PDF Exporter**: Direct generation of official court-ready PDF affidavits formatted for Magistrates Court clerks | Medium | Phase 5 |
-| **UMK-103** | *Community* | **Thuthuzela Care Centre Real-Time Status Feed**: Live intake capacity, on-duty nurse availability, and medical prep guidelines | Medium | Phase 6 |
-| **UMK-104** | *Biometrics* | **StrongBox Hardware Keystore Fallback**: Dynamic graceful degradation for budget MediaTek/Unisoc devices lacking dedicated security chips | Low | Phase 5 |
-| **UMK-105** | *Distribution* | **Covert Nearby Share (Bluetooth/Wi-Fi Direct)**: Peer-to-peer APK distribution between trusted community health workers without internet | Medium | Phase 6 |
+### 🟢 The 5 MVP Features (Hackathon Core Delivery)
+
+| Feature ID | Feature Name | Core Functionality & SA Value-Add | Verification Artifact |
+|---|---|---|---|
+| **FEAT-01** | **Chameleon Disguise Engine & 0ms Exit** | Dual Android disguises (Wisdom Launcher + PowerCal SA Decoy) and Vercel PWA for iOS/Web. Instant memory wipe on Back/Panic. | `LauncherFacadeScreen.kt`, `MunicipalPrepaidCalculator.kt`, `MunicipalPrepaidCalculator.tsx` |
+| **FEAT-02** | **ECTA Section 15 Evidence Vault** | Local AES-256-GCM encrypted incident logging with SHA-256 cryptographic hash chaining for contemporaneous legal corroboration. | `VaultEncryptionHelper.kt`, `EvidenceVaultSection.kt`, `crypto.test.ts` |
+| **FEAT-03** | **Loadshedding SOS & Duress Flow** | Duress PIN `9999` masquerading as a meter voucher receipt while secretly dispatching emergency beacons. Offline SMS/GPS fallback for tower blackouts. | `EmergencyDispatchHelper.kt`, `EmergencySosSection.kt`, `offlineOutbox.ts` |
+| **FEAT-04** | **Statutory Form 2 DVA Court Pack** | Structured affidavit generator mapping vault incidents into the official Domestic Violence Act Form 2 format for Magistrates Court clerks. | `Form2RecordViewer.kt`, `PdfPrintHelper.kt`, `ectaSection15Pdf.ts` |
+| **FEAT-05** | **Offline 9-Province TCC & PEP Navigator** | Complete preloaded offline directory of all public Thuthuzela Care Centres across SA with critical 72-hour HIV PEP & J88 clinical guidelines. | `ThuthuzelaRepository.kt`, `ThuthuzelaSection.kt`, `TccData.kt` |
 
 ---
 
-## 4. Sprint Cadence & Definition of Done (DoD)
+### ⚪ Future Horizons (Post-Hackathon Engineering Roadmap)
 
-### Definition of Done (DoD) Checklist
-1. **Camouflage Invariance**: The feature must not reveal any hint of the Safe Haven in the Facade UI, app launcher icon, or system notifications.
-2. **Adversary-in-Hand Safety**: All in-memory plaintext must be purged immediately upon panic lock or app minimization.
-3. **Cryptographic Rigour**: All persistent sensitive data must use AES-256-GCM authenticated encryption.
-4. **Offline Capability**: Core SOS, directories, and vault operations must execute flawlessly with 0 airtime and 0 mobile data.
-5. **POPIA Compliance**: Zero non-essential analytics or telemetry; all device logs must be scrubbed of survivor identities.
-6. **Automated Testing**: 100% pass rate across Android Robolectric / JUnit test suites and Web Vitest test suites.
+These features have foundational codebase components already implemented in the repository, and are scheduled for post-hackathon rollouts:
+
+#### Horizon 1: Immediate Field Expansion (Phase 2)
+1. **Safe Journey E-Hailing & Taxi Sentinel (`SafeJourneyManager.kt`)**: Cross-track corridor deviation monitoring for Bolt, Uber, and minibus taxi rides with dead-man's switch escalation.
+2. **Audio Sentry Acoustic Distress Classifier (`audioSentryService.ts`)**: Local on-device decibel spike and screaming frequency classifier using circular audio buffers.
+3. **Direct Carrier VAS Reverse-Billing (`CarrierDetectionManager.kt`)**: Zero-rated USSD carrier integration with Vodacom, MTN, Telkom, and Cell C for zero-airtime emergency reverse-billing.
+
+#### Horizon 2: Community & Ecosystem Scaling (Phase 3)
+4. **OPRF PSI Private Contact Discovery**: 2-Hash Elliptic Curve Diffie-Hellman Oblivious PRF over Curve25519 preventing phone number rainbow table attacks across South African MSISDN ranges.
+5. **'Touched by an Angel' Citizen First-Responder Network (`GuardianResponderSection.kt`)**: Proximity-based radial dispatch algorithm paired with 3-tier KYC (DHA ID check, biometric liveness, SAPS police clearance certificate).
+6. **Peer-to-Peer Wi-Fi Direct Mesh Share (`WifiDirectShareManager.kt`, `CovertNearbyShareSection.kt`)**: Offline APK distribution between community health workers without internet connectivity.
+7. **Pseudonymous Community Safety Circles**: PostGIS ward-level localized forums with monthly rotating cryptographic pseudonyms.
+
+---
+
+## 5. South African Competitor Analysis & Positioning
+
+| Dimension | Standard Safety Apps (Namola, MySOS) | GBV Portals (Bright Sky, Tears Foundation) | Umkhuseli: The Protector (Sankofa Safe) |
+|---|---|---|---|
+| **Threat Vector** | Overt panic button; visible icon alerts abuser | Branded GBV portal; immediate suspicion if discovered | **Chameleon Decoy**: Authentic municipal calculator or cultural launcher |
+| **App Store Footprint** | Installed via App Store / Play Store | Installed via App Store / Play Store | **Multi-Platform**: Android native + Zero-install Vercel PWA for zero download traces |
+| **Loadshedding Handling** | Fails or degrades when LTE cell towers lose battery | Requires active mobile internet bundle | **Offline-First**: Local Room/WebCrypto vault, SMS/USSD fallback, cached TCC directory |
+| **Legal Admissibility** | Simple GPS breadcrumbs | Generic educational advice | **ECTA Section 15**: SHA-256 contemporaneous hash chain & Form 2 statutory preparation pack |
+| **Post-Assault Care** | Alerts dispatchers only | Basic hotline directory | **72-Hour TCC Navigator**: Comprehensive PEP and J88 clinical exam guides across all 9 provinces |
+
+---
+
+## 6. Definition of Done (DoD) for Hackathon Demo
+
+1. **Failure-Proof Demo**: All 5 MVP features execute without network dependencies, crashes, or unhandled exceptions.
+2. **Camouflage Invariance**: The Safe Haven leaves no UI traces in recents, notifications, or task switchers.
+3. **Forensic Integrity**: Memory wiped within 0 ms on Back press; no plaintext persisted to disk.
+4. **Legal Realism**: UI transparently frames Form 2 outputs as preparatory drafting dossiers, requiring clerk/social worker review.
+5. **Loadshedding Demonstration**: The SOS flow gracefully queues to offline outbox if airplane mode is engaged.

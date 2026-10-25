@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.4.0] - 2026-10-26
+
+### Added
+- **FNBAOTY Mentor Feedback Alignment & 5-Feature MVP Baseline**:
+  - Formalized the **Definitive 5 Core MVP Features** for the hackathon showcase:
+    1. **Chameleon Camouflage & 0ms Exit**: Multi-platform disguise engine with Android Launcher Mode (*Sankofa Wisdom*), Android App Decoy Mode (*PowerCal SA*), and Web/iOS Safari PWA (*PowerCal SA* on Vercel).
+    2. **Tamper-Evident Evidence Vault**: On-device AES-256-GCM encrypted incident logging with SHA-256 cryptographic hash chaining complying with Section 15 of the Electronic Communications and Transactions Act (ECTA 25 of 2002).
+    3. **Loadshedding-Resilient Emergency Dispatch**: Duress PIN `9999` masquerading as a meter voucher receipt, 3-second tactile abort countdown, and carrier-aware SMS/GPS beacon fallback.
+    4. **Statutory Form 2 DVA Court Preparation Pack**: Structured affidavit mapping aligning incident records with the Domestic Violence Act 116 of 1998 (as amended by Act 14 of 2021) for Magistrates Court clerks.
+    5. **Offline 9-Province Thuthuzela Care Centre (TCC) & 72-Hour PEP Navigator**: Complete offline directory of all public TCCs across all 9 South African provinces with critical guidance for HIV PEP and J88 clinical examinations.
+- **Multi-Platform Disguise Architecture**:
+  - Documented dual-option native disguise on Android: Full Launcher/Theme mode (`LauncherFacadeScreen`) and standalone decoy app mode (`PowerCal SA`).
+  - Standardized Web PWA & iOS Safari deployment on Vercel running *PowerCal SA* to ensure zero App Store or Play Store forensic trace for survivors facing physical device surveillance.
+- **Safety, Trust & Legal Reality Disclaimers**:
+  - Clarified ECTA Section 15 evidentiary limits: data messages corroborate sworn affidavits and contemporaneous evidence rather than replacing human witness or clinical testimony.
+  - Transparent anti-surveillance guidance: documented limitations of app hiding against system-level logs (Play Store history, battery usage), recommending incognito web PWA for high-surveillance threat models.
+- **Strategic Roadmap Realignment**:
+  - Re-allocated remaining 7 advanced repository features (Bolt/Taxi Trip Sentinel, Audio Sentry acoustic distress classifier, OPRF PSI Private Contact Discovery, P2P Wi-Fi Direct Nearby Share, Touched by an Angel Citizen First-Responder KYC Network, Direct Carrier VAS Airtime Tokens, and Pseudonymous Community Forum) into post-hackathon Phase 2 & 3 roadmaps.
+
+---
 ## [2.3.0] - 2026-10-25
 
 ### Added
