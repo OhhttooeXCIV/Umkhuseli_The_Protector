@@ -19,6 +19,11 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -93,15 +98,18 @@ class ExampleRobolectricTest {
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `safety trigger view model arms and logs distress timestamp to room database`() = runTest {
-        val app = ApplicationProvider.getApplicationContext<Application>()
-        val db = AppDatabase.getInstance(app)
-        val emergencyService = EmergencyService(app)
-        val emergencyDispatchHelper = EmergencyDispatchHelper(app)
-        val viewModel = SafetyTriggerViewModel(db, emergencyService, emergencyDispatchHelper)
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        try {
+            val app = ApplicationProvider.getApplicationContext<Application>()
+            val db = AppDatabase.getInstance(app)
+            val emergencyService = EmergencyService(app)
+            val emergencyDispatchHelper = EmergencyDispatchHelper(app)
+            val viewModel = SafetyTriggerViewModel(db, emergencyService, emergencyDispatchHelper)
 
-        assertEquals(SafetySignalState.Idle, viewModel.signalState.value)
+            assertEquals(SafetySignalState.Idle, viewModel.signalState.value)
 
         viewModel.armQuickAccessSos(countdownSeconds = 3)
         advanceUntilIdle()
@@ -117,10 +125,10 @@ class ExampleRobolectricTest {
         val state = viewModel.signalState.value
         assertTrue("Expected Dispatched state, got $state", state is SafetySignalState.Dispatched)
 
-        val dispatched = state as SafetySignalState.Dispatched
-        assertTrue(dispatched.incidentId > 0)
-        assertTrue(dispatched.timestamp > 0)
-        assertTrue(dispatched.formattedTime.isNotBlank())
+            val dispatched = state as SafetySignalState.Dispatched
+            assertTrue(dispatched.incidentId > 0)
+            assertTrue(dispatched.timestamp > 0)
+            assertTrue(dispatched.formattedTime.isNotBlank())
 
         val incident = db.incidentDao().getIncidentById(dispatched.incidentId)
         assertTrue("Incident should exist in Room database", incident != null)

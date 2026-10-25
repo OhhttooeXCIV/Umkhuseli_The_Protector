@@ -1,8 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { MunicipalPrepaidCalculator } from "./components/MunicipalPrepaidCalculator";
+import { DailyDevotionalFacade } from "./components/DailyDevotionalFacade";
 import { SafeHavenDashboard } from "./components/SafeHavenDashboard";
 import { GuardianTrackerView } from "./components/GuardianTrackerView";
 import { dispatchServerSos } from "./services/supabase";
+import {
+  getActiveDisguise,
+  DISGUISE_EVENT_NAME,
+  DisguiseType,
+} from "./services/disguiseManager";
 
 export const App: React.FC = () => {
   const [mode, setMode] = useState<"DECOY_CALCULATOR" | "SAFE_HAVEN" | "GUARDIAN_TRACKER">(() => {
@@ -15,16 +21,29 @@ export const App: React.FC = () => {
     return "DECOY_CALCULATOR";
   });
 
+  const [activeDisguise, setActiveDisguiseState] = useState<DisguiseType>(getActiveDisguise);
   const [activeBeaconToken, setActiveBeaconToken] = useState<string>("beacon_72h_active");
   const [vaultSessionKey, setVaultSessionKey] = useState<number>(0);
 
   // Root Double-Tap Timing Reference
   const lastRootTapRef = useRef<number>(0);
 
+  // Subscribe to disguise facade changes
+  useEffect(() => {
+    const handleDisguiseChange = (e: Event) => {
+      const customEvent = e as CustomEvent<DisguiseType>;
+      setActiveDisguiseState(customEvent.detail || getActiveDisguise());
+    };
+    window.addEventListener(DISGUISE_EVENT_NAME, handleDisguiseChange);
+    return () => {
+      window.removeEventListener(DISGUISE_EVENT_NAME, handleDisguiseChange);
+    };
+  }, []);
+
   /**
    * Feature 5: 0ms Panic Camouflage Engine
    * Synchronously scrubs in-memory sensitive state, blurs DOM focus,
-   * purges clipboard traces, and restores the innocent electricity calculator.
+   * purges clipboard traces, and restores the innocent configured facade.
    */
   const trigger0msPanicCamouflage = () => {
     // 1. Instant facade restoration (0ms without transition delays)
@@ -127,7 +146,9 @@ export const App: React.FC = () => {
     try {
       await dispatchServerSos({
         isDuress: true,
-        areaName: "Duress Beacon (Prepaid Portal)",
+        areaName: activeDisguise === "DAILY_DEVOTIONAL"
+          ? "Duress Beacon (Devotional Portal)"
+          : "Duress Beacon (Prepaid Portal)",
         batteryPercentage: 90,
         deviceModel: "Covert Web Client"
       });
@@ -143,10 +164,17 @@ export const App: React.FC = () => {
       className="w-full min-h-screen bg-slate-950"
     >
       {mode === "DECOY_CALCULATOR" && (
-        <MunicipalPrepaidCalculator
-          onUnlockSafeHaven={() => setMode("SAFE_HAVEN")}
-          onDuressTrigger={handleDuressTrigger}
-        />
+        activeDisguise === "DAILY_DEVOTIONAL" ? (
+          <DailyDevotionalFacade
+            onUnlockSafeHaven={() => setMode("SAFE_HAVEN")}
+            onDuressTrigger={handleDuressTrigger}
+          />
+        ) : (
+          <MunicipalPrepaidCalculator
+            onUnlockSafeHaven={() => setMode("SAFE_HAVEN")}
+            onDuressTrigger={handleDuressTrigger}
+          />
+        )
       )}
       {mode === "SAFE_HAVEN" && (
         <SafeHavenDashboard

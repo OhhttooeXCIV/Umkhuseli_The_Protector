@@ -2,9 +2,13 @@ name: Umkhuseli CI Matrix
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "dev", "uat" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "dev", "uat" ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   android-test:
@@ -19,16 +23,35 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
-          cache: gradle
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-read-only: false
 
       - name: Grant Execute Permission for Gradlew
         run: chmod +x gradlew
 
+      - name: Provision Debug Keystore
+        run: |
+          if [ ! -f "debug.keystore" ]; then
+            keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          fi
+
       - name: Run Android Unit Tests
-        run: ./gradlew testDebugUnitTest --no-daemon
+        run: ./gradlew testDebugUnitTest -Dorg.gradle.jvmargs="-Xmx2048m -XX:MaxMetaspaceSize=512m" --no-daemon
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon
+        run: ./gradlew assembleDebug -Dorg.gradle.jvmargs="-Xmx2048m -XX:MaxMetaspaceSize=512m" --no-daemon
+
+      - name: Upload Debug APK Artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: umkhuseli-debug-apk
+          path: app/build/outputs/apk/debug/*.apk
+          retention-days: 7
+          if-no-files-found: warn
 
   web-test:
     name: Web PWA Decoy Test Suite
@@ -55,3 +78,12 @@ jobs:
 
       - name: Build Web PWA Bundle
         run: npm run build
+
+      - name: Upload Web PWA Dist Artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: umkhuseli-web-dist
+          path: web/dist/
+          retention-days: 7
+          if-no-files-found: error
