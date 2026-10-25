@@ -54,4 +54,7 @@ declare module 'lucide-react' {
   export const Smartphone: React.FC<any>;
   export const Monitor: React.FC<any>;
   export const ShieldCheck: React.FC<any>;
+  export const Wifi: React.FC<any>;
+  export const BatteryMedium: React.FC<any>;
+  export const RotateCcw: React.FC<any>;
 }
