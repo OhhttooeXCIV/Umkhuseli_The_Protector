@@ -287,7 +287,7 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between max-w-md mx-auto select-none border-x border-slate-800">
       {/* Top Safe Haven Header */}
-      <header className="bg-slate-900 border-b border-slate-800 p-4 flex items-center justify-between sticky top-0 z-50">
+      <header onDoubleClick={onPanicLock} title="Double-tap to trigger 0ms Panic Camouflage" className="bg-slate-900 border-b border-slate-800 p-4 flex items-center justify-between sticky top-0 z-50 cursor-pointer">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center">
             <ShieldAlert className="w-5 h-5 text-amber-400" />
