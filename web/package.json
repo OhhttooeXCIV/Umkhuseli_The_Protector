@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.8",
+    "jspdf": "^2.5.2",
     "clsx": "^2.1.0",
     "lucide-react": "^1.61.0",
     "react": "^18.2.0",

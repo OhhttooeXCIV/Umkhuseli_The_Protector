@@ -255,6 +255,67 @@ describe('Camouflage Secret Unlock & Duress Emergency Triggers', () => {
       expect(screen.queryByText(/Safe Haven Active/i)).not.toBeInTheDocument();
     });
 
+    it('immediately reverts to Decoy mode on rapid root double-tap gesture within 350ms', () => {
+      render(<App />);
+
+      // Unlock into Safe Haven
+      const amountInput = screen.getByLabelText(/Purchase Amount/i);
+      fireEvent.change(amountInput, { target: { value: '8426' } });
+      fireEvent.submit(amountInput.closest('form')!);
+      expect(screen.getByText(/Safe Haven Active/i)).toBeInTheDocument();
+
+      const rootContainer = screen.getByTestId('root-panic-container');
+
+      // First tap
+      fireEvent.click(rootContainer);
+      expect(screen.getByText(/Safe Haven Active/i)).toBeInTheDocument();
+
+      // Rapid second tap within 350ms
+      fireEvent.click(rootContainer);
+
+      // Decoy is restored instantly in 0ms
+      expect(screen.getByText('Prepaid Electricity Portal')).toBeInTheDocument();
+      expect(screen.queryByText(/Safe Haven Active/i)).not.toBeInTheDocument();
+    });
+
+    it('immediately reverts to Decoy mode on hardware Escape keydown event', () => {
+      render(<App />);
+
+      // Unlock into Safe Haven
+      const amountInput = screen.getByLabelText(/Purchase Amount/i);
+      fireEvent.change(amountInput, { target: { value: '8426' } });
+      fireEvent.submit(amountInput.closest('form')!);
+      expect(screen.getByText(/Safe Haven Active/i)).toBeInTheDocument();
+
+      // Trigger Escape key
+      act(() => {
+        window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+      });
+
+      expect(screen.getByText('Prepaid Electricity Portal')).toBeInTheDocument();
+      expect(screen.queryByText(/Safe Haven Active/i)).not.toBeInTheDocument();
+    });
+
+    it('immediately reverts to Decoy mode on proximity sensor trigger (phone pressed facedown)', () => {
+      render(<App />);
+
+      // Unlock into Safe Haven
+      const amountInput = screen.getByLabelText(/Purchase Amount/i);
+      fireEvent.change(amountInput, { target: { value: '8426' } });
+      fireEvent.submit(amountInput.closest('form')!);
+      expect(screen.getByText(/Safe Haven Active/i)).toBeInTheDocument();
+
+      // Simulate proximity near event
+      act(() => {
+        const proxEvent = new Event('userproximity') as any;
+        proxEvent.near = true;
+        window.dispatchEvent(proxEvent);
+      });
+
+      expect(screen.getByText('Prepaid Electricity Portal')).toBeInTheDocument();
+      expect(screen.queryByText(/Safe Haven Active/i)).not.toBeInTheDocument();
+    });
+
     it('dispatches silent duress beacon via dispatchServerSos when PIN 9999 is entered in App', async () => {
       render(<App />);
 
