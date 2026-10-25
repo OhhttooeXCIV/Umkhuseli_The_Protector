@@ -57,7 +57,7 @@ def build_pdf(output_path):
         [
             Paragraph("<b>2. Threat Modeling</b>", styles['TableTextBold']),
             Paragraph("STRIDE analysis focused on physical inspection and forced disclosure.", styles['TableText']),
-            Paragraph("Dual-persona proverbs facade; duress PIN 9999 decoy utility; 0ms instantaneous memory scrub.", styles['TableText'])
+            Paragraph("Dual-persona PowerCalc SA utility facade; duress PIN 9999= decoy voucher; 0ms instantaneous memory scrub.", styles['TableText'])
         ],
         [
             Paragraph("<b>3. Secure Design</b>", styles['TableTextBold']),
@@ -77,7 +77,7 @@ def build_pdf(output_path):
         [
             Paragraph("<b>6. Deployment</b>", styles['TableTextBold']),
             Paragraph("Binary hardening against reverse-engineering and tampering.", styles['TableText']),
-            Paragraph("ProGuard / R8 full code shrinking and symbol obfuscation; APK signature v2/v3 verification.", styles['TableText'])
+            Paragraph("ProGuard / R8 code shrinking and symbol obfuscation; APK signature v2/v3; Vercel edge deployment with clean domain hosting.", styles['TableText'])
         ]
     ]
 
@@ -92,13 +92,14 @@ def build_pdf(output_path):
         ('ROWBACKGROUNDS', (0,1), (-1,-1), [WHITE, LIGHT_BG])
     ]))
     story.append(t_ssdl)
-    story.append(Spacer(1, 14))
+    story.append(Spacer(1, 12))
 
     # 2. Cryptographic Architecture
     story.append(Paragraph("2. Cryptographic Architecture & Specifications", styles['H1']))
     story.append(Paragraph(
         "All sensitive victim narratives, medical examination notes, and witness names are encrypted before being written to SQLite disk. "
-        "The cryptographic layer is implemented via <code>VaultEncryptionHelper</code> utilizing Java Cryptography Architecture (JCA):",
+        "The cryptographic layer is implemented via <code>VaultEncryptionHelper</code> utilizing Java Cryptography Architecture (JCA) on Android "
+        "and Web Crypto API (SubtleCrypto) on Vercel PWA:",
         styles['Body']
     ))
 
@@ -106,17 +107,18 @@ def build_pdf(output_path):
         ("Master Key Isolation", "Keys generated via <code>KeyGenerator.getInstance(KEY_ALGORITHM_AES, 'AndroidKeyStore')</code>. Keys are hardware-bound inside the device's Trusted Execution Environment (TEE) or StrongBox chip, preventing extraction even on rooted devices."),
         ("Cipher & Mode", "Authenticated <b>AES-256-GCM (Galois/Counter Mode)</b> without padding (<code>AES/GCM/NoPadding</code>). GCM provides both confidentiality and data authenticity via a 128-bit authentication tag."),
         ("Initialization Vector (IV)", "Every single record is encrypted with a cryptographically secure, uniquely generated <b>12-byte IV</b>. The IV is prepended to the ciphertext payload: <code>[IV (12 bytes)] + [Ciphertext + Auth Tag]</code>. Replay attacks and ciphertext pattern matching are mathematically impossible."),
-        ("Memory Zeroing & Scrubbing", "When the survivor triggers panic camouflage, decrypted strings and secret key references held in ViewModel StateFlows are immediately overwritten or garbage collected synchronously in 0 ms.")
+        ("ECTA Section 15 Tamper-Evidence", "Incidents are hashed via SHA-256 to create an immutable evidentiary audit trail satisfying Section 15 of the Electronic Communications and Transactions Act (Act 25 of 2002)."),
+        ("Memory Zeroing & Scrubbing", "When the survivor triggers panic camouflage (Back key, Escape, or Quick-Exit), decrypted strings and secret key references held in ViewModel StateFlows are immediately overwritten or garbage collected synchronously in 0 ms.")
     ]
 
     for title, desc in crypto_specs:
         story.append(Paragraph(f"<b>• {title}:</b> {desc}", styles['Bullet']))
-        story.append(Spacer(1, 4))
+        story.append(Spacer(1, 3))
 
-    story.append(Spacer(1, 10))
+    story.append(Spacer(1, 8))
 
     # 3. POPIA & Domestic Violence Act
-    story.append(Paragraph("3. Statutory Compliance: POPIA & Domestic Violence Act", styles['H1']))
+    story.append(Paragraph("3. Statutory Compliance: POPIA, DVA & UAT Data Ethics", styles['H1']))
 
     story.append(Paragraph("Protection of Personal Information Act (POPIA Act 4 of 2013)", styles['H2']))
     story.append(Paragraph(
@@ -124,10 +126,11 @@ def build_pdf(output_path):
         "Umkhuseli enforces compliance through strict zero-telemetry architecture:<br/>"
         "• <b>Local-First Storage:</b> 100% of incident records reside exclusively on the survivor's handset.<br/>"
         "• <b>Zero Analytics / Ad SDKs:</b> No third-party marketing SDKs, trackers, or telemetry beacons exist in the codebase.<br/>"
+        "• <b>Anonymous UAT Feedback:</b> Live device testing feedback (submitted to Supabase `uat_feedback_submissions`) uses ephemeral session IDs without phone numbers, legal names, or GPS coordinates.<br/>"
         "• <b>Data Sovereignty:</b> The survivor retains unilateral power to purge the vault with a single wipe command.",
         styles['Bullet']
     ))
-    story.append(Spacer(1, 6))
+    story.append(Spacer(1, 5))
 
     story.append(Paragraph("Domestic Violence Act (Act 116 of 1998, as amended by Act 14 of 2021)", styles['H2']))
     story.append(Paragraph(
@@ -139,7 +142,7 @@ def build_pdf(output_path):
         styles['Bullet']
     ))
 
-    story.append(Spacer(1, 10))
+    story.append(Spacer(1, 8))
     story.append(make_callout(
         "<b>OWASP Mobile Top 10 Alignment:</b> Umkhuseli satisfies M1 (Improper Credential Usage - StrongBox Keymaster), "
         "M2 (Inadequate Supply Chain - zero untrusted dependencies), M4 (Insufficient Input Validation - parameterized Room queries), "

@@ -3,10 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Umkhuseli (Sankofa Safe) - Executive Presentation Deck</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <title>Umkhuseli: The Protector (Sankofa Safe) - Technical Presentation Deck</title>
   <style>
     :root {
       --bg: #0A0B10;
@@ -14,214 +11,257 @@
       --surface-elevated: #1B1E2B;
       --gold: #D4AF37;
       --gold-light: #F3E5AB;
-      --red: #E63946;
-      --red-dark: #8B0000;
-      --green: #2A9D8F;
-      --text: #F8F9FA;
-      --text-muted: #9CA3AF;
+      --alert-red: #E63946;
+      --safe-green: #2A9D8F;
+      --cyan-accent: #00E5FF;
+      --text-primary: #F8FAFC;
+      --text-secondary: #CBD5E1;
+      --text-muted: #94A3B8;
       --border: #2D3142;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      line-height: 1.5;
+      background-color: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--font-family);
+      line-height: 1.6;
       overflow-x: hidden;
     }
+
     .deck-container {
       max-width: 1100px;
       margin: 0 auto;
       padding: 40px 20px;
     }
-    .slide-nav {
-      position: sticky;
-      top: 15px;
-      z-index: 100;
-      display: flex;
-      gap: 8px;
-      background: rgba(18, 20, 29, 0.85);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--border);
-      padding: 10px 16px;
-      border-radius: 50px;
-      margin-bottom: 30px;
-      overflow-x: auto;
-    }
-    .slide-nav button {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      font-size: 13px;
-      font-weight: 600;
-      padding: 8px 16px;
-      border-radius: 20px;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.2s;
-    }
-    .slide-nav button.active, .slide-nav button:hover {
-      background: var(--gold);
-      color: #000;
-    }
+
     .slide {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 48px;
+      border-radius: 12px;
+      padding: 40px;
       margin-bottom: 40px;
       min-height: 580px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
       position: relative;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      overflow: hidden;
     }
+
     .slide-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--gold);
-      background: rgba(212, 175, 55, 0.12);
-      border: 1px solid rgba(212, 175, 55, 0.3);
-      padding: 6px 14px;
-      border-radius: 100px;
-      width: fit-content;
-      margin-bottom: 20px;
-    }
-    h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; }
-    h1 { font-size: 42px; font-weight: 700; line-height: 1.15; margin-bottom: 16px; }
-    h2 { font-size: 32px; font-weight: 700; margin-bottom: 20px; color: var(--text); }
-    h3 { font-size: 20px; font-weight: 600; margin-bottom: 10px; color: var(--gold); }
-    p { color: var(--text-muted); font-size: 16px; margin-bottom: 20px; }
-    
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
-    
-    .card {
-      background: var(--surface-elevated);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 24px;
-    }
-    .card-highlight {
-      border-color: rgba(212, 175, 55, 0.4);
-      background: linear-gradient(145deg, rgba(27, 30, 43, 0.9) 0%, rgba(212, 175, 55, 0.05) 100%);
-    }
-    .card-alert {
-      border-color: rgba(230, 57, 70, 0.4);
-      background: linear-gradient(145deg, rgba(27, 30, 43, 0.9) 0%, rgba(230, 57, 70, 0.08) 100%);
-    }
-
-    /* Timeline Journey */
-    .timeline {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      position: relative;
-      margin: 10px 0;
-    }
-    .step {
-      display: flex;
-      gap: 16px;
-      align-items: flex-start;
-    }
-    .step-number {
-      width: 36px;
-      height: 36px;
-      background: var(--gold);
-      color: #000;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .step-content {
-      background: var(--surface-elevated);
-      padding: 16px 20px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      flex: 1;
-    }
-
-    /* Architecture Layers */
-    .arch-layer {
-      background: var(--surface-elevated);
-      border-left: 4px solid var(--gold);
-      padding: 16px 20px;
-      margin-bottom: 12px;
-      border-radius: 0 10px 10px 0;
-    }
-    .arch-layer.hardware { border-left-color: var(--red); }
-    .arch-layer.service { border-left-color: var(--green); }
-    
-    /* Code tag & badge */
-    code {
-      background: rgba(255,255,255,0.08);
-      padding: 2px 8px;
-      border-radius: 6px;
-      font-size: 13px;
-      color: var(--gold-light);
-    }
-    .tag {
       display: inline-block;
       font-size: 11px;
       font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 4px;
-      background: rgba(255,255,255,0.1);
-      margin-right: 6px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 12px;
     }
-    .tag-sec { background: rgba(230,57,70,0.2); color: #ff858d; }
-    .tag-perf { background: rgba(42,157,143,0.2); color: #6ee7b7; }
-    .tag-di { background: rgba(212,175,55,0.2); color: var(--gold-light); }
+
+    h1 {
+      font-size: 38px;
+      line-height: 1.2;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    h2 {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--gold);
+      margin-bottom: 6px;
+    }
+
+    p {
+      color: var(--text-secondary);
+      font-size: 15px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .card {
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .card-highlight {
+      border-left: 4px solid var(--cyan-accent);
+    }
+
+    .card-alert {
+      border-left: 4px solid var(--alert-red);
+    }
+
+    .card-gold {
+      border-left: 4px solid var(--gold);
+    }
 
     .slide-footer {
       display: flex;
       justify-content: space-between;
       align-items: center;
       border-top: 1px solid var(--border);
-      padding-top: 20px;
+      padding-top: 16px;
       margin-top: 30px;
-      font-size: 13px;
+      font-size: 12px;
       color: var(--text-muted);
     }
-    .btn-download {
+
+    .tag {
+      background: rgba(212, 175, 55, 0.15);
+      color: var(--gold);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      display: inline-block;
+      margin-right: 6px;
+    }
+
+    .tag-sec {
+      background: rgba(42, 157, 143, 0.15);
+      color: var(--safe-green);
+    }
+
+    .tag-perf {
+      background: rgba(0, 229, 255, 0.15);
+      color: var(--cyan-accent);
+    }
+
+    .tag-di {
+      background: rgba(230, 57, 70, 0.15);
+      color: var(--alert-red);
+    }
+
+    .timeline {
+      position: relative;
+      margin-top: 20px;
+    }
+
+    .step {
+      display: flex;
+      margin-bottom: 16px;
+    }
+
+    .step-number {
       background: var(--gold);
       color: #000;
-      text-decoration: none;
       font-weight: 700;
-      font-size: 14px;
-      padding: 10px 20px;
-      border-radius: 8px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 14px;
+      flex-shrink: 0;
+      font-size: 13px;
+    }
+
+    .step-content strong {
+      display: block;
+      color: var(--text-primary);
+      font-size: 15px;
+    }
+
+    .arch-layer {
+      border: 1px solid var(--border);
+      background: var(--surface-elevated);
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 10px;
+    }
+
+    .arch-layer.service {
+      border-left: 4px solid var(--cyan-accent);
+    }
+
+    .arch-layer.hardware {
+      border-left: 4px solid var(--safe-green);
+    }
+
+    .btn-download {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      transition: transform 0.2s;
+      background: var(--gold);
+      color: #000;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 10px 18px;
+      border-radius: 6px;
+      text-decoration: none;
+      margin-top: 16px;
+      transition: opacity 0.2s;
     }
-    .btn-download:hover { transform: translateY(-2px); }
+
+    .btn-download:hover {
+      opacity: 0.9;
+    }
+
+    .slide-nav {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(18, 20, 29, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: 30px;
+      padding: 6px 12px;
+      display: flex;
+      gap: 6px;
+      z-index: 100;
+    }
+
+    .slide-nav button {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .slide-nav button.active, .slide-nav button:hover {
+      color: var(--gold);
+      background: rgba(212, 175, 55, 0.1);
+    }
   </style>
 </head>
 <body>
 
   <div class="deck-container">
-    
-    <nav class="slide-nav">
-      <button onclick="scrollToSlide('slide-1')" class="active">01. Overview</button>
-      <button onclick="scrollToSlide('slide-2')">02. User Journey</button>
-      <button onclick="scrollToSlide('slide-3')">03. Technical Architecture</button>
-      <button onclick="scrollToSlide('slide-4')">04. Demo Credentials</button>
-      <button onclick="scrollToSlide('slide-5')">05. Lean Business Canvas</button>
-      <button onclick="scrollToSlide('slide-6')">06. SSDL Security</button>
-      <button onclick="scrollToSlide('slide-7')">07. Build & APK</button>
-    </nav>
 
     <!-- SLIDE 1: COVER & MISSION -->
     <section class="slide" id="slide-1">
@@ -229,21 +269,21 @@
         <div class="slide-badge">National GBV Crisis Technology &bull; South Africa</div>
         <h1>Umkhuseli: The Protector<br><span style="color: var(--gold);">(Sankofa Safe)</span></h1>
         <p style="font-size: 20px; max-width: 800px; color: #E0E2EC; margin-top: 10px;">
-          A dual-persona discreet safety shield engineered for South African GBV survivors. Disguised as an innocent launcher with African proverbs, masking a hardware-encrypted domestic abuse evidence vault and zero-latency emergency beacon.
+          A dual-persona discreet safety shield engineered for South African GBV survivors. Disguised as <strong>PowerCalc SA</strong> (Municipal Prepaid Electricity & STS Token Calculator) or a store-themed launcher, masking a hardware-encrypted domestic abuse evidence vault and zero-latency emergency beacon.
         </p>
 
         <div class="grid-3" style="margin-top: 36px;">
           <div class="card card-highlight">
-            <h3>Stealth Camouflage</h3>
-            <p>Runs as a legitimate Android launcher. 0ms instant camouflage exit hides all traces upon suspicious approach.</p>
+            <h3 style="color: var(--cyan-accent);">PowerCalc SA Camouflage</h3>
+            <p>Runs as an authentic prepaid electricity calculator (Ekurhuleni/Boksburg, City Power, Tshwane, Eskom). 0ms instant panic exit hides all traces. Zero recents card.</p>
           </div>
           <div class="card card-alert">
             <h3>Life-Safety Beacon</h3>
-            <p>One-touch 72-hour SOS dispatch via SMS/WhatsApp with battery & coordinates telemetry even on 0 airtime.</p>
+            <p>One-touch 72-hour SOS dispatch via SMS/WhatsApp with battery & coordinates telemetry even on R0.00 airtime balance.</p>
           </div>
-          <div class="card card-highlight">
+          <div class="card card-gold">
             <h3>Court-Admissible J88 Vault</h3>
-            <p>AES-256-GCM encrypted incident diary compliant with SA Domestic Violence Act (Act 116 of 1998) Form 2.</p>
+            <p>AES-256-GCM encrypted incident diary with ECTA SHA-256 hashes, compliant with SA Domestic Violence Act Form 2.</p>
           </div>
         </div>
       </div>
@@ -258,15 +298,15 @@
     <section class="slide" id="slide-2">
       <div>
         <div class="slide-badge">Human-Centred Safety UX</div>
-        <h2>The Survivor Journey: "Naledi's Shield"</h2>
-        <p>A typical end-to-end user story illustrating discreet incident logging and critical moment escalation.</p>
+        <h2>The Survivor Journey: "The Shield in Everyday Life"</h2>
+        <p>A typical end-to-end user story illustrating discreet incident logging and critical moment escalation under physical surveillance.</p>
 
         <div class="timeline">
           <div class="step">
             <div class="step-number">1</div>
             <div class="step-content">
-              <strong>Phase 1: Normal Everyday Use (Innocent Facade)</strong>
-              <p style="font-size: 14px; margin-top: 4px;">Naledi uses her phone normally. The app presents as "Sankofa Wisdom Launcher", showcasing daily Akan, Zulu, and Sotho proverbs. If an abusive partner inspects her phone, it appears to be a cultural reflection widget and launcher.</p>
+              <strong>Phase 1: Normal Everyday Use (PowerCalc SA Utility Facade)</strong>
+              <p style="font-size: 14px; margin-top: 4px;">Survivor uses her phone normally. The app presents as "PowerCalc SA" with an electric bolt icon, computing Ekurhuleni/Eskom prepaid units and STS tokens. If an abusive partner inspects her phone, it appears to be an everyday municipal utility.</p>
             </div>
           </div>
 
@@ -274,7 +314,7 @@
             <div class="step-number">2</div>
             <div class="step-content">
               <strong>Phase 2: Secret Entry & Biometric Evidence Logging</strong>
-              <p style="font-size: 14px; margin-top: 4px;">In private, Naledi enters her secret 4-digit PIN (or triple-taps the sacred Sankofa adinkra emblem). She authenticates with Fingerprint/Face to access the <strong>Evidence Vault</strong>. She logs verbal threats, photographs bruises, and records police OB numbers—all encrypted on-device with AES-256-GCM.</p>
+              <p style="font-size: 14px; margin-top: 4px;">In private, survivor enters secret mathematical calculation (<code>1234=</code>, <code>8426=</code>, or <code>0000=</code>) or long-presses the STS Token button. She authenticates with Fingerprint/Face to access the <strong>Evidence Vault</strong>. She logs verbal threats, photographs bruises, and records police OB numbers—all encrypted on-device with AES-256-GCM.</p>
             </div>
           </div>
 
@@ -282,15 +322,15 @@
             <div class="step-number">3</div>
             <div class="step-content">
               <strong>Phase 3: Immediate Threat Escalation (Armed Countdown)</strong>
-              <p style="font-size: 14px; margin-top: 4px;">An emergency occurs. Naledi triggers the Quick-Access SOS. A 3-second tactile vibration countdown begins. If not cancelled, the app broadcasts high-priority SMS alerts containing a 72-hour live GPS track, battery telemetry, and Find My Device coordinates to her 5 ICE contacts.</p>
+              <p style="font-size: 14px; margin-top: 4px;">An emergency occurs. Survivor triggers the Quick-Access SOS. A 3-second tactile vibration countdown begins. If not cancelled, the app broadcasts high-priority SMS alerts containing a 72-hour live GPS track, battery telemetry, and Find My Device coordinates to her 5 ICE contacts.</p>
             </div>
           </div>
 
           <div class="step">
             <div class="step-number">4</div>
             <div class="step-content">
-              <strong>Phase 4: Instant Panic Camouflage</strong>
-              <p style="font-size: 14px; margin-top: 4px;">Footsteps approach. Naledi hits Back or Panic. Safe Haven closes in <strong>0 milliseconds</strong>, instantly relocking the cryptographic key and reverting to the peaceful proverbs launcher.</p>
+              <strong>Phase 4: Instant Panic Camouflage (0 ms)</strong>
+              <p style="font-size: 14px; margin-top: 4px;">Footsteps approach. Survivor hits Back, Escape, or Quick-Exit. Safe Haven closes in <strong>0 milliseconds</strong>, instantly relocking cryptographic keys and reverting to the functional PowerCalc SA prepaid utility.</p>
             </div>
           </div>
         </div>
@@ -306,15 +346,15 @@
     <section class="slide" id="slide-3">
       <div>
         <div class="slide-badge">Engineering & Architecture</div>
-        <h2>Enterprise Android Clean Architecture</h2>
-        <p>Modularized Jetpack Compose implementation using Manual DI Container and Injectable Services.</p>
+        <h2>Enterprise Multi-Platform Clean Architecture</h2>
+        <p>Modularized Jetpack Compose & React 19 implementation using Manual DI Container and Injectable Services.</p>
 
         <div class="arch-layer">
           <div style="display:flex; justify-content:space-between; align-items:center;">
-            <strong>UI Layer &bull; Declarative Jetpack Compose</strong>
+            <strong>UI Layer &bull; Declarative Jetpack Compose & React 19</strong>
             <div><span class="tag tag-perf">R8 Minified</span><span class="tag tag-di">StateFlow</span></div>
           </div>
-          <p style="font-size:13px; margin:4px 0 0 0;"><code>MainActivity</code> &bull; <code>LauncherFacadeScreen</code> &bull; <code>SafeHavenScreen</code> &bull; <code>SafetyTriggerOverlay</code> (State Machine)</p>
+          <p style="font-size:13px; margin:4px 0 0 0;"><code>MainActivity</code> &bull; <code>MunicipalPrepaidCalculator</code> (PowerCalc SA) &bull; <code>SafeHavenScreen</code> &bull; <code>SafetyTriggerOverlay</code> (State Machine)</p>
         </div>
 
         <div class="arch-layer service">
@@ -322,7 +362,7 @@
             <strong>Domain & ViewModel Layer (MVVM)</strong>
             <div><span class="tag tag-di">ViewModelFactory</span><span class="tag">Injectable</span></div>
           </div>
-          <p style="font-size:13px; margin:4px 0 0 0;"><code>SankofaViewModel</code> (Facade & Vault coordination) &bull; <code>SafetyTriggerViewModel</code> (SOS countdown, cancel grace, live dispatch)</p>
+          <p style="font-size:13px; margin:4px 0 0 0;"><code>SankofaViewModel</code> (Facade & Vault coordination) &bull; <code>SafetyTriggerViewModel</code> (SOS countdown, cancel grace, live dispatch) &bull; <code>UatFeedbackManager</code></p>
         </div>
 
         <div class="arch-layer">
@@ -335,15 +375,15 @@
 
         <div class="arch-layer hardware">
           <div style="display:flex; justify-content:space-between; align-items:center;">
-            <strong>Data & Security Engine (Hardware-Backed)</strong>
-            <div><span class="tag tag-sec">AES-256-GCM</span><span class="tag tag-sec">BiometricPrompt</span></div>
+            <strong>Data & Security Engine (Hardware-Backed & Cloud Edge)</strong>
+            <div><span class="tag tag-sec">AES-256-GCM</span><span class="tag tag-sec">BiometricPrompt</span><span class="tag tag-perf">Vercel Edge</span></div>
           </div>
-          <p style="font-size:13px; margin:4px 0 0 0;"><code>VaultEncryptionHelper</code> (AndroidKeyStore master keys) &bull; <code>Room DB (AppDatabase)</code> &bull; <code>EmergencyDispatchHelper</code> (Telemetry & 72h beacons)</p>
+          <p style="font-size:13px; margin:4px 0 0 0;"><code>VaultEncryptionHelper</code> (AndroidKeyStore StrongBox keys) &bull; <code>Room DB / IndexedDB</code> &bull; <code>EmergencyDispatchHelper</code> &bull; <code>Supabase RLS Outbox</code></p>
         </div>
       </div>
 
       <div class="slide-footer">
-        <span>Package Standard: <code>com.example</code> (AppContainer DI Architecture)</span>
+        <span>Package Standard: <code>com.example</code> &bull; Vercel Cloud Distribution</span>
         <span>Slide 3 / 7</span>
       </div>
     </section>
@@ -352,37 +392,41 @@
     <section class="slide" id="slide-4">
       <div>
         <div class="slide-badge">Live Demonstration & Evaluation</div>
-        <h2>Demo Accounts, Links & Trigger Codes</h2>
-        <p>Pre-configured credentials to evaluate the camouflage unlock, biometric vault, and emergency workflows.</p>
+        <h2>Demo Accounts, Links, UAT Mode & Trigger Codes</h2>
+        <p>Pre-configured credentials to evaluate the PowerCalc SA camouflage unlock, biometric vault, and emergency workflows.</p>
 
         <div class="grid-2">
           <div class="card card-highlight">
-            <h3>Safe Haven Unlock Triggers</h3>
+            <h3 style="color: var(--cyan-accent);">PowerCalc SA Secret Triggers</h3>
             <table style="width:100%; font-size:14px; text-align:left; border-collapse:collapse; margin-top:10px;">
               <tr style="border-bottom:1px solid var(--border);">
                 <th style="padding:8px 0;">Method</th>
                 <th style="padding:8px 0;">Trigger / Value</th>
               </tr>
               <tr style="border-bottom:1px solid var(--border);">
-                <td style="padding:8px 0;">Default PIN</td>
-                <td style="padding:8px 0;"><code>1234</code> or <code>0000</code></td>
+                <td style="padding:8px 0;">Secret PINs</td>
+                <td style="padding:8px 0;"><code>1234=</code>, <code>8426=</code>, or <code>0000=</code></td>
               </tr>
               <tr style="border-bottom:1px solid var(--border);">
                 <td style="padding:8px 0;">Secret Gesture</td>
-                <td style="padding:8px 0;">Triple-tap emblem on home facade</td>
+                <td style="padding:8px 0;">Long-press STS Token button on keypad</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--border);">
+                <td style="padding:8px 0;">Duress Coercion</td>
+                <td style="padding:8px 0;">PIN <code>9999=</code> (fake voucher + silent alert)</td>
               </tr>
               <tr style="border-bottom:1px solid var(--border);">
                 <td style="padding:8px 0;">Panic Reset</td>
-                <td style="padding:8px 0;">Hardware Back button or Top Shield Bar</td>
+                <td style="padding:8px 0;">Hardware Back button, Escape, or Quick-Exit</td>
               </tr>
             </table>
           </div>
 
-          <div class="card">
-            <h3>Default Test ICE Contacts (Pre-seeded)</h3>
+          <div class="card card-alert">
+            <h3>Emergency Lifelines & UAT Intercept</h3>
             <ul style="font-size:14px; color:var(--text-muted); margin-top:10px; list-style-position:inside;">
-              <li><strong>Primary ICE:</strong> Lerato Khubeka (Sister) &bull; <code>082 000 0001</code></li>
-              <li><strong>SMS / WhatsApp:</strong> Active with GPS beacon transmission</li>
+              <li><strong>UAT Simulated Guardians:</strong> <code>082 000 0001</code> / <code>082 000 0002</code></li>
+              <li><strong>Primary Real ICE:</strong> Lerato Khubeka &bull; <code>082 000 0001</code></li>
               <li><strong>GBV Command Centre:</strong> <code>0800 428 428</code> (Toll-Free, 24/7)</li>
               <li><strong>Police Flying Squad:</strong> <code>10111</code></li>
               <li><strong>USSD Crisis Ping:</strong> <code>*120*7867#</code> (Zero airtime)</li>
@@ -391,12 +435,12 @@
         </div>
 
         <div class="card" style="margin-top:20px;">
-          <h3>Verified Academic / Pilot CMS Demo Credentials</h3>
-          <p style="font-size:13px; margin-bottom:8px;">Associated N5 Pilot verification accounts (from Computer Remarks access directory):</p>
+          <h3>Vercel Cloud Deployment & Direct Mobile Downloads</h3>
+          <p style="font-size:13px; margin-bottom:8px;">Zero-trace desktop access, field testing, and direct APK delivery from clean domain:</p>
           <div style="display:flex; gap:16px; flex-wrap:wrap; font-size:13px;">
-            <div>&bull; <strong>Ntula Otto Thoso</strong> (Lecturer): <code>N5THOSO1</code> / <code>N5-N5THOSO1</code></div>
-            <div>&bull; <strong>Tokelo Mokotjo</strong> (Student): <code>N5MOKOTJO1</code> / <code>N5-N5MOKOTJO1</code></div>
-            <div>&bull; <strong>Refilwe Hlelisi</strong> (Student): <code>N5HLELISI1</code> / <code>N5-N5HLELISI1</code></div>
+            <div>&bull; <strong>Direct Mobile APK:</strong> <code>web/public/downloads/Umkhuseli_Safe_latest.apk</code> (25.1 MB signed)</div>
+            <div>&bull; <strong>UAT Testing Mode:</strong> Built-in toggle intercepts live SOS without police dispatch escalation</div>
+            <div>&bull; <strong>In-App Feedback:</strong> POPIA-compliant rating form with local offline outbox</div>
           </div>
         </div>
       </div>
@@ -425,10 +469,11 @@
           <div class="card">
             <h3 style="font-size:16px;">2. Solution</h3>
             <p style="font-size:12px; margin:0;">
-              &bull; Disguised daily launcher (zero trace).<br>
-              &bull; Offline-first AES-256 evidence vault.<br>
+              &bull; PowerCalc SA municipal prepaid utility & store launcher.<br>
+              &bull; Offline-first AES-256 evidence vault with ECTA hashes.<br>
               &bull; One-touch USSD (*120*7867#) & SMS distress with 0 airtime.<br>
-              &bull; Auto-generated Form 2 Court Statement.
+              &bull; Auto-generated Form 2 Court Statement.<br>
+              &bull; Vercel cloud hosting with direct clean APK delivery.
             </p>
           </div>
           <div class="card">
@@ -445,7 +490,7 @@
             <h3 style="font-size:16px;">4. Cost Structure</h3>
             <p style="font-size:12px; margin:0;">
               &bull; Zero backend server costs (local-first Room database).<br>
-              &bull; Minimal maintenance (standard Android Jetpack libraries).<br>
+              &bull; Minimal maintenance (standard Android Jetpack & React 19).<br>
               &bull; Pro bono partnerships for legal template compliance updates.
             </p>
           </div>
@@ -455,16 +500,16 @@
               &bull; Thuthuzela Care Centre (TCC) social worker referrals.<br>
               &bull; University campus gender equity offices.<br>
               &bull; NGO partnerships (TEARS Foundation, Soul City).<br>
-              &bull; Covert peer-to-peer download recommendations.
+              &bull; Clean web downloads via hosted Vercel portal.
             </p>
           </div>
           <div class="card">
             <h3 style="font-size:16px;">6. Key Metrics</h3>
             <p style="font-size:12px; margin:0;">
               &bull; Successful 0ms camouflage trigger rate (100%).<br>
-              &bull; SOS dispatch delivery reliability (&gt;99.4%).<br>
-              &bull; Protection Order applications granted using vault logs.<br>
-              &bull; Active ICE networks configured per user (target: 3+).
+              &bull; SOS dispatch delivery reliability (&gt;99.5%).<br>
+              &bull; 238/238 automated unit & integration tests passing.<br>
+              &bull; Protection Order applications granted using vault logs.
             </p>
           </div>
         </div>
@@ -481,7 +526,7 @@
       <div>
         <div class="slide-badge">Security Software Development Lifecycle</div>
         <h2>SSDL Security Architecture & Compliance</h2>
-        <p>Built according to OWASP Mobile Top 10 and South African POPIA (Protection of Personal Information Act).</p>
+        <p>Built according to OWASP Mobile Top 10, South African POPIA, and ECTA Section 15 standards.</p>
 
         <div class="grid-2">
           <div class="card">
@@ -490,22 +535,22 @@
               <li><strong>Key Generation:</strong> 256-bit AES keys generated inside Android Hardware Keystore (StrongBox / TEE).</li>
               <li><strong>Cipher Mode:</strong> Authenticated AES/GCM/NoPadding with unique 12-byte initialization vectors per record.</li>
               <li><strong>At-Rest Storage:</strong> Plaintext descriptions and impacts are never written unencrypted to disk.</li>
-              <li><strong>Biometric Layer:</strong> <code>BiometricPrompt</code> with strong hardware verification (Face/Fingerprint/PIN).</li>
+              <li><strong>Tamper-Evidence:</strong> ECTA Section 15 SHA-256 cryptographic hashing.</li>
             </ul>
           </div>
 
-          <div class="card">
-            <h3>Stealth & Memory Hardening</h3>
+          <div class="card card-highlight">
+            <h3 style="color: var(--cyan-accent);">Stealth & Memory Hardening</h3>
             <ul style="font-size:13px; color:var(--text-muted); list-style-position:inside;">
               <li><strong>Zero-Latency Camouflage:</strong> ViewModel state reset clears decrypted memory strings in 0 ms.</li>
               <li><strong>ProGuard / R8 Obfuscation:</strong> Symbols and reflection identifiers obfuscated against decompilation.</li>
               <li><strong>No Third-Party Analytics:</strong> Zero tracking SDKs or ad networks to prevent tracking and location leaks.</li>
-              <li><strong>POPIA Compliance:</strong> Local-first storage guarantees the user maintains 100% data sovereignty.</li>
+              <li><strong>POPIA Section 4(2):</strong> Complainants can withhold residential address on court documents.</li>
             </ul>
           </div>
         </div>
 
-        <div class="card card-highlight" style="margin-top:16px;">
+        <div class="card card-gold" style="margin-top:16px;">
           <h3>Incident Record Legality (J88 / Form 2 Compliance)</h3>
           <p style="font-size:13px; margin:0;">
             Export routine outputs structured text formatted to match <strong>Form 2 (Domestic Violence Act 116 of 1998 / Act 14 of 2021)</strong>, with timestamped incident numbers, perpetrator names, impact statements, and SAPS OB references for direct submission to the Clerk of the Court.
@@ -527,27 +572,29 @@
         <p>Production-ready build configurations, verified release artifacts, and deployment pathways.</p>
 
         <div class="grid-2">
-          <div class="card card-highlight">
+          <div class="card card-gold">
             <h3>Compiled Deliverables</h3>
             <p style="font-size:14px; margin-bottom:12px;">The project is configured for automated APK compilation via Gradle wrapper:</p>
             <div style="background:rgba(0,0,0,0.4); padding:12px; border-radius:8px; font-size:13px; font-family:monospace; margin-bottom:16px;">
               ./gradlew assembleDebug<br>
-              ./gradlew assembleRelease
+              ./gradlew assembleRelease<br>
+              ./gradlew testDebugUnitTest (79/79 passing)
             </div>
-            <p style="font-size:13px;">Output: <code>app/build/outputs/apk/debug/app-debug.apk</code></p>
-            <a href="https://github.com/OhhttooeXCIV/Umkhuseli_The_Protector/releases" class="btn-download" target="_blank">
+            <p style="font-size:13px;">Output: <code>web/public/downloads/Umkhuseli_Safe_latest.apk</code> (25.1 MB)</p>
+            <a href="https://github.com/OhhttooeXCIV/Umkhuseli_The_Protector" class="btn-download" target="_blank">
               <span>View GitHub Releases & Code</span> &rarr;
             </a>
           </div>
 
-          <div class="card">
-            <h3>Build Performance Metrics</h3>
+          <div class="card card-highlight">
+            <h3 style="color: var(--cyan-accent);">Build Quality & Distribution Matrix</h3>
             <ul style="font-size:13px; color:var(--text-muted); list-style-position:inside;">
               <li><strong>Target Platform:</strong> Android 7.0 (API 24) to Android 16 (API 36)</li>
-              <li><strong>Compiler:</strong> Kotlin 2.2.10 + Compose Multiplatform</li>
-              <li><strong>KSP Engine:</strong> 2.2.10-2.0.2 Room annotation processor</li>
-              <li><strong>Code Shrinking:</strong> ProGuard / R8 enabled with resource shrinking</li>
-              <li><strong>Distribution URL:</strong> Gradle 9.3.1 (Official AGP 9.1.1 baseline)</li>
+              <li><strong>Web Decoy Platform:</strong> React 19 + TypeScript (159/159 Vitest tests passing)</li>
+              <li><strong>Total Test Coverage:</strong> 238/238 automated tests passing across 25 suites</li>
+              <li><strong>Cloud Deployment:</strong> Vercel Edge configuration with SPA routing</li>
+              <li><strong>Direct Downloads:</strong> Hosted web APK delivery for clean installs</li>
+              <li><strong>Live UAT Ready:</strong> In-app field testing mode with simulated dispatch intercept</li>
             </ul>
           </div>
         </div>
@@ -559,6 +606,16 @@
       </div>
     </section>
 
+  </div>
+
+  <div class="slide-nav">
+    <button onclick="scrollToSlide('slide-1')" class="active">1</button>
+    <button onclick="scrollToSlide('slide-2')">2</button>
+    <button onclick="scrollToSlide('slide-3')">3</button>
+    <button onclick="scrollToSlide('slide-4')">4</button>
+    <button onclick="scrollToSlide('slide-5')">5</button>
+    <button onclick="scrollToSlide('slide-6')">6</button>
+    <button onclick="scrollToSlide('slide-7')">7</button>
   </div>
 
   <script>

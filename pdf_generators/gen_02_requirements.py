@@ -37,10 +37,11 @@ def build_pdf(output_path):
     story.append(Paragraph("1. System Scope & Objectives", styles['H1']))
     story.append(Paragraph(
         "Umkhuseli is a dual-persona Android and Web application designed to mitigate the acute physical risks faced by South African "
-        "survivors of Gender-Based Violence (GBV). The software provides three core services: <b>1) Covert Disguise & Panic Camouflage</b>, "
-        "<b>2) Hardware-Encrypted Legal Evidence Vault</b>, and <b>3) Zero-Latency / Zero-Airtime Emergency SOS Beaconing</b>. "
-        "All requirements conform to the statutory standards of the <b>South African Domestic Violence Act (Act 116 of 1998, amended by Act 14 of 2021)</b> "
-        "and the <b>Protection of Personal Information Act (POPIA Act 4 of 2013)</b>.",
+        "survivors of Gender-Based Violence (GBV). The software provides three core services: <b>1) Covert Disguise & Panic Camouflage</b> "
+        "(PowerCalc SA prepaid electricity utility and store-themed launcher), <b>2) Hardware-Encrypted Legal Evidence Vault</b>, and "
+        "<b>3) Zero-Latency / Zero-Airtime Emergency SOS Beaconing</b>. All requirements conform to the statutory standards of the "
+        "<b>South African Domestic Violence Act (Act 116 of 1998, amended by Act 14 of 2021)</b>, the <b>Protection of Personal Information Act (POPIA Act 4 of 2013)</b>, "
+        "and the <b>Electronic Communications and Transactions Act (ECTA Act 25 of 2002)</b>.",
         styles['Body']
     ))
 
@@ -56,14 +57,14 @@ def build_pdf(output_path):
         ],
         [
             Paragraph("<b>FR-01</b>", styles['TableTextBold']),
-            Paragraph("Innocent Facade Launcher", styles['TableText']),
-            Paragraph("System acts as a functional Android home launcher displaying daily African proverbs and launching installed apps without displaying any safety labels.", styles['TableText']),
+            Paragraph("PowerCalc SA Camouflage Facade", styles['TableText']),
+            Paragraph("Default UI acts as a functional municipal prepaid electricity and STS token calculator (Ekurhuleni/Boksburg, City Power, Tshwane, Cape Town, Eskom) or store-themed launcher.", styles['TableText']),
             Paragraph("<font color='#059669'><b>MANDATORY</b></font>", styles['TableText'])
         ],
         [
             Paragraph("<b>FR-02</b>", styles['TableTextBold']),
             Paragraph("Covert Safe Haven Triggers", styles['TableText']),
-            Paragraph("System unlocks the Safe Haven via PIN (1234/0000) or triple-tap on the sacred Sankofa adinkra emblem, bypassing discovery.", styles['TableText']),
+            Paragraph("Unlocks Safe Haven via mathematical PIN sequence (1234=, 8426=, 0000=) or STS Token button long-press on calculator keypad.", styles['TableText']),
             Paragraph("<font color='#059669'><b>MANDATORY</b></font>", styles['TableText'])
         ],
         [
@@ -81,7 +82,7 @@ def build_pdf(output_path):
         [
             Paragraph("<b>FR-05</b>", styles['TableTextBold']),
             Paragraph("0ms Camouflage Panic Wipe", styles['TableText']),
-            Paragraph("Pressing hardware Back or Top Shield instantly scrubs decrypted in-memory variables and returns to the proverbs launcher in 0 ms.", styles['TableText']),
+            Paragraph("Pressing hardware Back, Escape, or Quick-Exit immediately scrubs decrypted in-memory variables and restores PowerCalc SA in 0 ms.", styles['TableText']),
             Paragraph("<font color='#DC2626'><b>CRITICAL</b></font>", styles['TableText'])
         ],
         [
@@ -116,24 +117,36 @@ def build_pdf(output_path):
         ],
         [
             Paragraph("<b>FR-11</b>", styles['TableTextBold']),
-            Paragraph("Duress PIN Deception (9999)", styles['TableText']),
-            Paragraph("When coerced, entering PIN 9999 displays an authentic municipal electricity recharge voucher while silently dispatching SOS telemetry.", styles['TableText']),
+            Paragraph("Duress PIN Deception (9999=)", styles['TableText']),
+            Paragraph("When coerced, entering PIN 9999= displays an authentic municipal electricity recharge voucher while silently dispatching SOS telemetry.", styles['TableText']),
             Paragraph("<font color='#DC2626'><b>CRITICAL</b></font>", styles['TableText'])
+        ],
+        [
+            Paragraph("<b>FR-12</b>", styles['TableTextBold']),
+            Paragraph("UAT Field Testing & Intercept", styles['TableText']),
+            Paragraph("Dedicated UAT toggle intercepting SOS dispatch to simulated test guardians (+27 82 000 0001/2) with in-app POPIA feedback form and offline outbox.", styles['TableText']),
+            Paragraph("<font color='#2563EB'><b>OPERATIONAL</b></font>", styles['TableText'])
+        ],
+        [
+            Paragraph("<b>FR-13</b>", styles['TableTextBold']),
+            Paragraph("Cross-Platform Vercel PWA", styles['TableText']),
+            Paragraph("Vercel-hosted SPA for desktop PC/Mac and iOS Safari zero-trace access, plus direct APK downloads from hosted domain.", styles['TableText']),
+            Paragraph("<font color='#059669'><b>MANDATORY</b></font>", styles['TableText'])
         ]
     ]
 
-    t_fr = Table(fr_data, colWidths=[45, 110, 262, 70])
+    t_fr = Table(fr_data, colWidths=[42, 108, 267, 70])
     t_fr.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), SURFACE_ELEVATED),
         ('GRID', (0,0), (-1,-1), 0.5, BORDER_COLOR),
-        ('TOPPADDING', (0,0), (-1,-1), 4),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+        ('TOPPADDING', (0,0), (-1,-1), 3),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 3),
         ('LEFTPADDING', (0,0), (-1,-1), 5),
         ('RIGHTPADDING', (0,0), (-1,-1), 5),
         ('ROWBACKGROUNDS', (0,1), (-1,-1), [WHITE, LIGHT_BG])
     ]))
     story.append(t_fr)
-    story.append(Spacer(1, 14))
+    story.append(Spacer(1, 10))
 
     # 3. Non-Functional Requirements
     story.append(Paragraph("3. Non-Functional Requirements Matrix (NFR)", styles['H1']))
@@ -148,20 +161,20 @@ def build_pdf(output_path):
         [
             Paragraph("<b>NFR-01</b>", styles['TableTextBold']),
             Paragraph("Camouflage Latency", styles['TableText']),
-            Paragraph("&le; 0 ms perceptual delay on panic exit; 0 traces in task manager.", styles['TableText']),
-            Paragraph("Synchronous ViewModel state wipe; no window transitions.", styles['TableText'])
+            Paragraph("≤ 0 ms perceptual delay on panic exit; 0 traces in task manager.", styles['TableText']),
+            Paragraph("Synchronous ViewModel state wipe; immediate recomposition to PowerCalc SA.", styles['TableText'])
         ],
         [
             Paragraph("<b>NFR-02</b>", styles['TableTextBold']),
             Paragraph("Cryptographic Strength", styles['TableText']),
-            Paragraph("256-bit AES-GCM; authenticated encryption with 128-bit MAC.", styles['TableText']),
-            Paragraph("Hardware StrongBox / TEE via AndroidKeyStore.", styles['TableText'])
+            Paragraph("256-bit AES-GCM; authenticated encryption with 128-bit MAC tag.", styles['TableText']),
+            Paragraph("Hardware StrongBox / TEE via AndroidKeyStore; Web SubtleCrypto AES-GCM.", styles['TableText'])
         ],
         [
             Paragraph("<b>NFR-03</b>", styles['TableTextBold']),
             Paragraph("Data Privacy (POPIA)", styles['TableText']),
-            Paragraph("Zero third-party trackers; local-first storage; zero cloud leakage.", styles['TableText']),
-            Paragraph("Pure local Room SQLite with offline-first client architecture.", styles['TableText'])
+            Paragraph("Zero third-party trackers; local-first storage; zero telemetry leakage.", styles['TableText']),
+            Paragraph("Pure local Room SQLite / Dexie IndexedDB with zero-knowledge encryption.", styles['TableText'])
         ],
         [
             Paragraph("<b>NFR-04</b>", styles['TableTextBold']),
@@ -171,9 +184,9 @@ def build_pdf(output_path):
         ],
         [
             Paragraph("<b>NFR-05</b>", styles['TableTextBold']),
-            Paragraph("Platform Support", styles['TableText']),
-            Paragraph("Android 7.0 (API 24) through Android 16 (API 36); responsive Web PWA.", styles['TableText']),
-            Paragraph("Jetpack Compose BOM + TypeScript React 19.", styles['TableText'])
+            Paragraph("Cross-Platform Deploy", styles['TableText']),
+            Paragraph("Android 7.0-16 APK; Desktop PC/Mac & iOS Safari responsive PWA.", styles['TableText']),
+            Paragraph("Jetpack Compose BOM + React 19 / TypeScript hosted on Vercel edge.", styles['TableText'])
         ]
     ]
 
@@ -188,7 +201,7 @@ def build_pdf(output_path):
         ('ROWBACKGROUNDS', (0,1), (-1,-1), [WHITE, LIGHT_BG])
     ]))
     story.append(t_nfr)
-    story.append(Spacer(1, 14))
+    story.append(Spacer(1, 10))
 
     # 4. Formal Use Cases
     story.append(Paragraph("4. Core Formal Use Cases", styles['H1']))
@@ -196,10 +209,10 @@ def build_pdf(output_path):
     use_cases = [
         ("UC-01: Covert Safe Haven Unlock & Biometric Challenge",
          "<b>Actors:</b> Survivor (Primary)<br/>"
-         "<b>Preconditions:</b> App running in proverbs facade launcher mode.<br/>"
-         "<b>Trigger:</b> User enters secret PIN 1234 or triple-taps the sacred Sankofa adinkra emblem.<br/>"
-         "<b>Main Flow:</b> 1. Launcher captures trigger sequence without audio/visual feedback. 2. Prompts BiometricPrompt challenge. 3. User authenticates via Fingerprint or Face. 4. Master key retrieved from AndroidKeyStore. 5. Safe Haven screen rendered with encrypted vault diary.<br/>"
-         "<b>Alternative Flow:</b> If duress PIN 9999 entered, execute UC-07 (Duress Deception & Silent Dispatch).<br/>"
+         "<b>Preconditions:</b> App running in PowerCalc SA camouflage facade mode.<br/>"
+         "<b>Trigger:</b> User enters secret calculation (1234=, 8426=, or 0000=) or long-presses STS Token button.<br/>"
+         "<b>Main Flow:</b> 1. PowerCalc captures trigger sequence without audio/visual feedback. 2. Prompts BiometricPrompt challenge. 3. User authenticates via Fingerprint or Face. 4. Master key retrieved from AndroidKeyStore. 5. Safe Haven screen rendered with encrypted vault diary.<br/>"
+         "<b>Alternative Flow:</b> If duress PIN 9999= entered, execute UC-07 (Duress Deception & Silent Dispatch).<br/>"
          "<b>Postconditions:</b> Vault unlocked; memory session active."),
 
         ("UC-02: Armed SOS Emergency Distress Broadcast",
@@ -213,15 +226,22 @@ def build_pdf(output_path):
         ("UC-03: 0-Millisecond Panic Camouflage Scrub",
          "<b>Actors:</b> Survivor, Threat Actor (Physical Inspector)<br/>"
          "<b>Preconditions:</b> Safe Haven vault is actively open.<br/>"
-         "<b>Trigger:</b> User presses hardware Back button, recents key, or top panic bar.<br/>"
-         "<b>Main Flow:</b> 1. Back handler intercepts event synchronously. 2. In-memory decrypted strings and cryptographic pointers zeroed immediately. 3. Facade proverbs launcher instantly displayed in 0 ms. 4. Recents task thumbnail blanked.<br/>"
-         "<b>Postconditions:</b> No safety traces present; device displays innocent cultural proverbs launcher.")
+         "<b>Trigger:</b> User presses hardware Back button, Escape key, or top panic bar.<br/>"
+         "<b>Main Flow:</b> 1. Event handler intercepts event synchronously. 2. In-memory decrypted strings and cryptographic pointers zeroed immediately. 3. PowerCalc SA utility instantly displayed in 0 ms. 4. Recents task thumbnail blanked.<br/>"
+         "<b>Postconditions:</b> No safety traces present; device displays innocent municipal electricity calculator."),
+
+        ("UC-04: Live Device UAT Simulated Testing & In-App Feedback",
+         "<b>Actors:</b> UAT Field Tester, Quality Assurance Lead<br/>"
+         "<b>Preconditions:</b> UAT Testing Mode toggled ON in Safe Haven dashboard.<br/>"
+         "<b>Trigger:</b> Tester triggers Quick SOS or completes test scenario checklist.<br/>"
+         "<b>Main Flow:</b> 1. System intercepts SOS dispatch to simulated test guardians (+27 82 000 0001/2). 2. Renders telemetry card showing mock SAPS radio dispatch. 3. Tester navigates to Feedback tab and submits usability rating. 4. Record saved to local outbox and synced to Supabase `uat_feedback_submissions`.<br/>"
+         "<b>Postconditions:</b> Live testing validated without real emergency escalation; POPIA-compliant telemetry logged.")
     ]
 
     for title, body in use_cases:
         story.append(Paragraph(f"<b>{title}</b>", styles['BodyBold']))
         story.append(Paragraph(body, styles['Bullet']))
-        story.append(Spacer(1, 6))
+        story.append(Spacer(1, 5))
 
     doc.build(story, canvasmaker=NumberedCanvas)
     print(f"Generated: {output_path}")
@@ -229,4 +249,3 @@ def build_pdf(output_path):
 if __name__ == "__main__":
     out = r"C:\Users\thoso\Sankofa_mvp\Umkhuseli_The_Protector\public\requirements_and_use_cases\Umkhuseli_Requirements_and_Use_Cases.pdf"
     build_pdf(out)
-

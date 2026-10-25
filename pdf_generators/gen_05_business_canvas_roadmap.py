@@ -38,7 +38,7 @@ def build_pdf(output_path):
     story.append(Paragraph(
         "Umkhuseli operates as a <b>public-benefit social enterprise technology</b> designed specifically to dismantle "
         "the systemic barriers preventing South African domestic violence survivors from securing physical safety and legal justice. "
-        "By eliminating expensive centralized server infrastructures through a local-first Room SQLite architecture, "
+        "By eliminating expensive centralized server infrastructures through a local-first Room SQLite and Dexter IndexedDB architecture, "
         "the platform achieves near-zero marginal operational costs while maximizing survivor privacy and court evidentiary rigor.",
         styles['Body']
     ))
@@ -55,16 +55,17 @@ def build_pdf(output_path):
         [
             Paragraph(
                 "• South African femicide rate 5x global average.<br/>"
-                "• Abusive partners monitor phones; standard safety apps cause severe retaliatory violence.<br/>"
-                "• Handwritten evidence lacks timestamps and is frequently dismissed in court.<br/>"
+                "• Abusive partners inspect phones; safety apps trigger retaliatory violence.<br/>"
+                "• Handwritten evidence lacks timestamps and is dismissed in court.<br/>"
                 "• High data costs in townships prevent cloud-only app usage.",
                 styles['TableText']
             ),
             Paragraph(
-                "• Innocent African proverbs launcher facade (zero visible safety traces).<br/>"
-                "• Hardware-encrypted AES-256-GCM evidence diary with J88 clinical notes.<br/>"
-                "• One-touch 72-hour SOS beacon with live GPS and battery telemetry.<br/>"
-                "• Automated Form 2 Protection Order affidavit generation.",
+                "• PowerCalc SA prepaid electricity utility & store-themed launcher facade.<br/>"
+                "• Hardware-encrypted AES-256-GCM diary with J88 clinical notes & ECTA hashes.<br/>"
+                "• One-touch 72-hour SOS beacon with live GPS & battery telemetry.<br/>"
+                "• Automated Form 2 Protection Order affidavit generator.<br/>"
+                "• Cross-platform Vercel PWA and clean-domain direct APK downloads.",
                 styles['TableText']
             ),
             Paragraph(
@@ -83,11 +84,12 @@ def build_pdf(output_path):
                 "• Deep contextual integration with South African zero-rated networks (*120*7867#).<br/>"
                 "• Proprietary 0-millisecond camouflage wipe with zero recents traces.<br/>"
                 "• Direct alignment with Magistrates Court Form 2 statutory standards.<br/>"
-                "• Offline 9-province Thuthuzela directory.",
+                "• Offline 9-province Thuthuzela directory.<br/>"
+                "• Live UAT field testing framework with simulated guardian intercepts.",
                 styles['TableText']
             ),
             Paragraph(
-                "• <b>Primary:</b> Women and vulnerable individuals experiencing domestic abuse.<br/>"
+                "• <b>Primary:</b> Women and vulnerable individuals experiencing domestic abuse across diverse SA communities.<br/>"
                 "• <b>Secondary:</b> University students and night-shift healthcare workers in high-risk transit corridors.<br/>"
                 "• <b>Institutional Partners:</b> Thuthuzela Care Centres (TCC), SAPS FCS units, and legal aid NGOs.",
                 styles['TableText']
@@ -96,7 +98,8 @@ def build_pdf(output_path):
                 "• Camouflage trigger reliability: 100% (0 ms).<br/>"
                 "• SOS dispatch delivery rate: >99.5%.<br/>"
                 "• Protection orders granted using vault logs.<br/>"
-                "• ICE network readiness: &ge; 3 active guardians per user.",
+                "• ICE network readiness: ≥ 3 active guardians per user.<br/>"
+                "• 238/238 automated unit/integration tests passing.",
                 styles['TableText']
             )
         ],
@@ -110,18 +113,18 @@ def build_pdf(output_path):
                 "• Discreet referrals by TCC social workers and forensic nurses.<br/>"
                 "• University campus gender equity and student welfare offices.<br/>"
                 "• Community policing forums (CPFs) and health workers.<br/>"
-                "• Covert peer-to-peer APK sharing (Nearby Share / Bluetooth).",
+                "• Clean-domain web downloads via hosted Vercel portal.",
                 styles['TableText']
             ),
             Paragraph(
-                "• <b>Hosting / Cloud:</b> Near $0 operational cost due to local-first Room DB.<br/>"
+                "• <b>Hosting / Cloud:</b> Near $0 operational cost due to local-first architecture and Vercel edge.<br/>"
                 "• <b>Telecom:</b> Zero-rated government lifelines and standard SMS.<br/>"
-                "• <b>Maintenance:</b> Open-source Kotlin Jetpack Compose standard libraries.",
+                "• <b>Maintenance:</b> Open-source Kotlin Jetpack Compose and React 19.",
                 styles['TableText']
             ),
             Paragraph(
                 "• <b>Public Sector Grants:</b> Department of Social Development (DSD), Solidarity Fund.<br/>"
-                "• <b>Corporate CSI:</b> Telecom and financial sector safety grants.<br/>"
+                "• <b>Corporate CSI:</b> Telecom and financial sector safety grants (FNB, Old Mutual).<br/>"
                 "• <b>Enterprise Licensing:</b> White-label student safety builds for universities.",
                 styles['TableText']
             )
@@ -134,8 +137,8 @@ def build_pdf(output_path):
         ('BACKGROUND', (0,2), (-1,2), SURFACE_ELEVATED),
         ('BACKGROUND', (0,4), (-1,4), SURFACE_ELEVATED),
         ('GRID', (0,0), (-1,-1), 0.5, BORDER_COLOR),
-        ('TOPPADDING', (0,0), (-1,-1), 5),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 5),
+        ('TOPPADDING', (0,0), (-1,-1), 4),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
         ('LEFTPADDING', (0,0), (-1,-1), 5),
         ('RIGHTPADDING', (0,0), (-1,-1), 5),
         ('ROWBACKGROUNDS', (0,1), (-1,1), [WHITE]),
@@ -143,7 +146,7 @@ def build_pdf(output_path):
         ('ROWBACKGROUNDS', (0,5), (-1,5), [WHITE]),
     ]))
     story.append(t_canvas)
-    story.append(Spacer(1, 14))
+    story.append(Spacer(1, 10))
 
     # 3. Engineering Roadmap & Milestones
     story.append(Paragraph("3. Multi-Year Engineering Roadmap (2026 - 2027)", styles['H1']))
@@ -155,14 +158,14 @@ def build_pdf(output_path):
             Paragraph("<b>Core Deliverables & Quality Gates</b>", styles['TableHeader'])
         ],
         [
-            Paragraph("<b>Milestone 1</b><br/>Stealth Facade Foundation", styles['TableTextBold']),
+            Paragraph("<b>Milestone 1</b><br/>PowerCalc SA Camouflage Facade", styles['TableTextBold']),
             Paragraph("2026 Q1 - Q2<br/><font color='#059669'><b>COMPLETED (100%)</b></font>", styles['TableText']),
-            Paragraph("Dual-persona proverbs launcher; standard app drawer; covert triggers (PIN 1234, emblem triple-tap); 0ms panic camouflage wipe mechanism.", styles['TableText'])
+            Paragraph("PowerCalc SA prepaid utility with municipal tariffs (Ekurhuleni/Boksburg, City Power, Tshwane, Cape Town, Eskom) and store-themed launcher; mathematical unlock triggers (PIN 1234=, 8426=); 0ms panic exit.", styles['TableText'])
         ],
         [
             Paragraph("<b>Milestone 2</b><br/>Hardware Cryptography Vault", styles['TableTextBold']),
             Paragraph("2026 Q2<br/><font color='#059669'><b>COMPLETED (100%)</b></font>", styles['TableText']),
-            Paragraph("AndroidKeyStore 256-bit AES-GCM master keys; 12-byte random IVs per record; BiometricPrompt integration; encrypted Room SQLite DAO persistence.", styles['TableText'])
+            Paragraph("AndroidKeyStore 256-bit AES-GCM master keys; 12-byte random IVs per record; ECTA Section 15 SHA-256 tamper-evident hashing; BiometricPrompt integration; encrypted Room SQLite DAO persistence.", styles['TableText'])
         ],
         [
             Paragraph("<b>Milestone 3</b><br/>Zero-Data Emergency Lifelines", styles['TableTextBold']),
@@ -170,14 +173,14 @@ def build_pdf(output_path):
             Paragraph("State-driven 3-second tactile SOS countdown; 72-hour live GPS SMS beacon; zero-rated USSD *120*7867# ping; 9-province offline Thuthuzela directory.", styles['TableText'])
         ],
         [
-            Paragraph("<b>Milestone 4</b><br/>Form 2 Generator & Web Decoy", styles['TableTextBold']),
+            Paragraph("<b>Milestone 4</b><br/>Form 2 Generator & Vercel PWA", styles['TableTextBold']),
             Paragraph("2026 Q3 - Q4<br/><font color='#059669'><b>COMPLETED (100%)</b></font>", styles['TableText']),
-            Paragraph("Form 2 Protection Order Dossier Viewer with Section 4(2) address withholding; Municipal prepaid electricity decoy PWA; 46 automated Vitest tests.", styles['TableText'])
+            Paragraph("Form 2 Protection Order Dossier Viewer with Section 4(2) address withholding; Vercel deployment with direct APK downloads; 159 Vitest + 79 Android unit tests passing.", styles['TableText'])
         ],
         [
-            Paragraph("<b>Milestone 5</b><br/>Zero-Knowledge Cloud Sync", styles['TableTextBold']),
-            Paragraph("2026 Q4<br/><font color='#2563EB'><b>IN PROGRESS (85%)</b></font>", styles['TableText']),
-            Paragraph("Client-side E2EE cloud backup via Supabase PostgreSQL with Row Level Security (RLS); Deno edge functions; automated GitHub Actions CI/CD matrix.", styles['TableText'])
+            Paragraph("<b>Milestone 5</b><br/>UAT Live Testing & Feedback Loop", styles['TableTextBold']),
+            Paragraph("2026 Q4<br/><font color='#059669'><b>COMPLETED (100%)</b></font>", styles['TableText']),
+            Paragraph("In-app UAT mode with simulated guardian intercepts (+27 82 000 0001/2); Supabase `uat_feedback_submissions` syncing with local offline outbox; POPIA-compliant field feedback form.", styles['TableText'])
         ],
         [
             Paragraph("<b>Milestone 6</b><br/>National TCC & SAPS Pilot", styles['TableTextBold']),
@@ -190,8 +193,8 @@ def build_pdf(output_path):
     t_milestones.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), SURFACE_ELEVATED),
         ('GRID', (0,0), (-1,-1), 0.5, BORDER_COLOR),
-        ('TOPPADDING', (0,0), (-1,-1), 5),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 5),
+        ('TOPPADDING', (0,0), (-1,-1), 4),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
         ('LEFTPADDING', (0,0), (-1,-1), 6),
         ('RIGHTPADDING', (0,0), (-1,-1), 6),
         ('ROWBACKGROUNDS', (0,1), (-1,-1), [WHITE, LIGHT_BG])

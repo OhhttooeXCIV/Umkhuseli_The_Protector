@@ -10,54 +10,53 @@ All PDFs are organized into modular, purpose-driven sub-folders within `/public`
 
 ```
 public/
-├── presentation-deck.html                      # Interactive HTML5 presentation deck
+├── presentation-deck.html                      # Interactive HTML5 presentation deck (PowerCalc SA & UAT scope)
 ├── presentation_deck.html                      # Canonical presentation deck copy
 ├── README_PDF_ARTIFACTS.md                     # This documentation catalog
 │
 ├── user_journeys_and_stories/
 │   └── Umkhuseli_User_Journeys_and_Stories.pdf
-│       - Persona Profiles (Survivor/Primary User, Support Specialist, Legal/Law Enforcement Officer)
-│       - Statutory User Stories mapped to SA Domestic Violence Act (Form 2)
-│       - End-to-end Emergency & Safe Evidence Journey Maps
-│       - Offline-first degraded connectivity recovery workflows
+│       - Target Personas: Annatjie/Naledi (IPV survivor, Boksburg/Soweto), Zanele (Durban commuter), Lerato (ICE contact), Sister Dlamini (TCC), and UAT Field Evaluator
+│       - PowerCalc SA Camouflage: Municipal Prepaid Electricity & STS Token Calculator with Ekurhuleni & City Power tariffs
+│       - Statutory User Stories mapped to SA Domestic Violence Act (Form 2) & ECTA Section 15
+│       - 0-ms panic exit, 3-sec tactile SOS, and zero-airtime USSD (*120*7867#) workflows
 │
 ├── requirements_and_use_cases/
 │   └── Umkhuseli_Requirements_and_Use_Cases.pdf
-│       - Functional Requirements (UC-01 Panic Beacon to UC-06 Safe Address Redaction)
-│       - Non-Functional Specifications (POPIA compliance, AES-256 latency, offline queueing)
-│       - Complete Use Case Specification Matrix with Pre/Post-conditions and Edge Cases
+│       - Functional Requirements: FR-01 PowerCalc SA Camouflage to FR-13 Cross-Platform Vercel PWA
+│       - Non-Functional Specifications: 0-ms latency, StrongBox AES-256-GCM, POPIA compliance, and zero-data availability
+│       - Formal Use Cases: UC-01 Secret Unlock, UC-02 Armed SOS, UC-03 0-ms Panic Wipe, UC-04 Live Device UAT & Feedback
 │
 ├── uml_and_architecture/
 │   └── Umkhuseli_UML_and_System_Architecture.pdf
-│       - High-Level Clean Architecture Layering (UI / Domain / Data / Room / Hardware)
-│       - Component & Structural Architecture Diagram
-│       - UML Sequence Diagram: Silent Emergency Dispatch & 72-Hour Beacon Pipeline
-│       - UML State Machine Diagram: Evidence Lifecycle (Draft -> Encrypted -> Synced -> Court Admissible)
-│       - Entity-Relationship Data Model (UserProfile, Incident, SafeVaultKey, AuditLog)
+│       - High-Level Clean Architecture Layering: Presentation (Jetpack Compose & React 19) / Domain (MVVM) / AppContainer DI / Data (Room & Dexie) / Security
+│       - State Machine Specifications: SOS Signal Lifecycle with UAT Simulated Dispatch Intercept
+│       - UML Sequence Flows: Biometric Decryption and 0-Millisecond Panic Scrub
+│       - Entity Data Models: IncidentEntity, GuardianEntity, UserProfileEntity, and UatFeedbackEntity
 │
 ├── security_and_ssdl/
 │   └── Umkhuseli_SSDL_Security_and_POPIA_Compliance.pdf
-│       - Secure Software Development Lifecycle (SSDL) Gates (Threat Modeling to Post-Deploy)
-│       - POPIA & Constitutional Data Privacy Safeguards (Section 4(2) safe address withholding)
-│       - Hardware-Backed Cryptographic Hierarchy (Android KeyStore StrongBox + Master Key + AES-256-GCM)
-│       - Tamper-Evident Forensic Audit Logging (HMAC-SHA256 chained hashing)
+│       - Threat Modeling against Physical Adversary in Possession (Coercion, Inspection, Duress)
+│       - Cryptographic Hierarchy: AndroidKeyStore StrongBox/TEE + AES-256-GCM (12-byte IVs) + ECTA SHA-256 Hashes
+│       - POPIA Compliance: Local-first zero telemetry, Section 4(2) safe address withholding, and anonymous UAT feedback
+│       - OWASP Mobile Top 10 & Vercel HTTPS Edge Hardening
 │
 ├── business_plan_and_roadmap/
 │   └── Umkhuseli_Lean_Business_Canvas_and_Roadmap.pdf
 │       - 9-Block Lean Business Model Canvas (GBV & community safety focus)
-│       - Phased Engineering & Deployment Roadmap (Phase 1 MVP to Phase 4 Pan-African Scaling)
-│       - Impact & Key Performance Indicators (Time-to-dispatch, court admissibility rate)
+│       - Multi-Year Engineering Roadmap (2026 - 2027, Milestones 1 to 6)
+│       - Current Milestones 1-5 100% Completed, with verified test suite of 238 automated tests
 │
 └── presentation_deck/
     └── Umkhuseli_Executive_Presentation_Deck.pdf
         - 7-Slide Landscape Executive Presentation
-        - Slide 1: Title & Strategic Mission
-        - Slide 2: The Critical Crisis & Problem Statement
-        - Slide 3: The Umkhuseli Solution & Innovation
-        - Slide 4: System Architecture & Cryptographic Fortress
-        - Slide 5: Statutory Compliance & Legal Protection (DVA Form 2 & POPIA)
-        - Slide 6: Engineering Milestones & Operational Roadmap
-        - Slide 7: Call to Action & Strategic Partnerships
+        - Slide 1: Title & Strategic Mission (PowerCalc SA Camouflage)
+        - Slide 2: Human-Centred Safety UX (The Survivor Journey)
+        - Slide 3: Multi-Platform Clean Architecture (Compose + React 19 + Vercel)
+        - Slide 4: Demo Accounts, Links, UAT Testing Mode & Trigger Codes
+        - Slide 5: Umkhuseli Lean Business Canvas & Public Benefit Strategy
+        - Slide 6: SSDL Security Architecture & Legal Rigor (Form 2 & POPIA)
+        - Slide 7: Verified Build Deliverables, 238/238 Tests & Release APK
 ```
 
 ---
@@ -77,6 +76,8 @@ The PDF generator scripts are maintained under the [`pdf_generators/`](../pdf_ge
 ---
 
 ## 🎨 Design & Accessibility Standards
-- **Typography:** Clean Helvetica / Helvetica-Bold hierarchy with strict tabular and callout formatting.
-- **Brand Identity:** Sankofa Deep Navy (`#1B1E2B`), Sankofa Warm Gold (`#D4AF37`), Alert Crimson (`#E63946`), and Safety Teal (`#2A9D8F`).
-- **Legal Compliance:** Grounded in the South African Domestic Violence Act (Act 116 of 1998 as amended) and Protection of Personal Information Act (POPIA Act 4 of 2013).
+- **Camouflage Identity:** `PowerCalc SA` (Prepaid Electricity & STS Token Calculator) with City of Ekurhuleni (Boksburg / East Rand), City Power, Tshwane, Cape Town, and Eskom tariffs.
+- **Cross-Platform Delivery:** Native Android APK (`web/public/downloads/Umkhuseli_Safe_latest.apk`) and Vercel-hosted Web PWA.
+- **UAT Field Readiness:** Live device testing mode with simulated guardian intercept and in-app POPIA-compliant feedback form.
+- **Brand Identity:** Deep Slate Navy (`#0A0B10`), Warm Gold (`#D4AF37`), Electric Cyan (`#00E5FF`), Alert Crimson (`#E63946`), and Safety Teal (`#2A9D8F`).
+- **Legal Compliance:** Grounded in the South African Domestic Violence Act (Act 116 of 1998 as amended by Act 14 of 2021), POPIA (Act 4 of 2013), and ECTA (Act 25 of 2002 Section 15).
