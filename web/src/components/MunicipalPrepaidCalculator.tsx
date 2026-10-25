@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { Shield, Zap, Receipt, CheckCircle, Info, AlertOctagon, AlertTriangle, X } from "lucide-react";
+import { Shield, Zap, Receipt, CheckCircle, Info, AlertOctagon, AlertTriangle, X, Download, Smartphone, Monitor, BookOpen, ShieldCheck, ExternalLink } from "lucide-react";
 
 interface MunicipalityTariff {
   name: string;
@@ -7,6 +7,7 @@ interface MunicipalityTariff {
 }
 
 const MUNICIPALITIES: MunicipalityTariff[] = [
+  { name: "City of Ekurhuleni (Boksburg / East Rand)", ratePerKwh: 2.42 },
   { name: "City Power (Johannesburg)", ratePerKwh: 2.45 },
   { name: "City of Cape Town", ratePerKwh: 2.38 },
   { name: "eThekwini Electricity (Durban)", ratePerKwh: 2.40 },
@@ -38,6 +39,7 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
   const [amount, setAmount] = useState("200");
   const [result, setResult] = useState<DecoyResult | null>(null);
   const [showStsErrorModal, setShowStsErrorModal] = useState(false);
+  const [showPortalModal, setShowPortalModal] = useState(false);
 
   // Covert 3-tap gesture tracking
   const tapCountRef = useRef(0);
