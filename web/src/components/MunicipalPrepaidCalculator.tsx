@@ -345,10 +345,114 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
         )}
       </div>
 
+      {/* Consumer Portal & Discreet Knowledge Modal */}
+      {showPortalModal && (
+        <div className="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 w-full max-w-md rounded-2xl p-5 text-slate-200 text-xs space-y-4 max-h-[85vh] overflow-y-auto shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-sky-400" />
+                <h3 className="font-bold text-sm text-white">Municipal Consumer & Mobile Portal</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPortalModal(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Quick Exit Button (Panic Close to News) */}
+            <div className="flex justify-end">
+              <a
+                href="https://www.google.co.za"
+                className="text-[11px] bg-rose-950/80 hover:bg-rose-900 border border-rose-600/50 text-rose-300 px-3 py-1.5 rounded-lg flex items-center gap-1.5 font-bold transition-colors"
+                title="Immediately leave this site and open Google"
+              >
+                <span>⚡ Quick Exit to Google</span>
+              </a>
+            </div>
+
+            {/* 1. Android Native APK Download */}
+            <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2">
+              <div className="flex items-center gap-2 text-sky-400 font-bold">
+                <Smartphone className="w-4 h-4" />
+                <span>Android Smartphone Installation</span>
+              </div>
+              <p className="text-slate-400 text-[11px] leading-relaxed">
+                Download the official standalone Android APK directly. It installs innocently as <strong>PowerCalc SA</strong> without replacing your launcher, leaving your phone clean and unsuspicious.
+              </p>
+              <a
+                href="/downloads/Umkhuseli_Safe_latest.apk"
+                download="PowerCalc_SA_latest.apk"
+                className="w-full py-2.5 px-3 bg-gradient-to-r from-sky-600 to-sky-500 hover:from-sky-500 hover:to-sky-400 text-white font-bold rounded-lg flex items-center justify-center gap-2 transition-all shadow-md shadow-sky-600/20"
+              >
+                <Download className="w-4 h-4" />
+                <span>Download Android APK (PowerCalc SA)</span>
+              </a>
+            </div>
+
+            {/* 2. Apple iOS Safari PWA (Zero Install Trace) */}
+            <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2">
+              <div className="flex items-center gap-2 text-amber-400 font-bold">
+                <Smartphone className="w-4 h-4" />
+                <span>Apple iPhone / Safari Users</span>
+              </div>
+              <p className="text-slate-400 text-[11px] leading-relaxed">
+                No App Store record or purchase history. In Safari, tap the <strong>Share</strong> button (box with upward arrow) ➔ select <strong>"Add to Home Screen"</strong>. It runs in full screen with Face ID protection.
+              </p>
+            </div>
+
+            {/* 3. PC & Laptop Browser / Desktop App */}
+            <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2">
+              <div className="flex items-center gap-2 text-emerald-400 font-bold">
+                <Monitor className="w-4 h-4" />
+                <span>Desktop Computer / Laptop (Windows, Mac, Linux)</span>
+              </div>
+              <p className="text-slate-400 text-[11px] leading-relaxed">
+                This PWA runs directly in Chrome, Edge, or Firefox on any desktop computer. You can also click the <strong>Install</strong> button in the browser address bar to use it as a desktop application.
+              </p>
+            </div>
+
+            {/* 4. Covert Operation & Secret Codes Cheatsheet */}
+            <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2">
+              <div className="flex items-center gap-2 text-white font-bold">
+                <BookOpen className="w-4 h-4 text-sky-400" />
+                <span>Quick Access & Secret Triggers Cheatsheet</span>
+              </div>
+              <ul className="text-slate-300 text-[11px] space-y-1.5 list-disc pl-4">
+                <li><strong>Secret Safe Haven Access:</strong> Triple-tap the municipal crest icon at the top, or enter PIN <strong>1234</strong> or <strong>8426</strong> in the electricity purchase amount.</li>
+                <li><strong>Duress Alarm (PIN 9999):</strong> Displays a benign "failed STS token" diagnostic while silently transmitting emergency distress signals.</li>
+                <li><strong>Instant Panic Escape:</strong> Double-tap anywhere on the dashboard or press the Back button to instantly return to the calculator with zero traces in memory.</li>
+                <li><strong>Court Evidence (Form 2):</strong> Automatically compiles sworn affidavits formatted for South African Magistrates Courts under Section 15 of the ECTA.</li>
+              </ul>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setShowPortalModal(false)}
+              className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 py-2 rounded-xl text-xs font-semibold transition-colors"
+            >
+              Close Portal
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Camouflage Footer */}
-      <footer className="pt-6 pb-2 text-center text-xs text-slate-500 flex items-center justify-center gap-1.5">
-        <Info className="w-3.5 h-3.5" />
-        <span>NERSA Approved 2026/27 Municipal Electricity Rates.</span>
+      <footer className="pt-6 pb-2 text-center text-xs text-slate-500 flex flex-col items-center justify-center gap-2">
+        <div className="flex items-center gap-1.5">
+          <Info className="w-3.5 h-3.5" />
+          <span>NERSA Approved 2026/27 Municipal Electricity Rates.</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowPortalModal(true)}
+          className="text-[11px] text-slate-400 hover:text-sky-400 underline decoration-slate-600 transition-colors"
+        >
+          Consumer Portal & Mobile Downloads
+        </button>
       </footer>
     </div>
   );
