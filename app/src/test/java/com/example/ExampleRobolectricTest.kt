@@ -14,10 +14,18 @@ import com.example.service.EmergencyService
 import com.example.service.VaultEncryptionHelper
 import com.example.ui.viewmodel.SafetySignalState
 import com.example.ui.viewmodel.SafetyTriggerViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -26,6 +34,18 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [34])
 class ExampleRobolectricTest {
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @Before
+    fun setUp() {
+        Dispatchers.setMain(StandardTestDispatcher())
+    }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    @After
+    fun tearDown() {
+        Dispatchers.resetMain()
+    }
 
     @Test
     fun `read app name string from context`() {
@@ -72,6 +92,7 @@ class ExampleRobolectricTest {
         assertTrue(proverbs.any { it.sourceCulture.contains("Zulu") })
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun `safety trigger view model arms and logs distress timestamp to room database`() = runTest {
         val app = ApplicationProvider.getApplicationContext<Application>()
@@ -82,16 +103,17 @@ class ExampleRobolectricTest {
 
         assertEquals(SafetySignalState.Idle, viewModel.signalState.value)
 
-        // 1. Arm quick-access SOS with countdown
         viewModel.armQuickAccessSos(countdownSeconds = 3)
+        advanceUntilIdle()
         assertTrue(viewModel.signalState.value is SafetySignalState.Armed)
 
-        // 2. Test grace period cancellation
         viewModel.cancelArmedSos("Cancelled in test")
+        advanceUntilIdle()
         assertTrue(viewModel.signalState.value is SafetySignalState.Cancelled)
 
-        // 3. Test instant SOS dispatch and Room persistence
-        viewModel.triggerInstantSos("Immediate danger distress test alert").join()
+        viewModel.triggerInstantSos("Immediate danger distress test alert")
+        advanceUntilIdle()
+
         val state = viewModel.signalState.value
         assertTrue("Expected Dispatched state, got $state", state is SafetySignalState.Dispatched)
 
@@ -100,12 +122,13 @@ class ExampleRobolectricTest {
         assertTrue(dispatched.timestamp > 0)
         assertTrue(dispatched.formattedTime.isNotBlank())
 
-        // 4. Verify record in Room Database
         val incident = db.incidentDao().getIncidentById(dispatched.incidentId)
         assertTrue("Incident should exist in Room database", incident != null)
         assertEquals("Emergency SOS Distress Signal", incident?.incidentType)
         assertEquals(5, incident?.severityLevel)
         assertEquals(dispatched.timestamp, incident?.timestamp)
+
+        viewModel.onCleared()
     }
 
     @Test
