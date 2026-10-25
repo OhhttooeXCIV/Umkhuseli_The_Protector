@@ -17,7 +17,8 @@ import {
   MessageSquare,
   FileDown,
   Copy,
-  ExternalLink
+  ExternalLink,
+  Fingerprint
 } from "lucide-react";
 import {
   NATIONAL_LIFELINES,
@@ -28,7 +29,13 @@ import {
   vaultIncident,
   dispatchServerSos
 } from "../services/supabase";
-import { exportEctaAffidavitPdf, EctaAffidavitInput } from "../services/ectaSection15Pdf";
+import { exportEctaAffidavitPdf, exportOrShareEctaAffidavitPdf, EctaAffidavitInput } from "../services/ectaSection15Pdf";
+import {
+  isPlatformAuthenticatorAvailable,
+  authenticateWithBiometrics,
+  hasBiometricEnrollment,
+  enrollBiometricCredential
+} from "../services/webAuthnBiometrics";
 
 interface Props {
   onPanicLock: () => void;
@@ -73,6 +80,38 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
   const [pdfExportStatus, setPdfExportStatus] = useState<string | null>(null);
   const [copiedGuardianLink, setCopiedGuardianLink] = useState(false);
 
+  // Apple Face ID / WebAuthn Biometric state
+  const [biometricsAvailable, setBiometricsAvailable] = useState(false);
+  const [biometricsEnrolled, setBiometricsEnrolled] = useState(false);
+
+  useEffect(() => {
+    isPlatformAuthenticatorAvailable().then((avail) => {
+      setBiometricsAvailable(avail);
+      setBiometricsEnrolled(hasBiometricEnrollment());
+    });
+  }, []);
+
+  const handleBiometricUnlock = async () => {
+    if (biometricsEnrolled) {
+      const res = await authenticateWithBiometrics();
+      if (res.success) {
+        setIsVaultUnlocked(true);
+        setPinError(false);
+      } else {
+        setPinError(true);
+      }
+    } else {
+      const enrollRes = await enrollBiometricCredential();
+      if (enrollRes.success) {
+        setBiometricsEnrolled(true);
+        setIsVaultUnlocked(true);
+        setPinError(false);
+      } else {
+        setPinError(true);
+      }
+    }
+  };
+
   // Auto-sync offline queue when internet recovers (e.g. after Loadshedding power returns)
   useEffect(() => {
     const handleOnline = async () => {
@@ -97,16 +136,31 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
     return () => window.removeEventListener("online", handleOnline);
   }, []);
 
-  // SOS Countdown Timer
+  // SOS Countdown Timer with Screen Wake Lock
   useEffect(() => {
     let timer: any;
+    let wakeLockSentinel: any = null;
+
+    if (isArmed) {
+      if (typeof navigator !== "undefined" && "wakeLock" in navigator) {
+        (navigator as any).wakeLock?.request("screen").then((lock: any) => {
+          wakeLockSentinel = lock;
+        }).catch(() => {});
+      }
+    }
+
     if (isArmed && countdown > 0) {
       timer = setTimeout(() => setCountdown(countdown - 1), 1000);
     } else if (isArmed && countdown === 0) {
       setIsArmed(false);
       handleServerSosDispatch();
     }
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      if (wakeLockSentinel) {
+        wakeLockSentinel.release().catch(() => {});
+      }
+    };
   }, [isArmed, countdown]);
 
   const handleServerSosDispatch = async () => {
@@ -233,7 +287,7 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
     }
   };
 
-  const handleExportPdf = (overrideData?: EctaAffidavitInput) => {
+  const handleExportPdf = async (overrideData?: EctaAffidavitInput) => {
     const dataToExport = overrideData || lastVaultedIncident || {
       incidentType: incidentType || "Physical",
       severityLevel: severity || 3,
@@ -247,8 +301,12 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
     };
 
     try {
-      const filename = exportEctaAffidavitPdf(dataToExport);
-      setPdfExportStatus(`✓ Downloaded court-ready affidavit: ${filename}`);
+      const result = await exportOrShareEctaAffidavitPdf(dataToExport);
+      setPdfExportStatus(
+        result.sharedViaNative
+          ? `✓ Opened court affidavit in native share: ${result.filename}`
+          : `✓ Downloaded court-ready affidavit: ${result.filename}`
+      );
       setTimeout(() => setPdfExportStatus(null), 6000);
     } catch (err: any) {
       setPdfExportStatus("Export failed. Please check browser permissions.");
@@ -287,7 +345,7 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between max-w-md mx-auto select-none border-x border-slate-800">
       {/* Top Safe Haven Header */}
-      <header onDoubleClick={onPanicLock} title="Double-tap to trigger 0ms Panic Camouflage" className="bg-slate-900 border-b border-slate-800 p-4 flex items-center justify-between sticky top-0 z-50 cursor-pointer">
+      <header onDoubleClick={onPanicLock} title="Double-tap to trigger 0ms Panic Camouflage" className="bg-slate-900 border-b border-slate-800 p-4 pt-safe flex items-center justify-between sticky top-0 z-50 cursor-pointer">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center">
             <ShieldAlert className="w-5 h-5 text-amber-400" />
@@ -630,6 +688,18 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
                   >
                     Unlock Vault
                   </button>
+                  {biometricsAvailable && (
+                    <button
+                      type="button"
+                      onClick={handleBiometricUnlock}
+                      className="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-semibold py-2.5 rounded-xl text-xs transition"
+                    >
+                      <Fingerprint className="w-4 h-4 text-sky-400" />
+                      <span>
+                        {biometricsEnrolled ? "Unlock with Face ID / Touch ID" : "Enable Face ID / Touch ID"}
+                      </span>
+                    </button>
+                  )}
                   </form>
               </div>
             ) : (
@@ -848,7 +918,7 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="bg-slate-900 border-t border-slate-800 p-2 flex justify-around sticky bottom-0">
+      <nav className="bg-slate-900 border-t border-slate-800 p-2 pb-safe flex justify-around sticky bottom-0">
         <button
           onClick={() => setActiveTab("sos")}
           className={`flex flex-col items-center py-1 px-3 rounded-lg text-xs font-bold transition-colors ${

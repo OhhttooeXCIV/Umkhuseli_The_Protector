@@ -3,11 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/bolt.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Prepaid Electricity & Water Tariff Portal</title>
     <meta name="description" content="South African Municipal Utility Rate & STS Token Calculation System" />
+
+    <!-- iOS WebKit / Safari Standalone PWA Capabilities -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Prepaid Calc" />
+    <meta name="theme-color" content="#0F172A" />
+
+    <!-- Apple Touch Icon for iOS Home Screen Disguise -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
   </head>
-  <body class="bg-slate-900 text-slate-100 antialiased selection:bg-sky-500 selection:text-white">
+  <body class="bg-slate-900 text-slate-100 antialiased selection:bg-sky-500 selection:text-white overscroll-y-none">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

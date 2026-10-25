@@ -3,12 +3,18 @@ import { MunicipalPrepaidCalculator } from "./components/MunicipalPrepaidCalcula
 import { DailyDevotionalFacade } from "./components/DailyDevotionalFacade";
 import { SafeHavenDashboard } from "./components/SafeHavenDashboard";
 import { GuardianTrackerView } from "./components/GuardianTrackerView";
+import { IosInstallGuideModal } from "./components/IosInstallGuideModal";
 import { dispatchServerSos } from "./services/supabase";
 import {
   getActiveDisguise,
   DISGUISE_EVENT_NAME,
   DisguiseType,
 } from "./services/disguiseManager";
+import {
+  attachIosStealthSentinel,
+  triggerTactileHapticPulse,
+} from "./services/iosStealthManager";
+import { requestPersistentStorage } from "./services/storagePersistence";
 
 export const App: React.FC = () => {
   const [mode, setMode] = useState<"DECOY_CALCULATOR" | "SAFE_HAVEN" | "GUARDIAN_TRACKER">(() => {
@@ -27,6 +33,11 @@ export const App: React.FC = () => {
 
   // Root Double-Tap Timing Reference
   const lastRootTapRef = useRef<number>(0);
+
+  // Request persistent storage to protect against Safari 7-day storage eviction
+  useEffect(() => {
+    requestPersistentStorage().catch(() => {});
+  }, []);
 
   // Subscribe to disguise facade changes
   useEffect(() => {
@@ -62,14 +73,8 @@ export const App: React.FC = () => {
       navigator.clipboard.writeText("").catch(() => {});
     }
 
-    // 5. Silent tactile confirmation pulse (25ms) directly to user's palm
-    if (typeof navigator !== "undefined" && navigator.vibrate) {
-      try {
-        navigator.vibrate([25]);
-      } catch (e) {
-        // Ignored if vibration permission not supported
-      }
-    }
+    // 5. Silent tactile confirmation pulse (25ms) directly to user's palm (with iOS audio haptic fallback)
+    triggerTactileHapticPulse(25);
   };
 
   /**
@@ -126,6 +131,11 @@ export const App: React.FC = () => {
       }
     };
 
+    // Attach iOS Safari Stealth Sentinel (App Switcher evasion, pagehide, shake gesture)
+    const cleanupIosStealth = attachIosStealthSentinel({
+      onPanicExit: trigger0msPanicCamouflage,
+    });
+
     document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("deviceorientation", handleDeviceOrientation);
     window.addEventListener("keydown", handleKeyDown);
@@ -133,6 +143,7 @@ export const App: React.FC = () => {
     window.addEventListener("deviceproximity" as any, handleProximity);
 
     return () => {
+      cleanupIosStealth();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("deviceorientation", handleDeviceOrientation);
       window.removeEventListener("keydown", handleKeyDown);
@@ -164,17 +175,20 @@ export const App: React.FC = () => {
       className="w-full min-h-screen bg-slate-950"
     >
       {mode === "DECOY_CALCULATOR" && (
-        activeDisguise === "DAILY_DEVOTIONAL" ? (
-          <DailyDevotionalFacade
-            onUnlockSafeHaven={() => setMode("SAFE_HAVEN")}
-            onDuressTrigger={handleDuressTrigger}
-          />
-        ) : (
-          <MunicipalPrepaidCalculator
-            onUnlockSafeHaven={() => setMode("SAFE_HAVEN")}
-            onDuressTrigger={handleDuressTrigger}
-          />
-        )
+        <>
+          {activeDisguise === "DAILY_DEVOTIONAL" ? (
+            <DailyDevotionalFacade
+              onUnlockSafeHaven={() => setMode("SAFE_HAVEN")}
+              onDuressTrigger={handleDuressTrigger}
+            />
+          ) : (
+            <MunicipalPrepaidCalculator
+              onUnlockSafeHaven={() => setMode("SAFE_HAVEN")}
+              onDuressTrigger={handleDuressTrigger}
+            />
+          )}
+          <IosInstallGuideModal />
+        </>
       )}
       {mode === "SAFE_HAVEN" && (
         <SafeHavenDashboard

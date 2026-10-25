@@ -1,4 +1,5 @@
 import { jsPDF } from "jspdf";
+import { shareOrDownloadDocument } from "./iosFileShare";
 
 export interface EctaAffidavitInput {
   incidentId?: string;
@@ -269,4 +270,28 @@ export function exportEctaAffidavitPdf(data: EctaAffidavitInput): string {
   const filename = `Umkhuseli_Form2_ECTA15_${cleanId}.pdf`;
   doc.save(filename);
   return filename;
+}
+
+
+/**
+ * Modern iOS & Web Share Level 2 compatible export.
+ * Generates the Form 2 court affidavit PDF and invokes native iOS Share Sheet
+ * ("Save to Files", "AirDrop", "Print") on Safari/PWA, falling back to download.
+ */
+export async function exportOrShareEctaAffidavitPdf(
+  data: EctaAffidavitInput
+): Promise<{ filename: string; sharedViaNative: boolean }> {
+  const doc = createEctaAffidavitPdf(data);
+  const cleanId = (data.incidentId || "vault_record").replace(/[^a-zA-Z0-9_-]/g, "_");
+  const filename = `Umkhuseli_Form2_ECTA15_${cleanId}.pdf`;
+
+  const blob = doc.output("blob");
+  const shareResult = await shareOrDownloadDocument({
+    blob,
+    fileName: filename,
+    title: "Umkhuseli Form 2 Court Affidavit",
+    text: "Court-admissible Form 2 Domestic Violence Protection Order Affidavit compliant with ECTA Section 15"
+  });
+
+  return { filename, sharedViaNative: shareResult.sharedViaNative };
 }
