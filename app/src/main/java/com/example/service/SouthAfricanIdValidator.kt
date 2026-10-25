@@ -113,6 +113,10 @@ object SouthAfricanIdValidator {
      * Evaluates a South African ID against format, Luhn algorithm, gender classification,
      * and statutory NRSO offender registry.
      *
+     * NOTE: Known offender IDs must be blocked before the checksum check so that flagged
+     * offenders cannot bypass the silent trapdoor lockout by entering a tampered or
+     * checksum-invalid ID value.
+     *
      * @param rawId 13-digit National ID string.
      * @param isIceContactRegistration True if a male user is being registered as an authorized ICE guardian.
      */
@@ -130,14 +134,6 @@ object SouthAfricanIdValidator {
             )
         }
 
-        if (!isLuhnValid(clean)) {
-            return SaIdValidationResult(
-                isValid = false,
-                gender = SouthAfricanGender.INVALID,
-                errorMessage = "Invalid South African ID checksum (Luhn verification failed)."
-            )
-        }
-
         val hashed = hashSaId(clean)
         val isOffender = KNOWN_OFFENDER_HASHES.contains(hashed)
 
@@ -149,6 +145,14 @@ object SouthAfricanIdValidator {
                 isNrsoBlacklisted = true,
                 determinedRole = UserAccessRole.BLOCKED_OFFENDER,
                 errorMessage = "Registration processing error - Contact Department of Home Affairs (Error Code: DHA-701)"
+            )
+        }
+
+        if (!isLuhnValid(clean)) {
+            return SaIdValidationResult(
+                isValid = false,
+                gender = SouthAfricanGender.INVALID,
+                errorMessage = "Invalid South African ID checksum (Luhn verification failed)."
             )
         }
 
