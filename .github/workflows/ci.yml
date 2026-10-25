@@ -32,6 +32,12 @@ jobs:
       - name: Grant Execute Permission for Gradlew
         run: chmod +x gradlew
 
+      - name: Provision Debug Keystore
+        run: |
+          if [ ! -f "debug.keystore" ]; then
+            keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          fi
+
       - name: Run Android Unit Tests
         run: ./gradlew testDebugUnitTest -Dorg.gradle.jvmargs="-Xmx2048m -XX:MaxMetaspaceSize=512m" --no-daemon
 
