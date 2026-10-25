@@ -21,6 +21,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.di.ViewModelFactory
 import com.example.ui.components.SafetyTriggerOverlay
 import com.example.ui.launcher.LauncherFacadeScreen
+import com.example.ui.launcher.MunicipalPrepaidCalculator
 import com.example.ui.safehaven.SafeHavenScreen
 import com.example.ui.onboarding.SetupWizardScreen
 import com.example.ui.theme.SankofaDarkBg
@@ -153,21 +154,9 @@ fun SankofaRootApp(
             Crossfade(targetState = currentMode, label = "app_mode_crossfade") { mode ->
             when (mode) {
                 AppMode.FACADE_LAUNCHER -> {
-                    LauncherFacadeScreen(
-                        installedApps = installedApps,
-                        currentProverb = currentProverb,
-                        onLaunchApp = { viewModel.launchApp(it) },
-                        onCycleProverb = { viewModel.cycleProverb() },
-                        onRequestPinUnlock = { viewModel.requestUnlockSafeHaven() },
+                    MunicipalPrepaidCalculator(
                         onSecretGestureTriggered = { viewModel.directUnlockFromSecretGesture() },
-                        showPinModal = showPinModal,
-                        onDismissPinModal = { viewModel.dismissPinModal() },
-                        onVerifyPin = { viewModel.verifyPinAndUnlock(it) },
-                        isDrawerOpen = drawerOpen,
-                        onToggleDrawer = { viewModel.toggleAppDrawer(it) },
-                        appSearchQuery = appSearchQuery,
-                        onAppSearchQueryChange = { viewModel.setAppSearchQuery(it) },
-                        onQuickSosTrigger = { safetyTriggerViewModel.armQuickAccessSos(3) }
+                        onDuressTriggered = { safetyTriggerViewModel.armQuickAccessSos(0) }
                     )
                 }
 

@@ -72,10 +72,11 @@ data class MunicipalityTariff(
 )
 
 val SA_MUNICIPALITIES = listOf(
+    MunicipalityTariff("City of Ekurhuleni (Boksburg / East Rand)", 2.42, 3.10, 0.0),
     MunicipalityTariff("City Power (Johannesburg)", 2.45, 3.12, 0.0),
+    MunicipalityTariff("City of Tshwane (Pretoria)", 2.50, 3.18, 0.0),
     MunicipalityTariff("City of Cape Town", 2.38, 3.25, 0.0),
     MunicipalityTariff("eThekwini (Durban)", 2.40, 3.05, 0.0),
-    MunicipalityTariff("City of Tshwane (Pretoria)", 2.50, 3.18, 0.0),
     MunicipalityTariff("Eskom Direct Residential", 2.22, 3.42, 0.0),
     MunicipalityTariff("Mangaung (Bloemfontein)", 2.48, 3.15, 0.0)
 )
@@ -125,8 +126,10 @@ fun MunicipalPrepaidCalculator(
     val calculateUnits: () -> Unit = {
         val amount = purchaseAmountText.toDoubleOrNull() ?: 0.0
         if (amount > 0) {
-            // Check for secret PINs entered in amount or meter
-            if (purchaseAmountText.trim() == "8426" || meterNumber.trim().endsWith("8426")) {
+            // Check for secret PINs entered in amount or meter (1234, 8426, or 0000)
+            val amt = purchaseAmountText.trim()
+            val mtr = meterNumber.trim()
+            if (amt == "8426" || amt == "1234" || amt == "0000" || mtr.endsWith("8426") || mtr.endsWith("1234") || mtr.endsWith("0000")) {
                 onSecretGestureTriggered()
             } else if (purchaseAmountText.trim() == "9999" || meterNumber.trim().endsWith("9999")) {
                 // Duress PIN entered: show normal simulated token AND fire background silent SOS
