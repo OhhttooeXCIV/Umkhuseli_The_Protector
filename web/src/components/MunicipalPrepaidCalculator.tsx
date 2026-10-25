@@ -7,8 +7,8 @@ interface MunicipalityTariff {
 }
 
 const MUNICIPALITIES: MunicipalityTariff[] = [
-  { name: "City of Ekurhuleni (Boksburg / East Rand)", ratePerKwh: 2.42 },
   { name: "City Power (Johannesburg)", ratePerKwh: 2.45 },
+  { name: "City of Ekurhuleni (Boksburg / East Rand)", ratePerKwh: 2.42 },
   { name: "City of Cape Town", ratePerKwh: 2.38 },
   { name: "eThekwini Electricity (Durban)", ratePerKwh: 2.40 },
   { name: "City of Tshwane (Pretoria)", ratePerKwh: 2.50 },
