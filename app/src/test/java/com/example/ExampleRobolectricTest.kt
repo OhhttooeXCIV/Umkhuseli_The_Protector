@@ -14,7 +14,13 @@ import com.example.service.EmergencyService
 import com.example.service.VaultEncryptionHelper
 import com.example.ui.viewmodel.SafetySignalState
 import com.example.ui.viewmodel.SafetyTriggerViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
@@ -72,41 +78,56 @@ class ExampleRobolectricTest {
         assertTrue(proverbs.any { it.sourceCulture.contains("Zulu") })
     }
 
-    @Test
-    fun `safety trigger view model arms and logs distress timestamp to room database`() = runTest {
-        val app = ApplicationProvider.getApplicationContext<Application>()
-        val db = AppDatabase.getInstance(app)
-        val emergencyService = EmergencyService(app)
-        val emergencyDispatchHelper = EmergencyDispatchHelper(app)
-        val viewModel = SafetyTriggerViewModel(db, emergencyService, emergencyDispatchHelper)
+    @OptIn(ExperimentalCoroutinesApi::class)
+@Before
+fun setUp() {
+    Dispatchers.setMain(StandardTestDispatcher())
+}
 
-        assertEquals(SafetySignalState.Idle, viewModel.signalState.value)
+@OptIn(ExperimentalCoroutinesApi::class)
+@After
+fun tearDown() {
+    Dispatchers.resetMain()
+}
 
-        // 1. Arm quick-access SOS with countdown
-        viewModel.armQuickAccessSos(countdownSeconds = 3)
-        assertTrue(viewModel.signalState.value is SafetySignalState.Armed)
+@OptIn(ExperimentalCoroutinesApi::class)
+@Test
+fun `safety trigger view model arms and logs distress timestamp to room database`() = runTest {
+    val app = ApplicationProvider.getApplicationContext<Application>()
+    val db = AppDatabase.getInstance(app)
+    val emergencyService = EmergencyService(app)
+    val emergencyDispatchHelper = EmergencyDispatchHelper(app)
+    val viewModel = SafetyTriggerViewModel(db, emergencyService, emergencyDispatchHelper)
 
-        // 2. Test grace period cancellation
-        viewModel.cancelArmedSos("Cancelled in test")
-        assertTrue(viewModel.signalState.value is SafetySignalState.Cancelled)
+    assertEquals(SafetySignalState.Idle, viewModel.signalState.value)
 
-        // 3. Test instant SOS dispatch and Room persistence
-        viewModel.triggerInstantSos("Immediate danger distress test alert").join()
-        val state = viewModel.signalState.value
-        assertTrue("Expected Dispatched state, got $state", state is SafetySignalState.Dispatched)
+    viewModel.armQuickAccessSos(countdownSeconds = 3)
+    advanceUntilIdle()
+    assertTrue(viewModel.signalState.value is SafetySignalState.Armed)
 
-        val dispatched = state as SafetySignalState.Dispatched
-        assertTrue(dispatched.incidentId > 0)
-        assertTrue(dispatched.timestamp > 0)
-        assertTrue(dispatched.formattedTime.isNotBlank())
+    viewModel.cancelArmedSos("Cancelled in test")
+    advanceUntilIdle()
+    assertTrue(viewModel.signalState.value is SafetySignalState.Cancelled)
 
-        // 4. Verify record in Room Database
-        val incident = db.incidentDao().getIncidentById(dispatched.incidentId)
-        assertTrue("Incident should exist in Room database", incident != null)
-        assertEquals("Emergency SOS Distress Signal", incident?.incidentType)
-        assertEquals(5, incident?.severityLevel)
-        assertEquals(dispatched.timestamp, incident?.timestamp)
-    }
+    viewModel.triggerInstantSos("Immediate danger distress test alert")
+    advanceUntilIdle()
+
+    val state = viewModel.signalState.value
+    assertTrue(state is SafetySignalState.Dispatched)
+
+    val dispatched = state as SafetySignalState.Dispatched
+    assertTrue(dispatched.incidentId > 0)
+    assertTrue(dispatched.timestamp > 0)
+    assertTrue(dispatched.formattedTime.isNotBlank())
+
+    val incident = db.incidentDao().getIncidentById(dispatched.incidentId)
+    assertTrue(incident != null)
+    assertEquals("Emergency SOS Distress Signal", incident?.incidentType)
+    assertEquals(5, incident?.severityLevel)
+    assertEquals(dispatched.timestamp, incident?.timestamp)
+
+    viewModel.onCleared()
+}
 
     @Test
     fun `vault encryption helper encrypts and decrypts sensitive incident notes`() {
