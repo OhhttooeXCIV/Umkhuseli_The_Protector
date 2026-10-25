@@ -350,3 +350,42 @@ CREATE POLICY "Users can manage their own ghost beacons"
     USING (auth.uid() = user_id)
     WITH CHECK (auth.uid() = user_id);
 
+
+
+-- ============================================================================
+-- 9. User Acceptance Testing (UAT) Feedback Submissions
+-- Allows physical device beta testers to submit anonymous feedback and bug reports.
+-- IP addresses, device serials, and personal identity are stripped in compliance with POPIA.
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS public.uat_feedback_submissions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tester_alias TEXT DEFAULT 'Anonymous Tester',
+    device_model TEXT NOT NULL,
+    os_version TEXT NOT NULL,
+    app_version TEXT NOT NULL DEFAULT '2.3.0',
+    platform TEXT NOT NULL CHECK (platform IN ('ANDROID_NATIVE', 'WEB_PWA', 'SAFARI_IOS')),
+    network_condition TEXT DEFAULT 'UNKNOWN',
+    stealth_rating INT CHECK (stealth_rating BETWEEN 1 AND 5),
+    panic_speed_rating INT CHECK (panic_speed_rating BETWEEN 1 AND 5),
+    unlock_ease_rating INT CHECK (unlock_ease_rating BETWEEN 1 AND 5),
+    sos_grace_rating INT CHECK (sos_grace_rating BETWEEN 1 AND 5),
+    offline_reliability_rating INT CHECK (offline_reliability_rating BETWEEN 1 AND 5),
+    form2_quality_rating INT CHECK (form2_quality_rating BETWEEN 1 AND 5),
+    overall_sus_score INT,
+    bug_description TEXT DEFAULT '',
+    bug_severity TEXT CHECK (bug_severity IN ('BLOCKER', 'MAJOR', 'MINOR', 'NONE', 'SUGGESTION')),
+    qualitative_notes TEXT DEFAULT '',
+    created_at TIMESTAMPTZ DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+ALTER TABLE public.uat_feedback_submissions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Allow anonymous insert for UAT feedback"
+    ON public.uat_feedback_submissions
+    FOR INSERT
+    WITH CHECK (true);
+
+CREATE POLICY "Allow authenticated admins to view UAT feedback"
+    ON public.uat_feedback_submissions
+    FOR SELECT
+    USING (auth.role() = 'authenticated');

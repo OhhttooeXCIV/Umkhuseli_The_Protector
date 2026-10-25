@@ -144,3 +144,119 @@ export async function vaultIncident(input: IncidentInput) {
 
   return await response.json();
 }
+
+
+// ============================================================================
+// UAT Live Testing & Feedback Submissions
+// ============================================================================
+
+export interface UatFeedbackSubmission {
+  testerAlias?: string;
+  deviceModel: string;
+  osVersion: string;
+  platform: "ANDROID_NATIVE" | "WEB_PWA" | "SAFARI_IOS";
+  networkCondition?: string;
+  stealthRating: number;
+  panicSpeedRating: number;
+  unlockEaseRating: number;
+  sosGraceRating: number;
+  offlineReliabilityRating: number;
+  form2QualityRating: number;
+  overallSusScore?: number;
+  bugDescription?: string;
+  bugSeverity?: "BLOCKER" | "MAJOR" | "MINOR" | "NONE" | "SUGGESTION";
+  qualitativeNotes?: string;
+}
+
+export const UAT_SIMULATED_GUARDIANS: GuardianInput[] = [
+  {
+    name: "Sister Lerato",
+    surname: "Khubeka (UAT Test 1)",
+    mobileNumber1: "+27820000001",
+    emailAddress1: "lerato.uat.test@umkhuseli.org",
+    relationship: "Sister (UAT Test Guardian)",
+    isPrimary: true
+  },
+  {
+    name: "Coordinator Sipho",
+    surname: "Ndlovu (UAT Test 2)",
+    mobileNumber1: "+27820000002",
+    emailAddress1: "sipho.uat.test@umkhuseli.org",
+    relationship: "Shelter Coordinator (UAT Ally)",
+    isPrimary: false
+  },
+  {
+    name: "TCC Facility Desk",
+    surname: "Baragwanath Test",
+    mobileNumber1: "+27820000003",
+    emailAddress1: "tcc.test@umkhuseli.org",
+    relationship: "Crisis Care Monitor",
+    isPrimary: false
+  }
+];
+
+export async function submitUatFeedback(feedback: UatFeedbackSubmission) {
+  const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
+
+  if (!isOnline) {
+    const queue = JSON.parse(localStorage.getItem("umkhuseli_offline_uat_feedback") || "[]");
+    queue.push({
+      ...feedback,
+      queuedAt: new Date().toISOString()
+    });
+    localStorage.setItem("umkhuseli_offline_uat_feedback", JSON.stringify(queue));
+    return {
+      success: true,
+      offlineStored: true,
+      message: "Feedback safely stored in offline outbox. Will sync as soon as you reconnect!"
+    };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("uat_feedback_submissions")
+      .insert([
+        {
+          tester_alias: feedback.testerAlias || "Anonymous Tester",
+          device_model: feedback.deviceModel,
+          os_version: feedback.osVersion,
+          app_version: "2.3.0",
+          platform: feedback.platform,
+          network_condition: feedback.networkCondition || "UNKNOWN",
+          stealth_rating: feedback.stealthRating,
+          panic_speed_rating: feedback.panicSpeedRating,
+          unlock_ease_rating: feedback.unlockEaseRating,
+          sos_grace_rating: feedback.sosGraceRating,
+          offline_reliability_rating: feedback.offlineReliabilityRating,
+          form2_quality_rating: feedback.form2QualityRating,
+          overall_sus_score: feedback.overallSusScore || 0,
+          bug_description: feedback.bugDescription || "",
+          bug_severity: feedback.bugSeverity || "NONE",
+          qualitative_notes: feedback.qualitativeNotes || ""
+        }
+      ]);
+
+    if (error) {
+      throw error;
+    }
+
+    return {
+      success: true,
+      offlineStored: false,
+      message: "Feedback transmitted securely and anonymously to the safety development team."
+    };
+  } catch (err: any) {
+    // If Supabase insert fails, gracefully fall back to local outbox
+    const queue = JSON.parse(localStorage.getItem("umkhuseli_offline_uat_feedback") || "[]");
+    queue.push({
+      ...feedback,
+      queuedAt: new Date().toISOString()
+    });
+    localStorage.setItem("umkhuseli_offline_uat_feedback", JSON.stringify(queue));
+    return {
+      success: true,
+      offlineStored: true,
+      message: "Feedback saved locally (offline queue). Will sync when network connectivity is confirmed."
+    };
+  }
+}

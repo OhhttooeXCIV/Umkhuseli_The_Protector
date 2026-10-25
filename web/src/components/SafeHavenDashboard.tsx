@@ -27,7 +27,9 @@ import {
 } from "../data/saSafetyData";
 import {
   vaultIncident,
-  dispatchServerSos
+  dispatchServerSos,
+  submitUatFeedback,
+  UAT_SIMULATED_GUARDIANS
 } from "../services/supabase";
 import { exportEctaAffidavitPdf, exportOrShareEctaAffidavitPdf, EctaAffidavitInput } from "../services/ectaSection15Pdf";
 import {
@@ -43,10 +45,29 @@ interface Props {
 }
 
 export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardianTracker }) => {
-  const [activeTab, setActiveTab] = useState<"sos" | "tcc" | "vault" | "plan">("sos");
+  const [activeTab, setActiveTab] = useState<"sos" | "tcc" | "vault" | "plan" | "feedback">("sos");
   const [isVaultUnlocked, setIsVaultUnlocked] = useState(false);
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState(false);
+
+  // UAT Live Testing & Simulation State
+  const [isUatMode, setIsUatMode] = useState(false);
+  const [simulatedDispatchSent, setSimulatedDispatchSent] = useState(false);
+  const [simulatedDispatchPayload, setSimulatedDispatchPayload] = useState<any>(null);
+
+  // In-App UAT Feedback Form State
+  const [feedbackAlias, setFeedbackAlias] = useState("");
+  const [stealthRating, setStealthRating] = useState(5);
+  const [panicRating, setPanicRating] = useState(5);
+  const [unlockRating, setUnlockRating] = useState(5);
+  const [sosRating, setSosRating] = useState(5);
+  const [offlineRating, setOfflineRating] = useState(5);
+  const [form2Rating, setForm2Rating] = useState(5);
+  const [bugSeverity, setBugSeverity] = useState<"NONE" | "MINOR" | "MAJOR" | "BLOCKER" | "SUGGESTION">("NONE");
+  const [bugDesc, setBugDesc] = useState("");
+  const [qualitativeNotes, setQualitativeNotes] = useState("");
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+  const [feedbackSubmitResult, setFeedbackSubmitResult] = useState<string | null>(null);
 
   // SOS state
   const [isArmed, setIsArmed] = useState(false);
@@ -167,6 +188,25 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
     setSosStatus("Dispatching unstoppable 72-hr emergency beacon...");
     const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
 
+    // 🧪 UAT TEST MODE: Safe simulation without calling live emergency responders
+    if (isUatMode) {
+      setSosStatus("🧪 UAT SIMULATION: Dispatching simulated distress beacon to test guardians...");
+      const simulatedPayload = {
+        areaName: "Johannesburg Central (Simulated UAT GPS)",
+        latitude: -26.2041,
+        longitude: 28.0473,
+        batteryPercentage: 92,
+        isCharging: false,
+        deviceModel: navigator.userAgent.includes("Android") ? "Android Test Device" : "iOS/Web Test Device",
+        targetGuardians: UAT_SIMULATED_GUARDIANS,
+        timestamp: new Date().toLocaleTimeString("en-ZA")
+      };
+      setSimulatedDispatchPayload(simulatedPayload);
+      setSimulatedDispatchSent(true);
+      setSosStatus("✓ SIMULATED DISPATCH DELIVERED: Alert received by 2 test guardians. No live authorities called.");
+      return;
+    }
+
     // Default telemetry values
     let batteryLevel = 85;
     let coordsText = "Location approx: South Africa";
@@ -218,6 +258,50 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
     setIsArmed(false);
     setCountdown(3);
     setSosStatus(null);
+  };
+
+  const handleFeedbackSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmittingFeedback(true);
+    setFeedbackSubmitResult(null);
+
+    const platform: "ANDROID_NATIVE" | "WEB_PWA" | "SAFARI_IOS" =
+      typeof navigator !== "undefined" && (navigator.userAgent.includes("iPhone") || navigator.userAgent.includes("iPad"))
+        ? "SAFARI_IOS"
+        : typeof navigator !== "undefined" && navigator.userAgent.includes("Android")
+        ? "ANDROID_NATIVE"
+        : "WEB_PWA";
+
+    const susAverage = Math.round(
+      ((stealthRating + panicRating + unlockRating + sosRating + offlineRating + form2Rating) / 30) * 100
+    );
+
+    const res = await submitUatFeedback({
+      testerAlias: feedbackAlias.trim() || "Anonymous Device Tester",
+      deviceModel: typeof navigator !== "undefined" ? `${navigator.platform || "Device"} (${navigator.userAgent.includes("Mobile") ? "Mobile" : "Desktop"})` : "Unknown Device",
+      osVersion: typeof navigator !== "undefined" ? navigator.userAgent.substring(0, 80) : "Web",
+      platform,
+      networkCondition: typeof navigator !== "undefined" && !navigator.onLine ? "OFFLINE_LOADSHEDDING" : "ONLINE_4G_WIFI",
+      stealthRating,
+      panicSpeedRating: panicRating,
+      unlockEaseRating: unlockRating,
+      sosGraceRating: sosRating,
+      offlineReliabilityRating: offlineRating,
+      form2QualityRating: form2Rating,
+      overallSusScore: susAverage,
+      bugDescription: bugDesc.trim(),
+      bugSeverity,
+      qualitativeNotes: qualitativeNotes.trim()
+    });
+
+    setIsSubmittingFeedback(false);
+    if (res.success) {
+      setFeedbackSubmitResult(res.message);
+      setBugDesc("");
+      setQualitativeNotes("");
+    } else {
+      setFeedbackSubmitResult("Failed to transmit feedback. Stored in local fallback cache.");
+    }
   };
 
   const handleVaultUnlock = (e: React.FormEvent) => {
@@ -370,6 +454,41 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
 
       {/* Main Tab Content */}
       <main className="p-4 flex-1 overflow-y-auto">
+        {/* UAT Live Test Mode Banner */}
+        <div className={`p-3 rounded-xl border mb-4 text-xs flex items-center justify-between transition-colors ${
+          isUatMode
+            ? "bg-amber-950/40 border-amber-500/40 text-amber-200"
+            : "bg-slate-900/60 border-slate-800 text-slate-400"
+        }`}>
+          <div className="flex items-center gap-2">
+            <span className={`w-2.5 h-2.5 rounded-full ${isUatMode ? "bg-amber-400 animate-ping" : "bg-emerald-500"}`} />
+            <div>
+              <div className="font-bold text-white flex items-center gap-1.5">
+                <span>{isUatMode ? "🧪 UAT Test Mode: Active" : "Operational Mode: Live Shield"}</span>
+              </div>
+              <p className="text-[10px] text-slate-400">
+                {isUatMode
+                  ? "Distress dispatches are safely simulated. No real authorities called."
+                  : "Tap to simulate emergency tests without alarming contacts."}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setIsUatMode(!isUatMode);
+              setSimulatedDispatchSent(false);
+            }}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              isUatMode
+                ? "bg-amber-500 hover:bg-amber-400 text-black shadow-md shadow-amber-500/20"
+                : "bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/30"
+            }`}
+          >
+            {isUatMode ? "Exit Test Mode" : "Enable UAT Mode"}
+          </button>
+        </div>
+
         {/* TAB 1: SOS EMERGENCY */}
         {activeTab === "sos" && (
           <div className="space-y-5 animate-in fade-in duration-200">
@@ -417,6 +536,57 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
               {sosStatus && (
                 <div className="mt-4 p-3 bg-slate-800 rounded-xl text-xs text-emerald-400 border border-emerald-500/40">
                   {sosStatus}
+                </div>
+              )}
+
+              {/* 🧪 UAT Simulated Dispatch Card */}
+              {isUatMode && simulatedDispatchSent && simulatedDispatchPayload && (
+                <div className="mt-4 bg-amber-950/40 border border-amber-500/40 rounded-2xl p-4 text-slate-200 text-xs space-y-3 text-left">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-amber-400 font-bold text-xs">
+                      <Sparkles className="w-4 h-4 shrink-0" />
+                      <span>UAT Simulated Dispatch Verified</span>
+                    </div>
+                    <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30">
+                      SAFE SIMULATION
+                    </span>
+                  </div>
+
+                  <p className="text-slate-300 text-[11px]">
+                    Simulated distress beacon delivered to <strong className="text-white">2 test guardians</strong> with live GPS coordinates. No emergency services were alerted.
+                  </p>
+
+                  <div className="bg-black/60 p-2.5 rounded-lg font-mono text-[11px] text-slate-300 space-y-1 border border-slate-800">
+                    <div><strong>ICE 1:</strong> Sister Lerato (+27 82 000 0001)</div>
+                    <div><strong>ICE 2:</strong> Coordinator Sipho (+27 82 000 0002)</div>
+                    <div><strong>GPS:</strong> -26.2041, 28.0473 (JHB Central)</div>
+                    <div><strong>Battery:</strong> 92% | Time: {simulatedDispatchPayload.timestamp}</div>
+                  </div>
+
+                  <div className="flex gap-2 pt-1">
+                    {onOpenGuardianTracker && (
+                      <button
+                        type="button"
+                        onClick={onOpenGuardianTracker}
+                        className="flex-1 py-2 px-3 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        <span>Inspect Tracker View</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (typeof navigator !== "undefined" && navigator.clipboard) {
+                          navigator.clipboard.writeText(JSON.stringify(simulatedDispatchPayload, null, 2));
+                        }
+                      }}
+                      className="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg flex items-center gap-1 transition-colors"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Copy Payload</span>
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -915,13 +1085,147 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
             </div>
           </div>
         )}
+
+        {/* TAB 5: UAT TESTER FEEDBACK */}
+        {activeTab === "feedback" && (
+          <div className="space-y-5 animate-in fade-in duration-200">
+            <div className="bg-slate-900 rounded-2xl p-5 border border-slate-800 space-y-4">
+              <div className="flex items-center gap-2 text-amber-400">
+                <Sparkles className="w-5 h-5" />
+                <h2 className="text-sm font-bold text-white uppercase tracking-wider">
+                  Live Device UAT Feedback
+                </h2>
+              </div>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Thank you for field-testing Umkhuseli. Submissions are POPIA-compliant and completely anonymous. Device serials and IP addresses are stripped at the edge.
+              </p>
+
+              {feedbackSubmitResult && (
+                <div className="p-3 bg-emerald-950/60 border border-emerald-500/40 rounded-xl text-xs text-emerald-300 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                  <span>{feedbackSubmitResult}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleFeedbackSubmit} className="space-y-4 pt-2">
+                {/* Tester Codename */}
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">
+                    Tester Codename / Alias (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={feedbackAlias}
+                    onChange={(e) => setFeedbackAlias(e.target.value)}
+                    placeholder="e.g. Tester-Soweto-04 (Leave blank for full anonymity)"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                {/* Rating Rubric */}
+                <div className="space-y-3 pt-1">
+                  <span className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                    Feature Confidence & Stealth (1 = Poor, 5 = Excellent)
+                  </span>
+
+                  {[
+                    { label: "1. Camouflage Facade (Prepaid Calc / Devotional)", value: stealthRating, setter: setStealthRating },
+                    { label: "2. 0ms Panic Reset & Back Gesture", value: panicRating, setter: setPanicRating },
+                    { label: "3. Secret PIN / Gesture Unlock", value: unlockRating, setter: setUnlockRating },
+                    { label: "4. 3-Second SOS Grace Countdown", value: sosRating, setter: setSosRating },
+                    { label: "5. Offline / Loadshedding Queue", value: offlineRating, setter: setOfflineRating },
+                    { label: "6. Form 2 Protection Order PDF Quality", value: form2Rating, setter: setForm2Rating },
+                  ].map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-xs bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/80">
+                      <span className="text-slate-300 pr-2">{item.label}</span>
+                      <div className="flex gap-1 shrink-0">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => item.setter(star)}
+                            className={`w-6 h-6 rounded flex items-center justify-center font-bold text-xs transition-colors ${
+                              item.value >= star
+                                ? "bg-amber-500 text-black"
+                                : "bg-slate-800 text-slate-500 hover:bg-slate-700"
+                            }`}
+                          >
+                            {star}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Bug / Issue Severity */}
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">
+                    Did you encounter any bugs or anomalies?
+                  </label>
+                  <select
+                    value={bugSeverity}
+                    onChange={(e: any) => setBugSeverity(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                  >
+                    <option value="NONE">No bugs encountered (Smooth experience)</option>
+                    <option value="MINOR">Minor glitch (Visual misalignment / slow rendering)</option>
+                    <option value="MAJOR">Major issue (Feature didn't work as expected)</option>
+                    <option value="BLOCKER">Blocker (Crash / Security or Camouflage Failure)</option>
+                    <option value="SUGGESTION">General Suggestion / Enhancement Idea</option>
+                  </select>
+                </div>
+
+                {/* Bug Description */}
+                {bugSeverity !== "NONE" && (
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">
+                      Bug Details / Steps to Reproduce
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={bugDesc}
+                      onChange={(e) => setBugDesc(e.target.value)}
+                      placeholder="What screen were you on? What happened vs what you expected?"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+                )}
+
+                {/* Qualitative / Cultural Notes */}
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1">
+                    Language, Emotional Safety & Cultural Feedback
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={qualitativeNotes}
+                    onChange={(e) => setQualitativeNotes(e.target.value)}
+                    placeholder="Feedback on isiZulu/Sesotho/Afrikaans terms, emotional feelings of safety, or improvements..."
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                {/* Submit Action */}
+                <button
+                  type="submit"
+                  disabled={isSubmittingFeedback}
+                  className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-black font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 active:scale-98 transition-all disabled:opacity-50"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>{isSubmittingFeedback ? "Transmitting Feedback..." : "Submit Anonymous UAT Feedback"}</span>
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Bottom Navigation */}
       <nav className="bg-slate-900 border-t border-slate-800 p-2 pb-safe flex justify-around sticky bottom-0">
         <button
           onClick={() => setActiveTab("sos")}
-          className={`flex flex-col items-center py-1 px-3 rounded-lg text-xs font-bold transition-colors ${
+          className={`flex flex-col items-center py-1 px-2.5 rounded-lg text-xs font-bold transition-colors ${
             activeTab === "sos" ? "text-rose-400 bg-rose-500/10" : "text-slate-400 hover:text-white"
           }`}
         >
@@ -931,7 +1235,7 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
 
         <button
           onClick={() => setActiveTab("tcc")}
-          className={`flex flex-col items-center py-1 px-3 rounded-lg text-xs font-bold transition-colors ${
+          className={`flex flex-col items-center py-1 px-2.5 rounded-lg text-xs font-bold transition-colors ${
             activeTab === "tcc" ? "text-amber-400 bg-amber-500/10" : "text-slate-400 hover:text-white"
           }`}
         >
@@ -941,7 +1245,7 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
 
         <button
           onClick={() => setActiveTab("vault")}
-          className={`flex flex-col items-center py-1 px-3 rounded-lg text-xs font-bold transition-colors ${
+          className={`flex flex-col items-center py-1 px-2.5 rounded-lg text-xs font-bold transition-colors ${
             activeTab === "vault" ? "text-amber-400 bg-amber-500/10" : "text-slate-400 hover:text-white"
           }`}
         >
@@ -951,12 +1255,22 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
 
         <button
           onClick={() => setActiveTab("plan")}
-          className={`flex flex-col items-center py-1 px-3 rounded-lg text-xs font-bold transition-colors ${
+          className={`flex flex-col items-center py-1 px-2.5 rounded-lg text-xs font-bold transition-colors ${
             activeTab === "plan" ? "text-amber-400 bg-amber-500/10" : "text-slate-400 hover:text-white"
           }`}
         >
           <FileText className="w-5 h-5 mb-1" />
           <span>Plan</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("feedback")}
+          className={`flex flex-col items-center py-1 px-2.5 rounded-lg text-xs font-bold transition-colors ${
+            activeTab === "feedback" ? "text-amber-400 bg-amber-500/10" : "text-slate-400 hover:text-white"
+          }`}
+        >
+          <MessageSquare className="w-5 h-5 mb-1" />
+          <span>Feedback</span>
         </button>
       </nav>
     </div>

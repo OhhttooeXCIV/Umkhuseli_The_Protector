@@ -1,7 +1,8 @@
 # 📱 Umkhuseli: The Protector — Live Device UAT Feedback Sheet
 
 > **Confidential & Sanitized Feedback Form**  
-> *Please complete this form during or immediately following your live testing session.*
+> *Please complete this form during or immediately following your live testing session.*  
+> **In-App Submission Option:** You can also submit this feedback directly inside the app under **Safe Haven ➔ Feedback Tab** (with 100% offline outbox queuing during loadshedding).
 
 ---
 
