@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
@@ -7,7 +8,9 @@ import { submitUatFeedback, UAT_SIMULATED_GUARDIANS } from "../services/supabase
 describe("SafeHavenDashboard UAT Mode & In-App Feedback Suite", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    localStorage.clear();
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.clear();
+    }
   });
 
   it("exports designated simulated UAT test guardians with non-emergency test numbers", () => {
