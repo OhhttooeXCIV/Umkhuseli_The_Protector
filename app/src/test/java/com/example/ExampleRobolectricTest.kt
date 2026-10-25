@@ -24,6 +24,8 @@ import kotlinx.coroutines.test.setMain
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertTrue
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -126,7 +128,7 @@ fun `safety trigger view model arms and logs distress timestamp to room database
     assertEquals(5, incident?.severityLevel)
     assertEquals(dispatched.timestamp, incident?.timestamp)
 
-    viewModel.onCleared()
+    // viewModel.onCleared() is protected
 }
 
     @Test
