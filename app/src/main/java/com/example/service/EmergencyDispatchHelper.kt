@@ -27,24 +27,10 @@ data class DeviceTelemetryInfo(
 object UssdHelper {
     /**
      * Resolves the statutory South African zero-rated "Please Call Me" USSD string
-     * for the detected cellular network carrier.
+     * for the detected cellular network carrier via ZeroRatedCarrierMatrix.
      */
     fun getPleaseCallMeCode(carrierNameOrMcc: String, targetPhoneNumber: String): String {
-        val cleanPhone = targetPhoneNumber.filter { it.isDigit() }
-        val localPhone = when {
-            cleanPhone.startsWith("27") && cleanPhone.length == 11 -> "0" + cleanPhone.substring(2)
-            cleanPhone.startsWith("0") && cleanPhone.length == 10 -> cleanPhone
-            else -> cleanPhone
-        }
-
-        val carrier = carrierNameOrMcc.lowercase()
-        return when {
-            carrier.contains("vodacom") || carrier.contains("65501") -> "*140*$localPhone#"
-            carrier.contains("mtn") || carrier.contains("65510") -> "*121*$localPhone#"
-            carrier.contains("cell c") || carrier.contains("cellc") || carrier.contains("65507") -> "*111*1*$localPhone#"
-            carrier.contains("telkom") || carrier.contains("65502") -> "*140*$localPhone#"
-            else -> "*140*$localPhone#"
-        }
+        return ZeroRatedCarrierMatrix.getPleaseCallMeCode(carrierNameOrMcc, targetPhoneNumber)
     }
 }
 

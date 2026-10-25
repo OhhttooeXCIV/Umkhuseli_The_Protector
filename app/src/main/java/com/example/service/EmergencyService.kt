@@ -79,13 +79,30 @@ class EmergencyService(private val context: Context) {
 
     /**
      * Dispatches statutory South African Please Call Me USSD string
-     * to the designated ICE guardian using carrier auto-detection.
+     * to the designated ICE guardian using dual-SIM carrier auto-detection.
      */
     fun sendAutoPleaseCallMe(guardianPhoneNumber: String): Boolean {
-        val tm = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
-        val carrier = tm?.networkOperatorName ?: tm?.simOperator ?: "Vodacom"
-        val ussdCode = UssdHelper.getPleaseCallMeCode(carrier, guardianPhoneNumber)
+        val carrierManager = CarrierDetectionManager(context)
+        val primarySlot = carrierManager.getPrimaryCarrier()
+        val ussdCode = ZeroRatedCarrierMatrix.getPleaseCallMeCode(primarySlot.carrier, guardianPhoneNumber)
         triggerUssd(ussdCode)
+        return true
+    }
+
+    /**
+     * Triggers zero-rated WASPA emergency callback (*134*7867*) to the guardian.
+     */
+    fun triggerZeroRatedEmergencyCallback(guardianPhoneNumber: String, incidentRef: String = ""): Boolean {
+        val ussdCode = ZeroRatedCarrierMatrix.getReverseBilledEmergencyUssd(guardianPhoneNumber, incidentRef)
+        triggerUssd(ussdCode)
+        return true
+    }
+
+    /**
+     * Dials the statutory national Department of Social Development GBV Command Centre (*120*7867#).
+     */
+    fun triggerGbvCommandCentreCall(): Boolean {
+        triggerUssd(ZeroRatedCarrierMatrix.STATUTORY_GBV_COMMAND_CENTRE)
         return true
     }
 
