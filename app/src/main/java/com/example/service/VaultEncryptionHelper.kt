@@ -33,17 +33,38 @@ class VaultEncryptionHelper {
                         KeyProperties.KEY_ALGORITHM_AES,
                         "AndroidKeyStore"
                     )
-                    val keyGenParameterSpec = KeyGenParameterSpec.Builder(
+                    
+                    // Attempt StrongBox hardware security module first if available (API 28+)
+                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+                        try {
+                            val strongBoxSpec = KeyGenParameterSpec.Builder(
+                                keyStoreAlias,
+                                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
+                            )
+                                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                                .setKeySize(256)
+                                .setUserAuthenticationRequired(false)
+                                .setIsStrongBoxBacked(true)
+                                .build()
+                            keyGenerator.init(strongBoxSpec)
+                            return keyGenerator.generateKey()
+                        } catch (_: Throwable) {
+                            // Gracefully fall back to standard hardware TEE if StrongBox is unsupported or unavailable
+                        }
+                    }
+
+                    val standardTeeSpec = KeyGenParameterSpec.Builder(
                         keyStoreAlias,
                         KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT
                     )
                         .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
                         .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
                         .setKeySize(256)
-                        .setUserAuthenticationRequired(false) // Prompt is handled by BiometricPrompt layer
+                        .setUserAuthenticationRequired(false)
                         .build()
 
-                    keyGenerator.init(keyGenParameterSpec)
+                    keyGenerator.init(standardTeeSpec)
                     return keyGenerator.generateKey()
                 }
                 val entry = ks.getEntry(keyStoreAlias, null) as? KeyStore.SecretKeyEntry
