@@ -71,6 +71,7 @@ kanban
 | **UMK-077** | *Court Prep* | **Form 2 Protection Order Swipeable Viewer**: Swiping through recorded incidents with court case numbers, J88 medical notes, and SAPS OB numbers | **High** | Unit test created in `Form2RecordViewerTest.kt` | Milestone 4 |
 | **UMK-079** | *Decoy Test* | **Municipal Decoy Vitest Test Suite**: 46 unit & integration tests validating tariff arithmetic, secret gestures, and duress flows | **High** | 46/46 Passing in `web/src/__tests__` | Milestone 4 |
 | **UMK-081** | *Security* | **AES-GCM Nonce / IV Collision Hardening**: Cryptographic random 12-byte IV prepended to raw bytes with base64 serialization | **Critical** | Tested in `crypto.test.ts` & `VaultEncryptionHelperTest.kt` | Milestone 2 |
+| **UMK-082** | *Field QA* | **Live Device UAT Test Plan & Feedback Guide**: End-to-end device acceptance testing covering stealth facades, 0ms panic wipes, and loadshedding outbox | **High** | Detailed in `docs/USER_ACCEPTANCE_TEST_PLAN.md` | Milestone 4 |
 
 ---
 
