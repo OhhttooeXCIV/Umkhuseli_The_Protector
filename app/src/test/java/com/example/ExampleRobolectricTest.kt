@@ -128,7 +128,8 @@ class ExampleRobolectricTest {
         assertEquals(5, incident?.severityLevel)
         assertEquals(dispatched.timestamp, incident?.timestamp)
 
-        viewModel.onCleared()
+        viewModel.clearCountdown()
+        viewModel.resetToIdle()
     }
 
     @Test
