@@ -163,13 +163,20 @@ object ZeroRatedCarrierMatrix {
     }
 
     /**
-     * Correctly encodes the USSD string into a dialer URI preserving the trailing '#' symbol
-     * against Samsung/Pixel Android 14 URI parser truncation.
+     * Correctly encodes the USSD string into a dialer URI string preserving the trailing '#' symbol
+     * as '%23' against Samsung/Pixel Android 14 URI parser truncation.
+     */
+    fun getEncodedDialUriString(ussdCode: String): String {
+        val cleanCode = ussdCode.trim()
+        val encoded = cleanCode.replace("#", "%23")
+        return "tel:$encoded"
+    }
+
+    /**
+     * Correctly encodes the USSD string into a dialer URI preserving the trailing '#' symbol.
      */
     fun getEncodedDialUri(ussdCode: String): Uri {
-        val cleanCode = ussdCode.trim()
-        val encoded = cleanCode.replace("#", Uri.encode("#"))
-        return Uri.parse("tel:$encoded")
+        return Uri.parse(getEncodedDialUriString(ussdCode))
     }
 
     /**

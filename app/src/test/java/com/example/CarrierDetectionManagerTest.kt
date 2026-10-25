@@ -79,7 +79,7 @@ class CarrierDetectionManagerTest {
     @Test
     fun testEncodedDialUriPreservesTrailingHash() {
         val ussd = "*120*7867#"
-        val uri = ZeroRatedCarrierMatrix.getEncodedDialUri(ussd)
-        assertEquals("tel:*120*7867%23", uri.toString())
+        val uriString = ZeroRatedCarrierMatrix.getEncodedDialUriString(ussd)
+        assertEquals("tel:*120*7867%23", uriString)
     }
 }
