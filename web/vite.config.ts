@@ -36,5 +36,10 @@ export default defineConfig({
         ]
       }
     })
-  ]
+  ],
+  build: {
+    rollupOptions: {
+      external: [/^core-js/],
+    },
+  }
 });
