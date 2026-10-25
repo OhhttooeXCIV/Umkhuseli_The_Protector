@@ -1,7 +1,7 @@
 {
   "name": "umkhuseli-safe-web",
   "private": true,
-  "version": "2.1.9",
+  "version": "2.2.0",
   "type": "module",
   "engines": {
     "node": ">=22.19.0"
@@ -13,7 +13,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "android-adb": "adb devices",
-    "deploy-android": "adb install -r \"../Umkhuseli_Safe_v1.0.apk\""
+    "deploy-android": "node scripts/install-latest-apk.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.8",
