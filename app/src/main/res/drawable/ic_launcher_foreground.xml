@@ -4,58 +4,27 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Solid Golden Honeycomb Cell Matrix (Safe 66dp zone) -->
-    <!-- Center Hexagon -->
+    <!-- Outer Utility Meter Ring (Safe 66dp zone) -->
     <path
-        android:fillColor="#D6A84F"
-        android:strokeColor="#F7DFA2"
-        android:strokeWidth="1.5"
-        android:pathData="M54,42 L66,48 L66,60 L54,66 L42,60 L42,48 Z" />
+        android:strokeColor="#334155"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:pathData="M34,68 A24,24 0 1,1 74,68" />
 
-    <!-- Top Hexagon -->
+    <!-- Active Tariff Indicator Arc -->
     <path
-        android:fillColor="#B78A33"
-        android:strokeColor="#F7DFA2"
-        android:strokeWidth="1.2"
-        android:pathData="M54,24 L66,30 L66,42 L54,48 L42,42 L42,30 Z" />
+        android:strokeColor="#38BDF8"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:pathData="M34,68 A24,24 0 0,1 54,30" />
 
-    <!-- Bottom Hexagon -->
+    <!-- Municipal Electricity Bolt Core -->
     <path
-        android:fillColor="#B78A33"
-        android:strokeColor="#F7DFA2"
-        android:strokeWidth="1.2"
-        android:pathData="M54,60 L66,66 L66,78 L54,84 L42,78 L42,66 Z" />
+        android:fillColor="#38BDF8"
+        android:pathData="M56,36 L43,55 L53,55 L50,72 L65,51 L55,51 Z" />
 
-    <!-- Top-Right Hexagon -->
+    <!-- Secondary Amber Spark Indicator -->
     <path
-        android:fillColor="#9E7B31"
-        android:strokeColor="#D6A84F"
-        android:strokeWidth="1"
-        android:pathData="M69.5,33 L81.5,39 L81.5,51 L69.5,57 L57.5,51 L57.5,39 Z" />
-
-    <!-- Bottom-Right Hexagon -->
-    <path
-        android:fillColor="#9E7B31"
-        android:strokeColor="#D6A84F"
-        android:strokeWidth="1"
-        android:pathData="M69.5,51 L81.5,57 L81.5,69 L69.5,75 L57.5,69 L57.5,57 Z" />
-
-    <!-- Top-Left Hexagon -->
-    <path
-        android:fillColor="#9E7B31"
-        android:strokeColor="#D6A84F"
-        android:strokeWidth="1"
-        android:pathData="M38.5,33 L50.5,39 L50.5,51 L38.5,57 L26.5,51 L26.5,39 Z" />
-
-    <!-- Bottom-Left Hexagon -->
-    <path
-        android:fillColor="#9E7B31"
-        android:strokeColor="#D6A84F"
-        android:strokeWidth="1"
-        android:pathData="M38.5,51 L50.5,57 L50.5,69 L38.5,75 L26.5,69 L26.5,57 Z" />
-
-    <!-- Core Golden Grace Star Center -->
-    <path
-        android:fillColor="#FFF4D0"
-        android:pathData="M54,51 L55.5,53.5 L58,54 L55.5,54.5 L54,57 L52.5,54.5 L50,54 L52.5,53.5 Z" />
+        android:fillColor="#F59E0B"
+        android:pathData="M53,55 L56,48 L55,51 Z" />
 </vector>
