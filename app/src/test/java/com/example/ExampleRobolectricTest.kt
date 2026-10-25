@@ -104,11 +104,9 @@ fun `safety trigger view model arms and logs distress timestamp to room database
     assertEquals(SafetySignalState.Idle, viewModel.signalState.value)
 
     viewModel.armQuickAccessSos(countdownSeconds = 3)
-    advanceUntilIdle()
     assertTrue(viewModel.signalState.value is SafetySignalState.Armed)
 
     viewModel.cancelArmedSos("Cancelled in test")
-    advanceUntilIdle()
     assertTrue(viewModel.signalState.value is SafetySignalState.Cancelled)
 
     viewModel.triggerInstantSos("Immediate danger distress test alert")
