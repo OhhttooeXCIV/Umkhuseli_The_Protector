@@ -13,7 +13,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "android-adb": "adb devices",
-    "deploy-android": "node scripts/install-latest-apk.js"
+    "deploy-android": "node scripts/install-latest-apk.js",
+    "install-ios": "node scripts/install-ios.js",
+    "deploy-ios": "node scripts/install-ios.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.8",
