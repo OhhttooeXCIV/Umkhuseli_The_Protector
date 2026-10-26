@@ -159,9 +159,12 @@ export function generateSmsDistressUrl(phone: string, text: string): string {
  * and serverless backend, logging an audit trail in local outbox.
  */
 export async function executeSilentDuressSos(options?: {
+  userId?: string;
   areaName?: string;
   beaconToken?: string;
 }): Promise<DuressDispatchReport> {
+  const profile: UatProfile = getUatProfile();
+  const userId = options?.userId || profile.userId || "bebd4ef7-3f99-48d7-9e82-a1d85bfaaecd";
   const areaName = options?.areaName || "Duress Beacon (Prepaid Portal)";
   const beaconToken = options?.beaconToken || "duress_9999_beacon";
 
@@ -179,7 +182,6 @@ export async function executeSilentDuressSos(options?: {
     : "Mobile Handset";
 
   // 2. Fetch all saved ICE contacts & emergency socials
-  const profile: UatProfile = getUatProfile();
   const contacts: IceContact[] = profile.contacts || [];
   const socials = profile.socials;
 
@@ -187,6 +189,7 @@ export async function executeSilentDuressSos(options?: {
     "🚨 [URGENT EMERGENCY SOS ALERT]",
     "I am in immediate danger and require urgent emergency assistance.",
     "",
+    `• USER ID: ${userId}`,
     `• GPS LOCATION: ${mapsUrl}`,
     `• ACCURACY: ±${Math.round(geo.accuracy)}m (${geo.source})`,
     `• BATTERY: ${batteryPct}% ${isCharging ? "(Charging)" : ""}`,
@@ -252,10 +255,14 @@ export async function executeSilentDuressSos(options?: {
   if (socials.facebookProfile && !portalsDispatched.facebook.includes(socials.facebookProfile)) {
     portalsDispatched.facebook.push(socials.facebookProfile);
   }
+  if (socials.tiktokHandle && !portalsDispatched.tiktok.includes(socials.tiktokHandle)) {
+    portalsDispatched.tiktok.push(socials.tiktokHandle);
+  }
 
   // 4. Serverless Edge Dispatch via Supabase
   try {
     await dispatchServerSos({
+      userId,
       latitude: geo.latitude,
       longitude: geo.longitude,
       accuracy: geo.accuracy,
@@ -279,6 +286,7 @@ export async function executeSilentDuressSos(options?: {
       const queue = JSON.parse(queueRaw);
       queue.push({
         id: `sos-${Date.now()}`,
+        userId,
         timestamp: new Date().toISOString(),
         isDuress: true,
         latitude: geo.latitude,
@@ -300,6 +308,7 @@ export async function executeSilentDuressSos(options?: {
   return {
     success: true,
     isDuress: true,
+    userId,
     areaName,
     coordinates: {
       latitude: geo.latitude,

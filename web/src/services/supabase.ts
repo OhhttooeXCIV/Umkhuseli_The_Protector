@@ -40,8 +40,8 @@ export async function getOrCreateAnonymousSession() {
   return data.session;
 }
 
-// Unstoppable SOS Edge Dispatch
-export async function dispatchServerSos(telemetry: {
+export interface SosDispatchTelemetry {
+  userId?: string;
   latitude?: number;
   longitude?: number;
   accuracy?: number;
@@ -50,9 +50,19 @@ export async function dispatchServerSos(telemetry: {
   isCharging?: boolean;
   deviceModel?: string;
   isDuress?: boolean;
-}) {
+  contacts?: any[];
+  socials?: any;
+  channels?: string[];
+}
+
+// Unstoppable SOS Edge Dispatch
+export async function dispatchServerSos(telemetry: SosDispatchTelemetry) {
   const session = await getOrCreateAnonymousSession();
   const token = session?.access_token || "";
+  const payload = {
+    userId: telemetry.userId || "bebd4ef7-3f99-48d7-9e82-a1d85bfaaecd",
+    ...telemetry,
+  };
 
   // Call the Edge Function
   const response = await fetch(`${supabaseUrl}/functions/v1/dispatch-sos`, {
@@ -61,7 +71,7 @@ export async function dispatchServerSos(telemetry: {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${token}`
     },
-    body: JSON.stringify(telemetry)
+    body: JSON.stringify(payload)
   });
 
   if (!response.ok) {

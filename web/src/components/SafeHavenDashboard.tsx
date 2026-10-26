@@ -80,6 +80,8 @@ import { VehicleJourneyModal } from "./VehicleJourneyModal";
 import { First72HoursGuide } from "./First72HoursGuide";
 import { UssdSimulationModal } from "./UssdSimulationModal";
 import { startAudibleSiren, stopAudibleSiren, isSirenActive } from "../services/audibleSirenService";
+import { applyTheme } from "../services/themeManager";
+import { triggerTactileHapticPulse } from "../services/iosStealthManager";
 
 interface Props {
   onPanicLock: () => void;
@@ -97,6 +99,49 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
   const [isUatMode, setIsUatMode] = useState<boolean>(() => getUatProfile().isUatMode);
   const [simulatedDispatchSent, setSimulatedDispatchSent] = useState(false);
   const [simulatedDispatchPayload, setSimulatedDispatchPayload] = useState<any>(null);
+
+  // Bidirectional Acknowledgment Listener (Guardian -> Survivor SafeHaven UI)
+  useEffect(() => {
+    const handleAckSignal = () => {
+      applyTheme("light");
+      triggerTactileHapticPulse(150);
+    };
+
+    const handleCustomEvent = (_e: Event) => {
+      handleAckSignal();
+    };
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "pcalc_beacon_ack" && e.newValue) {
+        handleAckSignal();
+      }
+    };
+
+    let channel: BroadcastChannel | null = null;
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      try {
+        channel = new BroadcastChannel("pcalc_emergency_channel");
+        channel.onmessage = (e) => {
+          if (e.data?.type === "BEACON_ACKNOWLEDGED") {
+            handleAckSignal();
+          }
+        };
+      } catch {
+        /* BroadcastChannel unsupported */
+      }
+    }
+
+    window.addEventListener("pcalc_beacon_acknowledged", handleCustomEvent);
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      window.removeEventListener("pcalc_beacon_acknowledged", handleCustomEvent);
+      window.removeEventListener("storage", handleStorage);
+      if (channel) {
+        channel.close();
+      }
+    };
+  }, []);
 
   // New Contact Form State
   const [showAddContactForm, setShowAddContactForm] = useState(false);

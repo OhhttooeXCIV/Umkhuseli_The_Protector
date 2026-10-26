@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   ShieldAlert,
   PhoneCall,
@@ -12,7 +12,7 @@ import {
   ArrowLeft,
   EyeOff
 } from "lucide-react";
-import { THUTHUZELA_CENTERS } from "../data/saSafetyData";
+import { THUTHUZELA_CENTERS, sortCentresByDistance } from "../data/saSafetyData";
 
 interface Props {
   beaconToken?: string;
@@ -26,20 +26,114 @@ export const GuardianTrackerView: React.FC<Props> = ({
   const [acknowledged, setAcknowledged] = useState(false);
   const [discreetMode, setDiscreetMode] = useState(false);
 
-  // Default simulated active beacon telemetry
-  const beacon = {
-    id: beaconToken,
-    dispatchedAt: new Date(Date.now() - 4 * 60 * 1000).toISOString(), // 4 mins ago
-    latitude: -26.2041,
-    longitude: 28.0473,
-    accuracyMeters: 14,
-    areaName: "Johannesburg Central / Gauteng",
-    batteryPercentage: 78,
-    isCharging: false,
-    nearestTcc: THUTHUZELA_CENTERS[0] // Chris Hani Baragwanath TCC
-  };
+  // Read live beacon parameters on load from URL query params or localStorage
+  const beacon = useMemo(() => {
+    let lat: number | undefined;
+    let lng: number | undefined;
+    let acc: number | undefined;
+    let bat: number | undefined;
+    let tokenVal = beaconToken;
+    let dispatchedAt = new Date(Date.now() - 4 * 60 * 1000).toISOString();
+    let areaName = "Johannesburg Central / Gauteng";
+    let isCharging = false;
+
+    if (typeof window !== "undefined") {
+      const searchParams = new URLSearchParams(window.location.search);
+      const urlLat = searchParams.get("lat");
+      const urlLng = searchParams.get("lng");
+      const urlAcc = searchParams.get("acc");
+      const urlBat = searchParams.get("bat");
+      const urlToken = searchParams.get("token") || searchParams.get("track");
+
+      if (urlLat && urlLng) {
+        lat = parseFloat(urlLat);
+        lng = parseFloat(urlLng);
+      }
+      if (urlAcc) acc = parseFloat(urlAcc);
+      if (urlBat) bat = parseInt(urlBat, 10);
+      if (urlToken) tokenVal = urlToken;
+
+      // Fallback to localStorage.getItem("pcalc_last_beacon")
+      if (lat === undefined || lng === undefined) {
+        try {
+          const raw = localStorage.getItem("pcalc_last_beacon");
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed.latitude !== undefined && parsed.longitude !== undefined) {
+              lat = parsed.latitude;
+              lng = parsed.longitude;
+            }
+            if (parsed.accuracyMeters !== undefined) acc = parsed.accuracyMeters;
+            else if (parsed.accuracy !== undefined) acc = parsed.accuracy;
+            if (parsed.batteryPercentage !== undefined) bat = parsed.batteryPercentage;
+            if (parsed.token || parsed.id) tokenVal = parsed.token || parsed.id;
+            if (parsed.dispatchedAt) dispatchedAt = parsed.dispatchedAt;
+            if (parsed.areaName) areaName = parsed.areaName;
+            if (parsed.isCharging !== undefined) isCharging = parsed.isCharging;
+          }
+        } catch {
+          /* ignore json parse errors */
+        }
+      }
+    }
+
+    // Default fallbacks to Johannesburg Central
+    const finalLat = lat !== undefined && !isNaN(lat) ? lat : -26.2041;
+    const finalLng = lng !== undefined && !isNaN(lng) ? lng : 28.0473;
+    const finalAcc = acc !== undefined && !isNaN(acc) ? acc : 14;
+    const finalBat = bat !== undefined && !isNaN(bat) ? bat : 78;
+
+    // Dynamically calculate nearest TCC facility by distance
+    const sortedCentres = sortCentresByDistance(THUTHUZELA_CENTERS, finalLat, finalLng);
+    const nearestTcc = sortedCentres[0] || THUTHUZELA_CENTERS[0];
+
+    return {
+      id: tokenVal,
+      dispatchedAt,
+      latitude: finalLat,
+      longitude: finalLng,
+      accuracyMeters: finalAcc,
+      areaName,
+      batteryPercentage: finalBat,
+      isCharging,
+      nearestTcc
+    };
+  }, [beaconToken]);
 
   const googleMapsUrl = `https://maps.google.com/?q=${beacon.latitude},${beacon.longitude}`;
+
+  const handleAcknowledge = () => {
+    setAcknowledged(true);
+    const ackPayload = { token: beacon.id, timestamp: Date.now() };
+
+    if (typeof localStorage !== "undefined") {
+      try {
+        localStorage.setItem("pcalc_beacon_ack", JSON.stringify(ackPayload));
+      } catch {
+        /* storage write fallback */
+      }
+    }
+
+    if (typeof window !== "undefined") {
+      try {
+        if ("BroadcastChannel" in window) {
+          const channel = new BroadcastChannel("pcalc_emergency_channel");
+          channel.postMessage({ type: "BEACON_ACKNOWLEDGED", token: beacon.id, timestamp: Date.now() });
+          channel.close();
+        }
+      } catch {
+        /* BroadcastChannel fallback */
+      }
+
+      try {
+        window.dispatchEvent(
+          new CustomEvent("pcalc_beacon_acknowledged", { detail: { token: beacon.id } })
+        );
+      } catch {
+        /* custom event fallback */
+      }
+    }
+  };
 
   if (discreetMode) {
     return (
@@ -191,10 +285,15 @@ export const GuardianTrackerView: React.FC<Props> = ({
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 flex items-center justify-between">
             <div className="pr-2">
               <span className="text-[10px] uppercase font-bold text-amber-400 block">
-                Nearest Care Facility (Gauteng)
+                Nearest Care Facility ({beacon.nearestTcc.province})
               </span>
               <h4 className="text-xs font-bold text-white">{beacon.nearestTcc.name}</h4>
-              <p className="text-[10px] text-slate-400">{beacon.nearestTcc.hospitalOrLocation}</p>
+              <p className="text-[10px] text-slate-400">
+                {beacon.nearestTcc.hospitalOrLocation}
+                {beacon.nearestTcc.distanceKm !== undefined && (
+                  <span> • {beacon.nearestTcc.distanceKm.toFixed(1)} km away</span>
+                )}
+              </p>
             </div>
             <a
               href={`tel:${beacon.nearestTcc.contactNumber}`}
@@ -215,7 +314,7 @@ export const GuardianTrackerView: React.FC<Props> = ({
             </div>
           ) : (
             <button
-              onClick={() => setAcknowledged(true)}
+              onClick={handleAcknowledge}
               className="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition-colors"
             >
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
