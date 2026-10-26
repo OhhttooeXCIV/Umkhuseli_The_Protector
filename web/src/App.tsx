@@ -19,7 +19,7 @@ import {
 } from "./services/iosStealthManager";
 import { requestPersistentStorage } from "./services/storagePersistence";
 import { applyTheme, getInitialTheme } from "./services/themeManager";
-
+import { SpeedInsights } from '@vercel/speed-insights/react';
 export const App: React.FC = () => {
   const [mode, setMode] = useState<"DECOY_CALCULATOR" | "SAFE_HAVEN" | "GUARDIAN_TRACKER">(() => {
     if (typeof window !== "undefined") {
@@ -337,7 +337,8 @@ export const App: React.FC = () => {
           onExit={() => setMode("DECOY_CALCULATOR")}
         />
       )}
-    </div>
+    <SpeedInsights />
+	</div>
   );
 };
 
