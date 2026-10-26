@@ -6,6 +6,7 @@ import { GuardianTrackerView } from "./components/GuardianTrackerView";
 import { IosInstallGuideModal } from "./components/IosInstallGuideModal";
 import { SafetyBriefingLoader } from "./components/SafetyBriefingLoader";
 import { dispatchServerSos } from "./services/supabase";
+import { executeSilentDuressSos } from "./services/emergencySosService";
 import {
   getActiveDisguise,
   DISGUISE_EVENT_NAME,
@@ -197,15 +198,12 @@ export const App: React.FC = () => {
   }, [mode]);
 
   const handleDuressTrigger = async () => {
-    // Silent emergency dispatch triggered by Duress PIN 9999
+    // Silent emergency dispatch triggered by Duress PIN 9999 / KRN2 Rollover terminal
     try {
-      await dispatchServerSos({
-        isDuress: true,
+      await executeSilentDuressSos({
         areaName: activeDisguise === "DAILY_DEVOTIONAL"
           ? "Duress Beacon (Devotional Portal)"
-          : "Duress Beacon (Prepaid Portal)",
-        batteryPercentage: 90,
-        deviceModel: "Covert Web Client"
+          : "Duress Beacon (Prepaid Portal - STS Error 30 KRN2)"
       });
     } catch (e) {
       console.warn("Duress dispatch executed silently.");

@@ -59,7 +59,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.Locale
@@ -103,6 +103,7 @@ fun MunicipalPrepaidCalculator(
     var purchaseAmountText by remember { mutableStateOf("200") }
     var calculatedResult by remember { mutableStateOf<CalculationSummary?>(null) }
     var simulatedToken by remember { mutableStateOf<String?>(null) }
+    var showStsErrorDialog by remember { mutableStateOf(false) }
 
     // Covert Tap Gesture Tracking
     var crestTapCount by remember { mutableIntStateOf(0) }
@@ -132,8 +133,9 @@ fun MunicipalPrepaidCalculator(
             if (amt == "8426" || amt == "1234" || amt == "0000" || mtr.endsWith("8426") || mtr.endsWith("1234") || mtr.endsWith("0000")) {
                 onSecretGestureTriggered()
             } else if (purchaseAmountText.trim() == "9999" || meterNumber.trim().endsWith("9999")) {
-                // Duress PIN entered: show normal simulated token AND fire background silent SOS
+                // Duress PIN entered: show Error 30 terminal dialog AND fire background silent SOS
                 onDuressTriggered()
+                showStsErrorDialog = true
                 simulatedToken = "4819 0281 9481 0294 8812"
                 calculatedResult = CalculationSummary(
                     grossAmount = amount,

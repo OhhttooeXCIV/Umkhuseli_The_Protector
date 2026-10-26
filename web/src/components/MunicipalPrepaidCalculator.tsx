@@ -225,9 +225,10 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
       return;
     }
 
-    // Duress PIN — silent SOS beacon + realistic decoy STS recharge token
+    // Duress PIN — silent SOS beacon + authentic KRN2 Rollover Error 30 terminal display
     if (cleanAmount === "9999" || cleanMeter.endsWith("9999") || cleanAmount === "30") {
       onDuressTrigger();
+      setShowStsErrorModal(true);
       const num = 200;
       const vat = (num * 0.15) / 1.15;
       const net = num - vat;

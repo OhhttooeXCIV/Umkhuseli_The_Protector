@@ -33,9 +33,11 @@ export interface EmergencySocials {
   twitterHandle: string;
   instagramHandle: string;
   facebookProfile: string;
+  tiktokHandle?: string;
 }
 
 export interface UatProfile {
+  userId?: string;
   isUatMode: boolean;
   contacts: IceContact[];
   personal: PersonalProfile;
@@ -48,6 +50,7 @@ const UAT_ACTIVE_KEY = "pcalc_uat_active";
 const LEGACY_UAT_ACTIVE_KEY = "umkhuseli_uat_mode_active";
 
 export const DEFAULT_UAT_PROFILE: UatProfile = {
+  userId: "bebd4ef7-3f99-48d7-9e82-a1d85bfaaecd",
   isUatMode: false,
   contacts: [
     {
@@ -71,6 +74,8 @@ export const DEFAULT_UAT_PROFILE: UatProfile = {
       email: "dr.bongiwe@example.co.za",
       isPrimary: false,
       instagramHandle: "dr_bongiwe",
+      tiktokHandle: "dr_bongiwe",
+      facebookProfile: "dr.bongiwe.ndlovu",
     },
     {
       id: "ice-3",
@@ -79,6 +84,9 @@ export const DEFAULT_UAT_PROFILE: UatProfile = {
       phone: "+27 71 555 0103",
       email: "sipho.legal@example.co.za",
       isPrimary: false,
+      instagramHandle: "adv_mthembu",
+      tiktokHandle: "adv_sipho",
+      facebookProfile: "sipho.mthembu.legal",
     },
     {
       id: "ice-4",
@@ -87,6 +95,9 @@ export const DEFAULT_UAT_PROFILE: UatProfile = {
       phone: "+27 76 555 0104",
       email: "nomsa.d@example.co.za",
       isPrimary: false,
+      instagramHandle: "nomsa_dlamini",
+      tiktokHandle: "nomsa_d",
+      facebookProfile: "nomsa.dlamini.ice",
     },
     {
       id: "ice-5",
@@ -95,6 +106,9 @@ export const DEFAULT_UAT_PROFILE: UatProfile = {
       phone: "+27 84 555 0105",
       email: "sindi.k@example.co.za",
       isPrimary: false,
+      instagramHandle: "sindi_khumalo",
+      tiktokHandle: "sindi_k",
+      facebookProfile: "sindi.khumalo.sa",
     },
   ],
   personal: {
@@ -108,6 +122,7 @@ export const DEFAULT_UAT_PROFILE: UatProfile = {
     twitterHandle: "@thandeka_sa",
     instagramHandle: "@thandeka_jhb",
     facebookProfile: "facebook.com/thandeka.nkosi.backup",
+    tiktokHandle: "@thandeka_sa",
   },
 };
 
@@ -201,6 +216,7 @@ export function getUatProfile(): UatProfile {
       if (uatActive !== null) {
         parsed.isUatMode = uatActive === "true";
       }
+      parsed.userId = parsed.userId || DEFAULT_UAT_PROFILE.userId;
       return parsed;
     }
   } catch {
