@@ -7,6 +7,7 @@ import { IosInstallGuideModal } from "./components/IosInstallGuideModal";
 import { SafetyBriefingLoader } from "./components/SafetyBriefingLoader";
 import { dispatchServerSos } from "./services/supabase";
 import { executeSilentDuressSos } from "./services/emergencySosService";
+import { clearVaultMemory } from "./services/encryptedVaultDb";
 import {
   getActiveDisguise,
   DISGUISE_EVENT_NAME,

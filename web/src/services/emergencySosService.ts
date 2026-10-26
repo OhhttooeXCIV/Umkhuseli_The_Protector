@@ -32,6 +32,7 @@ export interface GeoLocationResult {
 export interface DuressDispatchReport {
   success: boolean;
   isDuress: boolean;
+  userId: string;
   areaName: string;
   coordinates: {
     latitude: number;
