@@ -184,6 +184,30 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
     setTokenCopied(false);
   };
 
+  const openPortalModal = () => {
+    React.startTransition(() => {
+      setShowPortalModal(true);
+    });
+  };
+
+  const closePortalModal = () => {
+    React.startTransition(() => {
+      setShowPortalModal(false);
+    });
+  };
+
+  const openStsErrorModal = () => {
+    React.startTransition(() => {
+      setShowStsErrorModal(true);
+    });
+  };
+
+  const closeStsErrorModal = () => {
+    React.startTransition(() => {
+      setShowStsErrorModal(false);
+    });
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#05080f] dark:text-slate-100 flex flex-col transition-colors duration-200">
       {/* ── TOP STATUS BAR (WCAG AAA Contrast Compliant) ─────────────────────────────────────────────── */}
@@ -227,12 +251,11 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
       {/* ── HERO HEADER ────────────────────────────────────────────────── */}
       <header className="bg-gradient-to-b from-white via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-900 dark:to-[#05080f] border-b border-slate-200 dark:border-slate-800/60">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
-          {/* Brand + Secret Tap Zone (WCAG 2.5.3: Accessible name matches visible text) */}
+          {/* Brand + Secret Tap Zone (WCAG 2.5.3: Name naturally derived from visible text) */}
           <button
             type="button"
             onClick={handleCrestClick}
             className="flex items-center gap-3.5 group focus:outline-none text-left"
-            aria-label="PowerCalc SA · Prepaid Electricity Portal"
           >
             {/* Animated shield crest with title for test query */}
             <div
@@ -573,7 +596,7 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
                     </p>
                     <button
                       type="button"
-                      onClick={() => setShowStsErrorModal(true)}
+                      onClick={openStsErrorModal}
                       className="w-full bg-rose-200 hover:bg-rose-300 dark:bg-rose-900/70 dark:hover:bg-rose-900 border border-rose-400 dark:border-rose-600/60 text-rose-950 dark:text-rose-100 text-[11px] font-bold py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-colors"
                     >
                       <AlertTriangle className="w-3.5 h-3.5 text-rose-700 dark:text-rose-300" aria-hidden="true" />
@@ -673,7 +696,7 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
           {/* Download / portal entry (WCAG Compliant) */}
           <button
             type="button"
-            onClick={() => setShowPortalModal(true)}
+            onClick={openPortalModal}
             className="w-full bg-gradient-to-r from-sky-50 to-slate-100 dark:from-sky-950/60 dark:to-slate-900/90 border border-sky-300 dark:border-sky-700/50 rounded-2xl p-4 text-left hover:border-sky-500 dark:hover:border-sky-500/70 transition-colors group shadow-sm cursor-pointer"
           >
             <div className="flex items-center justify-between mb-1.5">
@@ -714,7 +737,7 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
             )}
             <button
               type="button"
-              onClick={() => setShowPortalModal(true)}
+              onClick={openPortalModal}
               className="text-sky-800 dark:text-sky-300 hover:text-sky-950 dark:hover:text-sky-100 underline decoration-sky-500 transition-colors font-semibold"
             >
               Consumer Portal
@@ -742,7 +765,7 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
               </div>
               <button
                 type="button"
-                onClick={() => setShowStsErrorModal(false)}
+                onClick={closeStsErrorModal}
                 className="text-slate-400 hover:text-white p-1 rounded-lg"
                 aria-label="Close STS diagnostic modal"
               >
@@ -770,7 +793,7 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
             </p>
             <button
               type="button"
-              onClick={() => setShowStsErrorModal(false)}
+              onClick={closeStsErrorModal}
               className="w-full bg-slate-800 hover:bg-slate-700 text-white font-sans font-bold py-2.5 rounded-xl text-xs transition-colors"
             >
               Acknowledge & Close Diagnostic
@@ -799,7 +822,7 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
                 </a>
                 <button
                   type="button"
-                  onClick={() => setShowPortalModal(false)}
+                  onClick={closePortalModal}
                   className="text-slate-300 hover:text-white p-1 rounded-lg"
                   aria-label="Close consumer portal modal"
                 >
@@ -878,7 +901,7 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
             <div className="border-t border-slate-800 px-5 py-3">
               <button
                 type="button"
-                onClick={() => setShowPortalModal(false)}
+                onClick={closePortalModal}
                 className="w-full bg-slate-800 hover:bg-slate-700 text-slate-200 py-2.5 rounded-xl text-xs font-semibold transition-colors"
               >
                 Close Portal

@@ -159,10 +159,10 @@ export const SafetyBriefingLoader: React.FC<Props> = ({ onComplete, forceShow = 
         <button
           type="button"
           onClick={handleDismiss}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-[11px] font-semibold transition-colors"
+          className="flex items-center gap-1.5 px-3.5 py-2 min-h-[36px] rounded-full bg-slate-800/80 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-[11px] font-semibold transition-colors"
         >
           <span>Skip Briefing</span>
-          <X className="w-3.5 h-3.5" />
+          <X className="w-3.5 h-3.5" aria-hidden="true" />
         </button>
       </div>
 
@@ -233,21 +233,21 @@ export const SafetyBriefingLoader: React.FC<Props> = ({ onComplete, forceShow = 
           </div>
         </div>
 
-        {/* Slide Indicators & Manual Step Controls */}
+        {/* Slide Indicators & Manual Step Controls (WCAG 2.5.8 Compliant Touch Targets >= 32px) */}
         <div className="flex items-center justify-between w-full pt-1">
           <button
             type="button"
             onClick={handlePrev}
             disabled={index === 0}
-            className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 transition-colors"
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 transition-colors"
             title="Previous instruction"
             aria-label="Previous instruction"
           >
             <ArrowLeft className="w-4 h-4" aria-hidden="true" />
           </button>
 
-          {/* Dots */}
-          <div className="flex items-center gap-2">
+          {/* Dots with 32x32px Accessible Touch Targets */}
+          <div className="flex items-center gap-1">
             {SAFETY_BRIEFING_SLIDES.map((_, i) => (
               <button
                 type="button"
@@ -257,18 +257,23 @@ export const SafetyBriefingLoader: React.FC<Props> = ({ onComplete, forceShow = 
                   setIsPaused(true);
                   setIndex(i);
                 }}
-                className={`h-2 rounded-full transition-all ${
-                  i === index ? "w-6 bg-sky-400" : "w-2 bg-slate-700 hover:bg-slate-500"
-                }`}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-800/60 focus:outline-none focus:ring-2 focus:ring-sky-400 transition-colors"
                 aria-label={`Go to instruction ${i + 1}`}
-              />
+              >
+                <span
+                  className={`block h-2 rounded-full transition-all ${
+                    i === index ? "w-6 bg-sky-400" : "w-2 bg-slate-600 hover:bg-slate-400"
+                  }`}
+                  aria-hidden="true"
+                />
+              </button>
             ))}
           </div>
 
           <button
             type="button"
             onClick={handleNext}
-            className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-colors"
+            className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-colors"
             title={index === SAFETY_BRIEFING_SLIDES.length - 1 ? "Enter Portal" : "Next instruction"}
             aria-label={index === SAFETY_BRIEFING_SLIDES.length - 1 ? "Enter Portal" : "Next instruction"}
           >
