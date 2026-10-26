@@ -48,10 +48,34 @@ export const App: React.FC = () => {
   // Root Double-Tap Timing Reference
   const lastRootTapRef = useRef<number>(0);
 
-  // Initialize theme mode on mount (class on <html>) & persistent storage
+  // Initialize theme mode on mount (class on <html>) & persistent storage & PWA actions
   useEffect(() => {
     applyTheme(getInitialTheme());
     requestPersistentStorage().catch(() => {});
+
+    // Handle installed PWA / APK quick-action shortcuts
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const action = params.get("action");
+      if (action === "distress_hotline") {
+        window.history.replaceState({}, document.title, window.location.pathname);
+        const uat = localStorage.getItem("umkhuseli_uat_mode_active") === "true";
+        if (uat) {
+          alert("⚡ [UAT Simulation Active]\nCovert distress hotline initiated.\nSimulated dispatch broadcast to 5 ICE contacts. Live call suppressed.");
+        } else {
+          window.location.href = "tel:0800428428";
+        }
+      } else if (action === "covert_sos") {
+        window.history.replaceState({}, document.title, window.location.pathname);
+        triggerTactileHapticPulse(100);
+        dispatchServerSos({
+          isDuress: true,
+          areaName: "Covert PWA Shortcut Distress Beacon",
+          batteryPercentage: 95,
+          deviceModel: "PWA Native Shortcut",
+        }).catch(() => {});
+      }
+    }
   }, []);
 
   // Subscribe to disguise facade changes

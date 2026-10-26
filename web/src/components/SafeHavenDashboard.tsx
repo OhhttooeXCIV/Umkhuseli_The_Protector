@@ -143,9 +143,9 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
       isPrimary: newContactPrimary,
     };
 
-    const updatedContacts = newContactPrimary
-      ? uatProfile.contacts.map((c) => ({ ...c, isPrimary: false })).concat(newContact)
-      : uatProfile.contacts.concat(newContact);
+    const updatedContacts: IceContact[] = newContactPrimary
+      ? [...uatProfile.contacts.map((c) => ({ ...c, isPrimary: false })), newContact]
+      : [...uatProfile.contacts, newContact];
 
     const updated = { ...uatProfile, contacts: updatedContacts };
     saveUatProfile(updated);
@@ -1149,48 +1149,347 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
           </div>
         )}
 
-        {/* TAB 4: SAFETY PLAN & GUARDIANS */}
+        {/* TAB 4: SAFETY PLAN & 5 ICE GUARDIANS (UAT Mode Enabled) */}
         {activeTab === "plan" && (
-          <div className="space-y-4 animate-in fade-in duration-200">
-            <div className="bg-slate-900 rounded-2xl p-5 border border-slate-800 space-y-3">
+          <div className="space-y-5 animate-in fade-in duration-200">
+            {/* UAT Status Alert */}
+            <div className={`p-4 rounded-2xl border text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+              isUatMode
+                ? "bg-amber-950/40 border-amber-500/50 text-amber-200"
+                : "bg-slate-900 border-slate-800 text-slate-300"
+            }`}>
+              <div>
+                <div className="flex items-center gap-2 font-bold text-sm text-white">
+                  <Sparkles className="w-4 h-4 text-amber-400" />
+                  <span>{isUatMode ? "🧪 UAT Mode Active: Emergency Calls Suppressed" : "Operational Live Shield Active"}</span>
+                </div>
+                <p className="text-[11px] text-slate-300 mt-1">
+                  {isUatMode
+                    ? "In UAT Mode, emergency authorities are NOT called. The 5 registered ICE guardians & emergency email receive the simulated test telemetry."
+                    : "Live mode armed. SOS dispatches real emergency alerts."}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleToggleUat}
+                className="self-start sm:self-center px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md transition-colors"
+              >
+                {isUatMode ? "Switch to Live Mode" : "Enable UAT Mode"}
+              </button>
+            </div>
+
+            {profileSaveMessage && (
+              <div className="p-3 bg-emerald-950/80 border border-emerald-500/60 rounded-xl text-emerald-300 text-xs font-semibold flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>{profileSaveMessage}</span>
+              </div>
+            )}
+
+            {/* 1. 5 ICE GUARDIANS SECTION */}
+            <div className="bg-slate-900 rounded-2xl p-5 border border-slate-800 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="flex items-center gap-2 text-white font-bold text-sm">
+                    <Users className="w-4 h-4 text-amber-400" />
+                    <span>In Case of Emergency (ICE) Guardians</span>
+                  </div>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Register up to 5 trusted guardians who automatically receive your 72-hr live GPS beacon.
+                  </p>
+                </div>
+                <span className="text-xs font-mono font-bold bg-slate-800 text-amber-300 px-2.5 py-1 rounded-full border border-slate-700">
+                  {uatProfile.contacts.length} / 5 Registered
+                </span>
+              </div>
+
+              {/* Contact List */}
+              <div className="space-y-2.5">
+                {uatProfile.contacts.map((contact, idx) => (
+                  <div
+                    key={contact.id || idx}
+                    className="bg-slate-950 p-3.5 rounded-xl border border-slate-800/90 flex items-center justify-between gap-3 text-xs"
+                  >
+                    <div className="space-y-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-white text-sm">{contact.name}</span>
+                        <span className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded-full font-medium">
+                          {contact.relationship}
+                        </span>
+                        {contact.isPrimary && (
+                          <span className="text-[10px] bg-amber-950 text-amber-300 border border-amber-700/60 px-2 py-0.5 rounded-full font-bold">
+                            Primary ICE
+                          </span>
+                        )}
+                      </div>
+                      <div className="font-mono text-slate-400 text-[11px] flex flex-wrap gap-x-3">
+                        <span>📱 {contact.phone}</span>
+                        {contact.email && <span>✉️ {contact.email}</span>}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteIceContact(contact.id)}
+                      className="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg hover:bg-slate-900 transition-colors"
+                      title="Remove ICE contact"
+                      aria-label={`Remove ${contact.name}`}
+                    >
+                      <EyeOff className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+
+                {uatProfile.contacts.length === 0 && (
+                  <p className="text-center py-4 text-slate-500 text-xs">No ICE guardians registered yet.</p>
+                )}
+              </div>
+
+              {/* Add Contact Trigger / Form */}
+              {uatProfile.contacts.length < 5 && (
+                <div>
+                  {!showAddContactForm ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowAddContactForm(true)}
+                      className="w-full py-2.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-amber-300 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-colors"
+                    >
+                      <PlusCircle className="w-4 h-4" />
+                      <span>Add Trusted ICE Guardian (+{5 - uatProfile.contacts.length} slots open)</span>
+                    </button>
+                  ) : (
+                    <form onSubmit={handleAddIceContact} className="bg-slate-950 p-4 rounded-xl border border-amber-500/40 space-y-3">
+                      <h4 className="text-xs font-bold text-amber-300 uppercase tracking-wider">New ICE Guardian Details</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                        <div>
+                          <label className="block text-slate-400 mb-1 text-[11px]">Full Name</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="e.g. Sipho Mthembu"
+                            value={newContactName}
+                            onChange={(e) => setNewContactName(e.target.value)}
+                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-slate-400 mb-1 text-[11px]">Relationship</label>
+                          <select
+                            value={newContactRel}
+                            onChange={(e) => setNewContactRel(e.target.value)}
+                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white"
+                          >
+                            <option value="Sister">Sister</option>
+                            <option value="Brother">Brother</option>
+                            <option value="Mother">Mother</option>
+                            <option value="Father">Father</option>
+                            <option value="Family Doctor">Family Doctor / Medical</option>
+                            <option value="Legal Counsel">Legal Counsel / Advocate</option>
+                            <option value="Close Friend">Close Friend</option>
+                            <option value="Neighbor">Trusted Neighbor</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-slate-400 mb-1 text-[11px]">Mobile Phone (+27...)</label>
+                          <input
+                            type="tel"
+                            required
+                            placeholder="+27 82 000 0000"
+                            value={newContactPhone}
+                            onChange={(e) => setNewContactPhone(e.target.value)}
+                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white font-mono"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-slate-400 mb-1 text-[11px]">Email Address</label>
+                          <input
+                            type="email"
+                            placeholder="guardian@example.co.za"
+                            value={newContactEmail}
+                            onChange={(e) => setNewContactEmail(e.target.value)}
+                            className="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white font-mono"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 pt-1">
+                        <input
+                          type="checkbox"
+                          id="primaryIceCheck"
+                          checked={newContactPrimary}
+                          onChange={(e) => setNewContactPrimary(e.target.checked)}
+                          className="rounded border-slate-700 bg-slate-900 text-amber-500"
+                        />
+                        <label htmlFor="primaryIceCheck" className="text-[11px] text-slate-300 cursor-pointer">
+                          Designate as Primary Emergency Guardian
+                        </label>
+                      </div>
+                      <div className="flex gap-2 pt-1">
+                        <button
+                          type="submit"
+                          className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg text-xs"
+                        >
+                          Save Guardian
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowAddContactForm(false)}
+                          className="px-3 py-2 bg-slate-800 text-slate-400 hover:text-white rounded-lg text-xs"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* 2. SURVIVOR PERSONAL DETAILS SECTION */}
+            <div className="bg-slate-900 rounded-2xl p-5 border border-slate-800 space-y-4">
               <div className="flex items-center gap-2 text-white font-bold text-sm">
-                <Users className="w-4 h-4 text-amber-400" />
-                <span>ICE Guardians (In Case of Emergency)</span>
+                <FileText className="w-4 h-4 text-sky-400" />
+                <span>Survivor Emergency Profile</span>
               </div>
               <p className="text-xs text-slate-400">
-                Register trusted contacts who receive your 72-hour distress location beacon automatically during SOS activation.
+                Encrypted in local browser enclave. Attached to Section 15 court dossiers and dispatched to ICE guardians during emergency beacons.
               </p>
 
-              <div className="space-y-2 pt-2">
-                <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 flex justify-between items-center">
+              <form onSubmit={handleSavePersonalProfile} className="space-y-3 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <span className="text-xs font-bold text-white block">Sindi (Sister)</span>
-                    <span className="text-[11px] text-slate-400">072 123 4567 • Primary Guardian</span>
+                    <label className="block text-slate-400 mb-1 text-[11px]">Legal Full Name</label>
+                    <input
+                      type="text"
+                      value={personalFullName}
+                      onChange={(e) => setPersonalFullName(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white"
+                      placeholder="e.g. Thandeka Nkosi"
+                    />
                   </div>
-                  <span className="text-[10px] bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded border border-emerald-800">
-                    Active
-                  </span>
+                  <div>
+                    <label className="block text-slate-400 mb-1 text-[11px]">National ID / Passport</label>
+                    <input
+                      type="text"
+                      value={personalNationalId}
+                      onChange={(e) => setPersonalNationalId(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white font-mono"
+                      placeholder="940815 0000 081"
+                    />
+                  </div>
                 </div>
-              </div>
+
+                <div>
+                  <label className="block text-slate-400 mb-1 text-[11px]">Safe Location / Landmark Address</label>
+                  <input
+                    type="text"
+                    value={personalAddress}
+                    onChange={(e) => setPersonalAddress(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white"
+                    placeholder="Safe residential address or trusted haven"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-400 mb-1 text-[11px]">Critical Medical Aid & Dependent Notes</label>
+                  <textarea
+                    rows={2}
+                    value={personalMedical}
+                    onChange={(e) => setPersonalMedical(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white"
+                    placeholder="Blood type, allergies, chronic medications, minor dependents"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg text-xs transition-colors"
+                >
+                  Save Personal Profile
+                </button>
+              </form>
             </div>
 
-            <div className="bg-slate-900 rounded-2xl p-5 border border-slate-800 space-y-3">
-              <h3 className="text-sm font-bold text-white">Emergency Escape Checklist</h3>
-              <ul className="text-xs text-slate-300 space-y-2">
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                  <span>Certified ID / Passport & Birth Certificates stored in safe spot</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                  <span>Spare set of house & car keys kept with trusted neighbor</span>
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                  <span>Emergency prepaid electricity token & cash reserve</span>
-                </li>
-              </ul>
+            {/* 3. EMERGENCY SOCIALS & ALERT EMAIL */}
+            <div className="bg-slate-900 rounded-2xl p-5 border border-slate-800 space-y-4">
+              <div className="flex items-center gap-2 text-white font-bold text-sm">
+                <MessageSquare className="w-4 h-4 text-emerald-400" />
+                <span>Emergency Alert Email & Social Accounts</span>
+              </div>
+              <p className="text-xs text-slate-400">
+                Secondary channels monitored by your guardians to triangulate status when cellular voice lines are congested.
+              </p>
+
+              <form onSubmit={handleSaveSocials} className="space-y-3 text-xs">
+                <div>
+                  <label className="block text-slate-400 mb-1 text-[11px]">Emergency Alert Email</label>
+                  <input
+                    type="email"
+                    value={socialAlertEmail}
+                    onChange={(e) => setSocialAlertEmail(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white font-mono"
+                    placeholder="secure.vault.backup@proton.me"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-slate-400 mb-1 text-[11px]">X / Twitter Handle</label>
+                    <input
+                      type="text"
+                      value={socialTwitter}
+                      onChange={(e) => setSocialTwitter(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white font-mono"
+                      placeholder="@username"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-400 mb-1 text-[11px]">Instagram Handle</label>
+                    <input
+                      type="text"
+                      value={socialInstagram}
+                      onChange={(e) => setSocialInstagram(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white font-mono"
+                      placeholder="@username"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-400 mb-1 text-[11px]">Facebook / WhatsApp URL</label>
+                    <input
+                      type="text"
+                      value={socialFacebook}
+                      onChange={(e) => setSocialFacebook(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white"
+                      placeholder="facebook.com/user"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs transition-colors"
+                >
+                  Save Emergency Accounts
+                </button>
+              </form>
             </div>
+
+            {/* 4. SIMULATE UAT DISTRESS TEST BUTTON */}
+            {isUatMode && (
+              <div className="bg-amber-950/30 border border-amber-500/40 rounded-2xl p-5 text-center space-y-3">
+                <span className="text-[10px] uppercase font-bold tracking-widest text-amber-400 block">
+                  UAT SIMULATION TEST
+                </span>
+                <p className="text-xs text-slate-300 max-w-md mx-auto">
+                  Verify the entire emergency flow right now. Dispatches simulated telemetry to your <strong className="text-white">{uatProfile.contacts.length} ICE guardians</strong> and <strong className="text-white">{uatProfile.socials.alertEmail || "emergency email"}</strong> without placing real calls.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleServerSosDispatch}
+                  className="px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black rounded-xl text-xs shadow-lg shadow-amber-500/20 transition-all inline-flex items-center gap-2"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>Run UAT Simulation Beacon Test</span>
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -1372,6 +1671,7 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
         </button>
 
         <button
+          data-testid="tab-feedback"
           onClick={() => setActiveTab("feedback")}
           className={`flex flex-col items-center py-1 px-2.5 rounded-lg text-xs font-bold transition-colors ${
             activeTab === "feedback" ? "text-amber-400 bg-amber-500/10" : "text-slate-400 hover:text-white"

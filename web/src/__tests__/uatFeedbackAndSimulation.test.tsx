@@ -76,7 +76,7 @@ describe("SafeHavenDashboard UAT Mode & In-App Feedback Suite", () => {
     render(<SafeHavenDashboard onPanicLock={onPanicLock} />);
 
     // Click on Feedback tab in navigation
-    const feedbackTabBtn = screen.getByRole("button", { name: /Feedback/i });
+    const feedbackTabBtn = screen.getByTestId("tab-feedback");
     fireEvent.click(feedbackTabBtn);
 
     expect(screen.getByText(/Live Device UAT Feedback/i)).toBeDefined();

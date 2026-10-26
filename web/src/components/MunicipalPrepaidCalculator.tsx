@@ -17,7 +17,6 @@ import {
   WifiOff,
   ChevronRight,
   BatteryMedium,
-  BatteryCharging,
   Clock,
   RotateCcw,
   Copy,
@@ -322,7 +321,7 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
           {/* Actual Device Battery Percentage from Battery API */}
           <span className="flex items-center gap-1 text-slate-800 dark:text-slate-200 font-medium">
             {telemetry.isCharging ? (
-              <BatteryCharging className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 animate-pulse" aria-hidden="true" />
+              <Zap className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 animate-pulse" aria-hidden="true" />
             ) : (
               <BatteryMedium className="w-3.5 h-3.5 text-slate-700 dark:text-slate-300" aria-hidden="true" />
             )}

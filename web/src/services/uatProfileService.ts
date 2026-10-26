@@ -14,7 +14,7 @@ export interface IceContact {
   relationship: string;
   phone: string;
   email: string;
-  isPrimary?: boolean;
+  isPrimary: boolean;
 }
 
 export interface PersonalProfile {
@@ -41,7 +41,7 @@ export interface UatProfile {
 const STORAGE_KEY = "umkhuseli_uat_ice_profile";
 
 export const DEFAULT_UAT_PROFILE: UatProfile = {
-  isUatMode: true, // Default to true for safe evaluative hackathon & mentor testing
+  isUatMode: false,
   contacts: [
     {
       id: "ice-1",
@@ -57,6 +57,7 @@ export const DEFAULT_UAT_PROFILE: UatProfile = {
       relationship: "Family Doctor / Medical ICE",
       phone: "+27 83 555 0102",
       email: "dr.bongiwe@example.co.za",
+      isPrimary: false,
     },
     {
       id: "ice-3",
@@ -64,6 +65,7 @@ export const DEFAULT_UAT_PROFILE: UatProfile = {
       relationship: "Legal Counsel / Advocate",
       phone: "+27 71 555 0103",
       email: "sipho.legal@example.co.za",
+      isPrimary: false,
     },
     {
       id: "ice-4",
@@ -71,6 +73,7 @@ export const DEFAULT_UAT_PROFILE: UatProfile = {
       relationship: "Trusted Neighbor",
       phone: "+27 76 555 0104",
       email: "nomsa.d@example.co.za",
+      isPrimary: false,
     },
     {
       id: "ice-5",
@@ -78,6 +81,7 @@ export const DEFAULT_UAT_PROFILE: UatProfile = {
       relationship: "Close Friend / Safe Haven Co-Holder",
       phone: "+27 84 555 0105",
       email: "lerato.m@example.co.za",
+      isPrimary: false,
     },
   ],
   personal: {
@@ -95,7 +99,14 @@ export const DEFAULT_UAT_PROFILE: UatProfile = {
 };
 
 export function getUatProfile(): UatProfile {
-  if (typeof window === "undefined") return DEFAULT_UAT_PROFILE;
+  if (typeof window === "undefined") {
+    return {
+      ...DEFAULT_UAT_PROFILE,
+      contacts: [...DEFAULT_UAT_PROFILE.contacts],
+      personal: { ...DEFAULT_UAT_PROFILE.personal },
+      socials: { ...DEFAULT_UAT_PROFILE.socials },
+    };
+  }
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
@@ -104,7 +115,12 @@ export function getUatProfile(): UatProfile {
   } catch {
     /* fallback */
   }
-  return DEFAULT_UAT_PROFILE;
+  return {
+    ...DEFAULT_UAT_PROFILE,
+    contacts: [...DEFAULT_UAT_PROFILE.contacts],
+    personal: { ...DEFAULT_UAT_PROFILE.personal },
+    socials: { ...DEFAULT_UAT_PROFILE.socials },
+  };
 }
 
 export function saveUatProfile(profile: UatProfile): void {
