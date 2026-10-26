@@ -48,6 +48,9 @@ declare module 'lucide-react' {
   export const Fingerprint: React.FC<any>;
   export const FingerprintPattern: React.FC<any>;
   export const Sun: React.FC<any>;
+  export const Moon: React.FC<any>;
+  export const Hexagon: React.FC<any>;
+  export const LifeBuoy: React.FC<any>;
   export const KeyRound: React.FC<any>;
   export const Check: React.FC<any>;
   export const Download: React.FC<any>;

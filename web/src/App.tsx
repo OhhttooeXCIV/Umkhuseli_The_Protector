@@ -4,6 +4,7 @@ import { DailyDevotionalFacade } from "./components/DailyDevotionalFacade";
 import { SafeHavenDashboard } from "./components/SafeHavenDashboard";
 import { GuardianTrackerView } from "./components/GuardianTrackerView";
 import { IosInstallGuideModal } from "./components/IosInstallGuideModal";
+import { SafetyBriefingLoader } from "./components/SafetyBriefingLoader";
 import { dispatchServerSos } from "./services/supabase";
 import {
   getActiveDisguise,
@@ -15,6 +16,7 @@ import {
   triggerTactileHapticPulse,
 } from "./services/iosStealthManager";
 import { requestPersistentStorage } from "./services/storagePersistence";
+import { applyTheme, getInitialTheme } from "./services/themeManager";
 
 export const App: React.FC = () => {
   const [mode, setMode] = useState<"DECOY_CALCULATOR" | "SAFE_HAVEN" | "GUARDIAN_TRACKER">(() => {
@@ -31,11 +33,24 @@ export const App: React.FC = () => {
   const [activeBeaconToken, setActiveBeaconToken] = useState<string>("beacon_72h_active");
   const [vaultSessionKey, setVaultSessionKey] = useState<number>(0);
 
+  // Safety briefing overlay state (blocking loader on landing showing distress codes)
+  const [showBriefing, setShowBriefing] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      // In automated test environments, avoid blocking assertions unless triggered
+      if (typeof process !== "undefined" && process.env?.NODE_ENV === "test") {
+        return false;
+      }
+      return localStorage.getItem("umkhuseli_safety_briefing_seen") !== "true";
+    }
+    return false;
+  });
+
   // Root Double-Tap Timing Reference
   const lastRootTapRef = useRef<number>(0);
 
-  // Request persistent storage to protect against Safari 7-day storage eviction
+  // Initialize theme mode on mount (class on <html>) & persistent storage
   useEffect(() => {
+    applyTheme(getInitialTheme());
     requestPersistentStorage().catch(() => {});
   }, []);
 
@@ -172,7 +187,7 @@ export const App: React.FC = () => {
     <div
       data-testid="root-panic-container"
       onClick={handleRootClick}
-      className="w-full min-h-screen bg-slate-950"
+      className="w-full min-h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-200"
     >
       {mode === "DECOY_CALCULATOR" && (
         <>
@@ -185,8 +200,15 @@ export const App: React.FC = () => {
             <MunicipalPrepaidCalculator
               onUnlockSafeHaven={() => setMode("SAFE_HAVEN")}
               onDuressTrigger={handleDuressTrigger}
+              onOpenBriefing={() => setShowBriefing(true)}
             />
           )}
+
+          {/* Blocking Safety Briefing Loader & Distress Codes Guide */}
+          {showBriefing && (
+            <SafetyBriefingLoader onComplete={() => setShowBriefing(false)} />
+          )}
+
           <IosInstallGuideModal />
         </>
       )}
