@@ -1408,50 +1408,77 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
             </div>
 
             {/* National Lifelines Directory */}
-            <div className="space-y-2.5">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-                Direct Emergency Lifelines (Zero-Airtime / Free)
-              </span>
-
-              {NATIONAL_LIFELINES.map((l) => (
-                <div
-                  key={l.id}
-                  onClick={() => {
-                    if (l.type === "USSD_FREE") {
-                      setActiveUssdCode(l.dialString);
-                      setActiveUssdTitle(l.title);
-                      setUssdModalOpen(true);
-                    } else {
-                      window.location.href = `tel:${l.dialString.replace("#", "%23")}`;
-                    }
-                  }}
-                  className="bg-slate-900 hover:bg-slate-850 border border-slate-800 rounded-xl p-3 flex items-center justify-between transition-colors group cursor-pointer"
-                >
-                  <div className="pr-2">
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors">
-                        {l.title}
-                      </span>
-                      {l.isTollFree && (
-                        <span className="bg-emerald-950 text-emerald-400 border border-emerald-800 text-[10px] font-bold px-1.5 py-0.2 rounded">
-                          TOLL-FREE
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-slate-400 line-clamp-1">{l.description}</p>
-                    <span className="text-[11px] font-mono font-bold text-amber-400/90 mt-0.5 block">
-                      {l.dialString}
-                    </span>
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+              <button
+                type="button"
+                onClick={() => setIsLifelinesExpanded((prev) => !prev)}
+                className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-850/40 transition-colors"
+                aria-expanded={isLifelinesExpanded}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0">
+                    <PhoneCall className="w-5 h-5" />
                   </div>
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center border shrink-0 ${
-                    l.id === "saps_police"
-                      ? "bg-rose-950 border-rose-700 text-rose-400"
-                      : "bg-slate-800 border-slate-700 text-sky-400"
-                  }`}>
-                    <PhoneCall className="w-4 h-4" />
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-bold text-white">Direct Emergency Lifelines</h3>
+                      <span className="text-[10px] bg-emerald-950 border border-emerald-700/50 text-emerald-300 font-mono font-bold px-2 py-0.5 rounded-full">
+                        Zero-Airtime / Free
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      National GBV Command Centre, SAPS Flying Squad & Childline
+                    </p>
                   </div>
                 </div>
-              ))}
+                <div className="text-slate-400 p-1">
+                  {isLifelinesExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                </div>
+              </button>
+
+              {isLifelinesExpanded && (
+                <div className="p-4 pt-1 border-t border-slate-800/80 space-y-2.5">
+                  {NATIONAL_LIFELINES.map((l) => (
+                    <div
+                      key={l.id}
+                      onClick={() => {
+                        if (l.type === "USSD_FREE") {
+                          setActiveUssdCode(l.dialString);
+                          setActiveUssdTitle(l.title);
+                          setUssdModalOpen(true);
+                        } else {
+                          window.location.href = `tel:${l.dialString.replace("#", "%23")}`;
+                        }
+                      }}
+                      className="bg-slate-950 hover:bg-slate-850 border border-slate-850 rounded-xl p-3 flex items-center justify-between transition-colors group cursor-pointer"
+                    >
+                      <div className="pr-2">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="text-sm font-bold text-white group-hover:text-amber-400 transition-colors">
+                            {l.title}
+                          </span>
+                          {l.isTollFree && (
+                            <span className="bg-emerald-950 text-emerald-400 border border-emerald-800 text-[10px] font-bold px-1.5 py-0.2 rounded">
+                              TOLL-FREE
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-400 line-clamp-1">{l.description}</p>
+                        <span className="text-[11px] font-mono font-bold text-amber-400/90 mt-0.5 block">
+                          {l.dialString}
+                        </span>
+                      </div>
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center border shrink-0 ${
+                        l.id === "saps_police"
+                          ? "bg-rose-950 border-rose-700 text-rose-400"
+                          : "bg-slate-800 border-slate-700 text-sky-400"
+                      }`}>
+                        <PhoneCall className="w-4 h-4" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1464,6 +1491,38 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
 
             {/* Embedded Google Maps Safe Haven View */}
             <GoogleMapsSafeHavenView hideSelectedCard={true} />
+
+            {/* Live GPS Telemetry & Accuracy Banner */}
+            <div className="p-3 bg-slate-900 border border-slate-800 rounded-xl flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0">
+                  <MapPin className="w-4 h-4" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-white font-bold">{identifiedAreaName}</span>
+                    <span className="text-[10px] bg-emerald-950 text-emerald-300 border border-emerald-700/60 px-1.5 py-0.2 rounded font-mono font-bold">
+                      LIVE
+                    </span>
+                  </div>
+                  <span className="text-slate-400 font-mono text-[10px]">
+                    {userLocation
+                      ? `GPS: ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)} (±${Math.round(userLocation.accuracy || 15)}m)`
+                      : "Acquiring live GPS coordinates..."}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={refreshLiveLocation}
+                disabled={isLocating}
+                className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-sky-400 hover:text-white rounded-lg font-bold text-[11px] shrink-0 border border-slate-700 flex items-center gap-1 transition-colors"
+                title="Refresh GPS Coordinates"
+              >
+                <RotateCcw className={`w-3 h-3 ${isLocating ? "animate-spin" : ""}`} />
+                <span>Refresh</span>
+              </button>
+            </div>
 
             {/* Centres Directory Filter and Search */}
             <div className="space-y-4 pt-2 border-t border-slate-800">
