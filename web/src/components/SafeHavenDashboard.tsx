@@ -965,7 +965,69 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
       </header>
 
       {/* Main Tab Content */}
-      <main className="p-4 flex-1 overflow-y-auto">
+      <main className="p-4 flex-1 overflow-y-auto space-y-4">
+        {/* First-Time Safety Setup Wizard Banner */}
+        {!isOnboarded && (
+          <div className="bg-gradient-to-br from-amber-950/80 via-slate-900 to-slate-900 border-2 border-amber-500/60 rounded-2xl p-4 shadow-xl space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase font-mono font-bold tracking-widest text-amber-400 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                FIRST-TIME SURVIVOR SAFETY SETUP
+              </span>
+              <span className="text-[10px] font-mono text-slate-400">Step 1 of 3</span>
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-white">
+                Configure Your Emergency Defense Network
+              </h2>
+              <p className="text-xs text-slate-300 leading-relaxed mt-1">
+                Before an emergency occurs, complete your legal particulars, register your 5 trusted ICE guardians, and enable app permissions for instant live GPS dispatch.
+              </p>
+            </div>
+            {/* Setup Progress Badges */}
+            <div className="grid grid-cols-3 gap-2 text-[10px] font-medium pt-1">
+              <div className={`p-2 rounded-xl border flex flex-col gap-0.5 ${
+                personalFullName ? "bg-emerald-950/50 border-emerald-500/50 text-emerald-300" : "bg-slate-950 border-amber-500/40 text-amber-300"
+              }`}>
+                <span className="font-bold">1. Profile</span>
+                <span className="text-[9px] text-slate-400">{personalFullName ? "Completed" : "Action Needed"}</span>
+              </div>
+              <div className={`p-2 rounded-xl border flex flex-col gap-0.5 ${
+                uatProfile.contacts.length > 0 ? "bg-emerald-950/50 border-emerald-500/50 text-emerald-300" : "bg-slate-950 border-amber-500/40 text-amber-300"
+              }`}>
+                <span className="font-bold">2. ICE Contacts</span>
+                <span className="text-[9px] text-slate-400">{uatProfile.contacts.length}/5 Guardians</span>
+              </div>
+              <div className={`p-2 rounded-xl border flex flex-col gap-0.5 ${
+                permissionsStatus.geolocation === "granted" ? "bg-emerald-950/50 border-emerald-500/50 text-emerald-300" : "bg-slate-950 border-amber-500/40 text-amber-300"
+              }`}>
+                <span className="font-bold">3. Permissions</span>
+                <span className="text-[9px] text-slate-400">{permissionsStatus.geolocation === "granted" ? "GPS Active" : "Enable GPS"}</span>
+              </div>
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTab("plan");
+                  setIsProfileExpanded(true);
+                  setIsIceContactsExpanded(true);
+                  setIsPermissionsExpanded(true);
+                }}
+                className="flex-1 py-2 px-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5"
+              >
+                <span>Edit Profile & Contacts</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleCompleteOnboarding}
+                className="py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-semibold text-xs rounded-xl border border-slate-700 transition-colors"
+              >
+                <span>Complete Setup</span>
+              </button>
+            </div>
+          </div>
+        )}
         {/* UAT Live Test Mode Banner */}
         <div className={`p-3 rounded-xl border mb-4 text-xs flex items-center justify-between transition-colors ${
           isUatMode
@@ -2509,139 +2571,222 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
               )}
             </div>
 
+            {/* 3. APP PERMISSIONS & SAFETY READINESS */}
+            <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-sm">
+              <button
+                type="button"
+                onClick={() => setIsPermissionsExpanded((prev) => !prev)}
+                className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-850/40 transition-colors"
+                aria-expanded={isPermissionsExpanded}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+                    <ShieldCheck className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-bold text-white">3. App Permissions & Hardware Readiness</h3>
+                      <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${
+                        permissionsStatus.geolocation === "granted" && permissionsStatus.storage === "persisted"
+                          ? "bg-emerald-950 text-emerald-300 border-emerald-700/50"
+                          : "bg-amber-950 text-amber-300 border-amber-700/50"
+                      }`}>
+                        {permissionsStatus.geolocation === "granted" && permissionsStatus.storage === "persisted" ? "All Active" : "Action Needed"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Hardware GPS telemetry, vault durability & emergency notifications
+                    </p>
+                  </div>
+                </div>
+                <div className="text-slate-400 p-1">
+                  {isPermissionsExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                </div>
+              </button>
+
+              {isPermissionsExpanded && (
+                <div className="p-4 pt-2 border-t border-slate-800/80 space-y-3 text-xs">
+                  {/* Geolocation Row */}
+                  <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 flex items-center justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-rose-400 shrink-0" />
+                        <span className="font-bold text-white">Live GPS Location Telemetry</span>
+                        <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border ${
+                          permissionsStatus.geolocation === "granted"
+                            ? "bg-emerald-950 text-emerald-300 border-emerald-700"
+                            : "bg-amber-950 text-amber-300 border-amber-700"
+                        }`}>
+                          {permissionsStatus.geolocation === "granted" ? "GRANTED" : "PROMPT / PENDING"}
+                        </span>
+                      </div>
+                      <p className="text-slate-400 text-[11px] mt-1">
+                        Enables silent dispatch of high-precision coordinates during PIN 9999 and distance calculation to closest Thuthuzela Care Centre.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={refreshLiveLocation}
+                      disabled={isLocating}
+                      className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-sky-400 hover:text-white rounded-lg font-bold text-xs shrink-0 border border-slate-700 transition-colors flex items-center gap-1"
+                    >
+                      <RotateCcw className={`w-3 h-3 ${isLocating ? "animate-spin" : ""}`} />
+                      <span>{isLocating ? "Acquiring..." : "Refresh GPS"}</span>
+                    </button>
+                  </div>
+
+                  {/* Storage Persistence Row */}
+                  <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 flex items-center justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Lock className="w-4 h-4 text-amber-400 shrink-0" />
+                        <span className="font-bold text-white">Vault Offline Durability (Storage Persistence)</span>
+                        <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border ${
+                          permissionsStatus.storage === "persisted"
+                            ? "bg-emerald-950 text-emerald-300 border-emerald-700"
+                            : "bg-slate-800 text-slate-300 border-slate-700"
+                        }`}>
+                          {permissionsStatus.storage === "persisted" ? "PROTECTED" : "STANDARD"}
+                        </span>
+                      </div>
+                      <p className="text-slate-400 text-[11px] mt-1">
+                        Protects your local encrypted domestic violence evidence vault against automated browser or OS cache evictions.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={requestStoragePersistence}
+                      className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-amber-400 hover:text-white rounded-lg font-bold text-xs shrink-0 border border-slate-700 transition-colors"
+                    >
+                      {permissionsStatus.storage === "persisted" ? "Protected" : "Enable"}
+                    </button>
+                  </div>
+
+                  {/* Notifications Row */}
+                  <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-800 flex items-center justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Radio className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span className="font-bold text-white">Guardian Response Alerts (Notifications)</span>
+                        <span className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border ${
+                          permissionsStatus.notifications === "granted"
+                            ? "bg-emerald-950 text-emerald-300 border-emerald-700"
+                            : "bg-slate-800 text-slate-300 border-slate-700"
+                        }`}>
+                          {permissionsStatus.notifications === "granted" ? "ACTIVE" : "OPTIONAL"}
+                        </span>
+                      </div>
+                      <p className="text-slate-400 text-[11px] mt-1">
+                        Receive silent push alerts when emergency guardians acknowledge your distress beacons.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={requestNotificationPermission}
+                      className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-emerald-400 hover:text-white rounded-lg font-bold text-xs shrink-0 border border-slate-700 transition-colors"
+                    >
+                      {permissionsStatus.notifications === "granted" ? "Enabled" : "Enable"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Escape 'Go-Bag' Checklist */}
             <EscapeGoBagChecklist />
 
             {/* Your Rights Under South African Law */}
             <SouthAfricanLegalRights />
 
-            {/* 2. SURVIVOR PERSONAL DETAILS SECTION */}
-            <div className="bg-slate-900 rounded-2xl p-5 border border-slate-800 space-y-4">
-              <div className="flex items-center gap-2 text-white font-bold text-sm">
-                <FileText className="w-4 h-4 text-sky-400" />
-                <span>Survivor Emergency Profile</span>
-              </div>
-              <p className="text-xs text-slate-400">
-                Encrypted in local browser enclave. Attached to Section 15 court dossiers and dispatched to ICE guardians during emergency beacons.
-              </p>
-
-              <form onSubmit={handleSavePersonalProfile} className="space-y-3 text-xs">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-slate-400 mb-1 text-[11px]">Legal Full Name</label>
-                    <input
-                      type="text"
-                      value={personalFullName}
-                      onChange={(e) => setPersonalFullName(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white"
-                      placeholder="e.g. Thandeka Nkosi"
-                    />
+            {/* 4. SECURE SOCIAL & NOTIFICATION CHANNELS */}
+            <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-sm">
+              <button
+                type="button"
+                onClick={() => setIsSocialsExpanded((prev) => !prev)}
+                className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-850/40 transition-colors"
+                aria-expanded={isSocialsExpanded}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 shrink-0">
+                    <MessageSquare className="w-5 h-5" />
                   </div>
                   <div>
-                    <label className="block text-slate-400 mb-1 text-[11px]">National ID / Passport</label>
-                    <input
-                      type="text"
-                      value={personalNationalId}
-                      onChange={(e) => setPersonalNationalId(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white font-mono"
-                      placeholder="940815 0000 081"
-                    />
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-bold text-white">4. Secure Social & Outbox Accounts</h3>
+                      <span className="text-[10px] bg-slate-800 border border-slate-700 text-slate-300 font-mono font-bold px-2 py-0.5 rounded-full">
+                        {uatProfile.socials.alertEmail ? "Configured" : "Optional"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Secondary emergency alert email, X/Twitter, Instagram, and Facebook profiles
+                    </p>
                   </div>
                 </div>
-
-                <div>
-                  <label className="block text-slate-400 mb-1 text-[11px]">Safe Location / Landmark Address</label>
-                  <input
-                    type="text"
-                    value={personalAddress}
-                    onChange={(e) => setPersonalAddress(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white"
-                    placeholder="Safe residential address or trusted haven"
-                  />
+                <div className="text-slate-400 p-1">
+                  {isSocialsExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
                 </div>
+              </button>
 
-                <div>
-                  <label className="block text-slate-400 mb-1 text-[11px]">Critical Medical Aid & Dependent Notes</label>
-                  <textarea
-                    rows={2}
-                    value={personalMedical}
-                    onChange={(e) => setPersonalMedical(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white"
-                    placeholder="Blood type, allergies, chronic medications, minor dependents"
-                  />
+              {isSocialsExpanded && (
+                <div className="p-4 pt-2 border-t border-slate-800/80 space-y-4">
+                  <p className="text-xs text-slate-400">
+                    Secondary channels monitored by your guardians to triangulate status when cellular voice lines are congested.
+                  </p>
+
+                  <form onSubmit={handleSaveSocials} className="space-y-3 text-xs">
+                    <div>
+                      <label className="block text-slate-400 mb-1 text-[11px]">Emergency Alert Email</label>
+                      <input
+                        type="email"
+                        value={socialAlertEmail}
+                        onChange={(e) => setSocialAlertEmail(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white font-mono"
+                        placeholder="secure.vault.backup@proton.me"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-slate-400 mb-1 text-[11px]">X / Twitter Handle</label>
+                        <input
+                          type="text"
+                          value={socialTwitter}
+                          onChange={(e) => setSocialTwitter(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white font-mono"
+                          placeholder="@username"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 mb-1 text-[11px]">Instagram Handle</label>
+                        <input
+                          type="text"
+                          value={socialInstagram}
+                          onChange={(e) => setSocialInstagram(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white font-mono"
+                          placeholder="@username"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 mb-1 text-[11px]">Facebook / WhatsApp URL</label>
+                        <input
+                          type="text"
+                          value={socialFacebook}
+                          onChange={(e) => setSocialFacebook(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white"
+                          placeholder="facebook.com/user"
+                        />
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs transition-colors"
+                    >
+                      Save Emergency Accounts
+                    </button>
+                  </form>
                 </div>
-
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg text-xs transition-colors"
-                >
-                  Save Personal Profile
-                </button>
-              </form>
-            </div>
-
-            {/* 3. EMERGENCY SOCIALS & ALERT EMAIL */}
-            <div className="bg-slate-900 rounded-2xl p-5 border border-slate-800 space-y-4">
-              <div className="flex items-center gap-2 text-white font-bold text-sm">
-                <MessageSquare className="w-4 h-4 text-emerald-400" />
-                <span>Emergency Alert Email & Social Accounts</span>
-              </div>
-              <p className="text-xs text-slate-400">
-                Secondary channels monitored by your guardians to triangulate status when cellular voice lines are congested.
-              </p>
-
-              <form onSubmit={handleSaveSocials} className="space-y-3 text-xs">
-                <div>
-                  <label className="block text-slate-400 mb-1 text-[11px]">Emergency Alert Email</label>
-                  <input
-                    type="email"
-                    value={socialAlertEmail}
-                    onChange={(e) => setSocialAlertEmail(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white font-mono"
-                    placeholder="secure.vault.backup@proton.me"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-slate-400 mb-1 text-[11px]">X / Twitter Handle</label>
-                    <input
-                      type="text"
-                      value={socialTwitter}
-                      onChange={(e) => setSocialTwitter(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white font-mono"
-                      placeholder="@username"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-slate-400 mb-1 text-[11px]">Instagram Handle</label>
-                    <input
-                      type="text"
-                      value={socialInstagram}
-                      onChange={(e) => setSocialInstagram(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white font-mono"
-                      placeholder="@username"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-slate-400 mb-1 text-[11px]">Facebook / WhatsApp URL</label>
-                    <input
-                      type="text"
-                      value={socialFacebook}
-                      onChange={(e) => setSocialFacebook(e.target.value)}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white"
-                      placeholder="facebook.com/user"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs transition-colors"
-                >
-                  Save Emergency Accounts
-                </button>
-              </form>
+              )}
             </div>
 
             {/* 4. SIMULATE UAT DISTRESS TEST BUTTON */}
