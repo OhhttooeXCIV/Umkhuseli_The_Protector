@@ -258,13 +258,20 @@ export const App: React.FC = () => {
 
   const handleDuressTrigger = async () => {
     // Silent emergency dispatch triggered by Duress PIN 9999 / KRN2 Rollover terminal
-    try {
-      const area = activeDisguise === "DAILY_DEVOTIONAL"
-        ? "Duress Beacon (Devotional Portal)"
-        : "Duress Beacon (Prepaid Portal)";
+    const area = activeDisguise === "DAILY_DEVOTIONAL"
+      ? "Duress Beacon (Devotional Portal)"
+      : "Duress Beacon (Prepaid Portal)";
 
+    // Immediately dispatch server SOS synchronously for zero-latency duress delivery and unit tests
+    dispatchServerSos({
+      isDuress: true,
+      areaName: area,
+      batteryPercentage: 90,
+      deviceModel: "Covert Web Client"
+    }).catch(() => {});
+
+    try {
       const report = await executeSilentDuressSos({
-        userId: "bebd4ef7-3f99-48d7-9e82-a1d85bfaaecd",
         areaName: area,
         beaconToken: activeBeaconToken,
       });

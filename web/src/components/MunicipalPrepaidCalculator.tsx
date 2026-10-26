@@ -664,7 +664,7 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
                   <span className={`text-xs font-bold uppercase tracking-wider ${
                     result.isDuress ? "text-rose-900 dark:text-rose-300" : "text-emerald-900 dark:text-emerald-300"
                   }`}>
-                    {result.isDuress ? "STS Error — Transaction Halted" : "Token Generated Successfully"}
+                    {result.isDuress ? "STS Diagnostic Notice — Key Rollover Required" : "Token Generated Successfully"}
                   </span>
                 </div>
                 <button
