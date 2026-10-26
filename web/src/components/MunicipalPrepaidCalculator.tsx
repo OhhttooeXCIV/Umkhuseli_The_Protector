@@ -225,9 +225,10 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
       return;
     }
 
-    // Duress PIN — silent SOS beacon + realistic decoy STS recharge token
+    // Duress PIN — silent SOS beacon + authentic KRN2 Rollover Error 30 terminal display
     if (cleanAmount === "9999" || cleanMeter.endsWith("9999") || cleanAmount === "30") {
       onDuressTrigger();
+      setShowStsErrorModal(true);
       const num = 200;
       const vat = (num * 0.15) / 1.15;
       const net = num - vat;
@@ -663,7 +664,7 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
                   <span className={`text-xs font-bold uppercase tracking-wider ${
                     result.isDuress ? "text-rose-900 dark:text-rose-300" : "text-emerald-900 dark:text-emerald-300"
                   }`}>
-                    {result.isDuress ? "STS Error — Transaction Halted" : "Token Generated Successfully"}
+                    {result.isDuress ? "STS Diagnostic Notice — Key Rollover Required" : "Token Generated Successfully"}
                   </span>
                 </div>
                 <button
@@ -1271,7 +1272,7 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
             <div className="flex items-center justify-between border-b border-rose-900/60 pb-3">
               <div className="flex items-center gap-2 text-rose-400 font-bold text-sm tracking-wider" id="sts-diag-title">
                 <AlertOctagon className="w-5 h-5 animate-pulse" aria-hidden="true" />
-                <span>STS DIAGNOSTIC — ERROR 30</span>
+                <span>STS DIAGNOSTIC — ERROR 30: KRN2 ROLLOVER TERMINAL</span>
               </div>
               <button
                 type="button"

@@ -27,7 +27,31 @@ describe("GuardianTrackerView Component (Feature 3: Zero-Install Ephemeral Respo
     expect(sapsLink).toBeInTheDocument();
     expect(sapsLink).toHaveAttribute("href", "tel:10111");
 
-    expect(screen.getByText(/Chris Hani Baragwanath TCC/i)).toBeInTheDocument();
+    expect(screen.getByText(/(Helen Joseph|Chris Hani Baragwanath) TCC/i)).toBeInTheDocument();
+  });
+
+  it("reads live beacon telemetry from localStorage (pcalc_last_beacon) and dynamically finds nearest care facility with distance in km", () => {
+    localStorage.setItem(
+      "pcalc_last_beacon",
+      JSON.stringify({
+        id: "local-beacon-123",
+        latitude: -26.2606,
+        longitude: 27.9429,
+        accuracyMeters: 8,
+        areaName: "Soweto / Diepkloof",
+        batteryPercentage: 91,
+      })
+    );
+
+    render(<GuardianTrackerView />);
+
+    expect(screen.getByText("Soweto / Diepkloof")).toBeInTheDocument();
+    expect(screen.getByText("91%")).toBeInTheDocument();
+    expect(screen.getByText(/Accuracy: ±8m/i)).toBeInTheDocument();
+    expect(screen.getByText("Chris Hani Baragwanath TCC")).toBeInTheDocument();
+    expect(screen.getByText(/km away/i)).toBeInTheDocument();
+
+    localStorage.clear();
   });
 
   it("allows the responder to acknowledge distress and logs en route confirmation", () => {
@@ -39,6 +63,27 @@ describe("GuardianTrackerView Component (Feature 3: Zero-Install Ephemeral Respo
     fireEvent.click(ackBtn);
 
     expect(screen.getByText(/Response Acknowledged: En Route to Survivor/i)).toBeInTheDocument();
+  });
+
+  it("broadcasts acknowledgment signal and writes to localStorage when responder acknowledges", () => {
+    const dispatchSpy = vi.spyOn(window, "dispatchEvent");
+    render(<GuardianTrackerView beaconToken="ack-test-token" />);
+
+    const ackBtn = screen.getByRole("button", { name: /Acknowledge Distress: I Am Responding/i });
+    fireEvent.click(ackBtn);
+
+    const storedAck = localStorage.getItem("pcalc_beacon_ack");
+    expect(storedAck).not.toBeNull();
+    const parsed = JSON.parse(storedAck!);
+    expect(parsed.token).toBe("ack-test-token");
+    expect(dispatchSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: "pcalc_beacon_acknowledged",
+      })
+    );
+
+    dispatchSpy.mockRestore();
+    localStorage.clear();
   });
 
   it("switches to discreet dimmed mode when eye icon is clicked and restores", () => {

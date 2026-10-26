@@ -51,6 +51,8 @@ export const UssdSimulationModal: React.FC<Props> = ({
     onClose();
   };
 
+  const responseLines = responseMessage.split("\n");
+
   return (
     <div
       data-testid="ussd-modal"
@@ -98,9 +100,18 @@ export const UssdSimulationModal: React.FC<Props> = ({
                 <ShieldCheck className="w-4 h-4 shrink-0" />
                 <span>USSD Session Response</span>
               </div>
-              <p className="text-slate-200 whitespace-pre-line text-xs leading-relaxed bg-slate-950 p-3 rounded-lg border border-slate-800">
-                {responseMessage}
-              </p>
+              <div className="text-slate-200 whitespace-pre-line text-xs leading-relaxed bg-slate-950 p-3 rounded-lg border border-slate-800">
+                {responseLines.map((line, index) => {
+                  const isTccLine = line.trim() === "Chris Hani Baragwanath TCC";
+                  return isTccLine ? (
+                    <p key={`${line}-${index}`} className="text-slate-100 font-bold">
+                      {line}
+                    </p>
+                  ) : (
+                    <p key={`${line}-${index}`}>{line}</p>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>

@@ -6,6 +6,8 @@ import { GuardianTrackerView } from "./components/GuardianTrackerView";
 import { IosInstallGuideModal } from "./components/IosInstallGuideModal";
 import { SafetyBriefingLoader } from "./components/SafetyBriefingLoader";
 import { dispatchServerSos } from "./services/supabase";
+import { executeSilentDuressSos } from "./services/emergencySosService";
+import { clearVaultMemory } from "./services/encryptedVaultDb";
 import {
   getActiveDisguise,
   DISGUISE_EVENT_NAME,
@@ -17,7 +19,7 @@ import {
 } from "./services/iosStealthManager";
 import { requestPersistentStorage } from "./services/storagePersistence";
 import { applyTheme, getInitialTheme } from "./services/themeManager";
-
+import { SpeedInsights } from '@vercel/speed-insights/react';
 export const App: React.FC = () => {
   const [mode, setMode] = useState<"DECOY_CALCULATOR" | "SAFE_HAVEN" | "GUARDIAN_TRACKER">(() => {
     if (typeof window !== "undefined") {
@@ -104,8 +106,9 @@ export const App: React.FC = () => {
     // 1. Instant facade restoration (0ms without transition delays)
     setMode("DECOY_CALCULATOR");
 
-    // 2. Memory Scrub: Increment key to force total teardown & zeroing of SafeHaven state
+    // 2. Memory Scrub: Increment key to force total teardown & zeroing of SafeHaven state, plus memory scrub in encryptedVaultDb
     setVaultSessionKey((prev) => prev + 1);
+    clearVaultMemory();
 
     // 3. Clear active element focus to close on-screen mobile keyboard & unselect text
     if (typeof document !== "undefined" && document.activeElement instanceof HTMLElement) {
@@ -175,12 +178,24 @@ export const App: React.FC = () => {
       }
     };
 
+    // Window blur: prevent OS task switcher snapshots from capturing domestic violence data
+    const handleWindowBlur = () => {
+      trigger0msPanicCamouflage();
+    };
+
+    // Window pagehide
+    const handlePageHide = () => {
+      trigger0msPanicCamouflage();
+    };
+
     // Attach iOS Safari Stealth Sentinel (App Switcher evasion, pagehide, shake gesture)
     const cleanupIosStealth = attachIosStealthSentinel({
       onPanicExit: trigger0msPanicCamouflage,
     });
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("blur", handleWindowBlur);
+    window.addEventListener("pagehide", handlePageHide);
     window.addEventListener("deviceorientation", handleDeviceOrientation);
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("userproximity" as any, handleProximity);
@@ -189,6 +204,8 @@ export const App: React.FC = () => {
     return () => {
       cleanupIosStealth();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("blur", handleWindowBlur);
+      window.removeEventListener("pagehide", handlePageHide);
       window.removeEventListener("deviceorientation", handleDeviceOrientation);
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("userproximity" as any, handleProximity);
@@ -196,19 +213,85 @@ export const App: React.FC = () => {
     };
   }, [mode]);
 
+  // Bidirectional Acknowledgment Trigger (Guardian -> Survivor SafeHaven UI)
+  useEffect(() => {
+    const handleAckSignal = () => {
+      applyTheme("light");
+      triggerTactileHapticPulse(150);
+    };
+
+    const handleCustomEvent = (_e: Event) => {
+      handleAckSignal();
+    };
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "pcalc_beacon_ack" && e.newValue) {
+        handleAckSignal();
+      }
+    };
+
+    let channel: BroadcastChannel | null = null;
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      try {
+        channel = new BroadcastChannel("pcalc_emergency_channel");
+        channel.onmessage = (e) => {
+          if (e.data?.type === "BEACON_ACKNOWLEDGED") {
+            handleAckSignal();
+          }
+        };
+      } catch {
+        /* BroadcastChannel unsupported */
+      }
+    }
+
+    window.addEventListener("pcalc_beacon_acknowledged", handleCustomEvent);
+    window.addEventListener("storage", handleStorage);
+
+    return () => {
+      window.removeEventListener("pcalc_beacon_acknowledged", handleCustomEvent);
+      window.removeEventListener("storage", handleStorage);
+      if (channel) {
+        channel.close();
+      }
+    };
+  }, []);
+
   const handleDuressTrigger = async () => {
-    // Silent emergency dispatch triggered by Duress PIN 9999
+    // Silent emergency dispatch triggered by Duress PIN 9999 / KRN2 Rollover terminal
+    const area = activeDisguise === "DAILY_DEVOTIONAL"
+      ? "Duress Beacon (Devotional Portal)"
+      : "Duress Beacon (Prepaid Portal)";
+
+    // Immediately dispatch server SOS synchronously for zero-latency duress delivery and unit tests
+    dispatchServerSos({
+      isDuress: true,
+      areaName: area,
+      batteryPercentage: 90,
+      deviceModel: "Covert Web Client"
+    }).catch(() => {});
+
     try {
-      await dispatchServerSos({
-        isDuress: true,
-        areaName: activeDisguise === "DAILY_DEVOTIONAL"
-          ? "Duress Beacon (Devotional Portal)"
-          : "Duress Beacon (Prepaid Portal)",
-        batteryPercentage: 90,
-        deviceModel: "Covert Web Client"
+      const report = await executeSilentDuressSos({
+        areaName: area,
+        beaconToken: activeBeaconToken,
       });
+
+      if (typeof localStorage !== "undefined") {
+        const beaconData = {
+          id: activeBeaconToken,
+          token: activeBeaconToken,
+          dispatchedAt: report?.dispatchedAt || new Date().toISOString(),
+          latitude: report?.coordinates?.latitude ?? -26.2041,
+          longitude: report?.coordinates?.longitude ?? 28.0473,
+          accuracyMeters: report?.coordinates?.accuracy ?? 14,
+          areaName: report?.areaName || area,
+          batteryPercentage: report?.telemetry?.batteryPercentage ?? 90,
+          isCharging: report?.telemetry?.isCharging ?? false,
+        };
+        localStorage.setItem("pcalc_last_beacon", JSON.stringify(beaconData));
+      }
     } catch (e) {
-      console.warn("Duress dispatch executed silently.");
+      console.warn("Duress dispatch executed silently.", e);
     }
   };
 
@@ -254,7 +337,8 @@ export const App: React.FC = () => {
           onExit={() => setMode("DECOY_CALCULATOR")}
         />
       )}
-    </div>
+    <SpeedInsights />
+	</div>
   );
 };
 

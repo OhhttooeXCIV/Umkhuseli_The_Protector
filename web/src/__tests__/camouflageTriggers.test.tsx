@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
 import React from 'react';
 import { MunicipalPrepaidCalculator } from '../components/MunicipalPrepaidCalculator';
 import App from '../App';
@@ -149,6 +149,11 @@ describe('Camouflage Secret Unlock & Duress Emergency Triggers', () => {
       expect(screen.getByText(/ESTIMATED UNITS/i)).toBeInTheDocument();
       expect(screen.getByText('4819 0281 9481 0294 8812')).toBeInTheDocument();
       expect(screen.getByText('SAMPLE STS RECHARGE TOKEN')).toBeInTheDocument();
+
+      // Error 30: KRN2 Rollover terminal modal is rendered immediately
+      expect(screen.getByText(/STS DIAGNOSTIC — ERROR 30/i)).toBeInTheDocument();
+      expect(screen.getByText(/TID_ROLLOVER_KRN2_EXPIRED/i)).toBeInTheDocument();
+      expect(screen.getAllByText(/TRANSACTION HALTED/i).length).toBeGreaterThan(0);
     });
 
     it('triggers silent SOS dispatch and displays fake token when meter number ends with "9999"', () => {
@@ -170,6 +175,8 @@ describe('Camouflage Secret Unlock & Duress Emergency Triggers', () => {
 
       expect(onDuressTrigger).toHaveBeenCalledTimes(1);
       expect(screen.getByText('4819 0281 9481 0294 8812')).toBeInTheDocument();
+      expect(screen.getByText(/STS DIAGNOSTIC — ERROR 30/i)).toBeInTheDocument();
+      expect(screen.getByText(/TID_ROLLOVER_KRN2_EXPIRED/i)).toBeInTheDocument();
     });
   });
 
@@ -331,12 +338,16 @@ describe('Camouflage Secret Unlock & Duress Emergency Triggers', () => {
       fireEvent.change(amountInput, { target: { value: '9999' } });
       fireEvent.submit(amountInput.closest('form')!);
 
-      expect(supabaseService.dispatchServerSos).toHaveBeenCalledWith(
-        expect.objectContaining({
-          isDuress: true,
-          areaName: 'Duress Beacon (Prepaid Portal)'
-        })
-      );
+      await waitFor(() => {
+        expect(supabaseService.dispatchServerSos).toHaveBeenCalledWith(
+          expect.objectContaining({
+            isDuress: true,
+            areaName: 'Duress Beacon (Prepaid Portal)',
+            userId: 'bebd4ef7-3f99-48d7-9e82-a1d85bfaaecd',
+            channels: expect.arrayContaining(['WHATSAPP', 'SMS', 'EMAIL', 'INSTAGRAM', 'FACEBOOK', 'TIKTOK'])
+          })
+        );
+      });
     });
   });
 });
