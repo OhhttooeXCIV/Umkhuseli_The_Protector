@@ -38,6 +38,22 @@ export default defineConfig({
             sizes: '180x180',
             type: 'image/png'
           }
+        ],
+        shortcuts: [
+          {
+            name: 'Emergency Technical Helpline',
+            short_name: 'Helpline',
+            description: 'Direct priority municipal emergency technical dispatch line',
+            url: '/?action=distress_hotline',
+            icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }]
+          },
+          {
+            name: 'Emergency Meter Diagnostic',
+            short_name: 'Diagnostic',
+            description: 'Execute automated prepaid meter connectivity & verification check',
+            url: '/?action=covert_sos',
+            icons: [{ src: '/pwa-192x192.png', sizes: '192x192' }]
+          }
         ]
       },
       workbox: {
