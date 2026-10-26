@@ -124,7 +124,7 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
   const [permissionsStatus, setPermissionsStatus] = useState<{
     geolocation: "granted" | "prompt" | "denied" | "unknown";
     storage: "persisted" | "not_persisted" | "unknown";
-    notifications: "granted" | "default" | "denied" | "unsupported";
+    notifications: "granted" | "default" | "denied" | "unsupported" | "unknown";
   }>({
     geolocation: "unknown",
     storage: "unknown",
