@@ -63,6 +63,13 @@ import { SouthAfricanLegalRights } from "./SouthAfricanLegalRights";
 import { GoogleMapsSafeHavenView } from "./GoogleMapsSafeHavenView";
 import { Form2CourtRecordViewerModal, CourtIncidentRecord } from "./Form2CourtRecordViewerModal";
 import {
+  saveIncidentEncrypted,
+  getIncidentsDecrypted,
+  deleteIncident as deleteVaultIncident,
+  clearVaultMemory,
+  DEFAULT_INITIAL_INCIDENT,
+} from "../services/encryptedVaultDb";
+import {
   VehicleJourneyDetails,
   getActiveJourney,
   clearActiveJourney,
@@ -109,30 +116,38 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
   const [showPinEntry, setShowPinEntry] = useState(false);
   const [centresViewMode, setCentresViewMode] = useState<"map" | "list">("map");
 
-  const [recordedIncidents, setRecordedIncidents] = useState<CourtIncidentRecord[]>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const saved = localStorage.getItem("umkhuseli_recorded_incidents");
-        if (saved) return JSON.parse(saved);
-      } catch {}
-    }
-    return [
-      {
-        id: "inc-1",
-        type: "Verbal & Threat of Harm",
-        severity: 3,
-        perpetrator: "Partner",
-        location: "Shared residence (living room)",
-        date: "24 Oct 2026, 08:49",
-        statement:
-          "The perpetrator threatened physical harm and attempted to confiscate communications device. Demanded financial access under duress.",
-        injuriesOrImpact: "Severe psychological trauma, emotional distress",
-        witnesses: "Family member in adjacent room",
-        isEncrypted: true,
-        sha256Checksum: "9b4f738a1099238e8bc2140d39e3845b5930219c8f00129ad89bcf21798e1042",
-      },
-    ];
-  });
+  const [recordedIncidents, setRecordedIncidents] = useState<CourtIncidentRecord[]>([
+    DEFAULT_INITIAL_INCIDENT,
+  ]);
+
+  // Load encrypted incidents from IndexedDB
+  useEffect(() => {
+    let isMounted = true;
+    getIncidentsDecrypted(isVaultUnlocked ? pinInput : undefined)
+      .then((records) => {
+        if (isMounted && records && records.length > 0) {
+          setRecordedIncidents(records);
+        }
+      })
+      .catch((e) => console.warn("Encrypted vault load deferred:", e));
+    return () => {
+      isMounted = false;
+    };
+  }, [isVaultUnlocked]);
+
+  // 0ms Panic Camouflage Scrub Handler
+  const handlePanicExit = () => {
+    setRecordedIncidents([]);
+    clearVaultMemory();
+    onPanicLock();
+  };
+
+  // Ensure vault memory is scrubbed on unmount
+  useEffect(() => {
+    return () => {
+      clearVaultMemory();
+    };
+  }, []);
 
   // Personal Profile Form State
   const [personalFullName, setPersonalFullName] = useState(() => getUatProfile().personal.fullName);
@@ -322,9 +337,9 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
   const handleDeleteIncident = (id: string) => {
     const updated = recordedIncidents.filter((i) => i.id !== id);
     setRecordedIncidents(updated);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("umkhuseli_recorded_incidents", JSON.stringify(updated));
-    }
+    deleteVaultIncident(id).catch((err) => {
+      console.warn("Failed to delete encrypted vault incident:", err);
+    });
   };
 
   const handleDeleteIceContact = (id: string) => {
@@ -416,13 +431,16 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
   useEffect(() => {
     const handleOnline = async () => {
       try {
-        const rawQueue = localStorage.getItem("umkhuseli_offline_sos_queue");
+        const rawQueue =
+          localStorage.getItem("pcalc_offline_queue") ||
+          localStorage.getItem("umkhuseli_offline_sos_queue");
         if (rawQueue) {
           const queue = JSON.parse(rawQueue);
           if (Array.isArray(queue) && queue.length > 0) {
             for (const item of queue) {
               await dispatchServerSos(item);
             }
+            localStorage.removeItem("pcalc_offline_queue");
             localStorage.removeItem("umkhuseli_offline_sos_queue");
             setSosStatus("✓ Loadshedding cleared: Offline distress queue synchronized with cloud network.");
           }
@@ -515,13 +533,18 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
     } catch (err: any) {
       // Save to offline local queue
       try {
-        const queue = JSON.parse(localStorage.getItem("umkhuseli_offline_sos_queue") || "[]");
+        const queue = JSON.parse(
+          localStorage.getItem("pcalc_offline_queue") ||
+          localStorage.getItem("umkhuseli_offline_sos_queue") ||
+          "[]"
+        );
         queue.push({
           timestamp: new Date().toISOString(),
           batteryPercentage: batteryLevel,
           isOffline: true
         });
-        localStorage.setItem("umkhuseli_offline_sos_queue", JSON.stringify(queue));
+        localStorage.setItem("pcalc_offline_queue", JSON.stringify(queue));
+        localStorage.removeItem("umkhuseli_offline_sos_queue");
       } catch (storageErr) {
         // Storage access may be restricted in private browsing
       }
@@ -647,12 +670,9 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
         isEncrypted: false,
         sha256Checksum: result.sha256Checksum || "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       };
-      setRecordedIncidents((prev) => {
-        const updated = [newCourtRecord, ...prev];
-        if (typeof window !== "undefined") {
-          localStorage.setItem("umkhuseli_recorded_incidents", JSON.stringify(updated));
-        }
-        return updated;
+      setRecordedIncidents((prev) => [newCourtRecord, ...prev]);
+      saveIncidentEncrypted(newCourtRecord, pinInput).catch((err) => {
+        console.warn("Failed to save encrypted incident:", err);
       });
 
       // Reset form fields
@@ -746,7 +766,7 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between max-w-md mx-auto select-none border-x border-slate-800">
       {/* Top Safe Haven Header */}
-      <header onDoubleClick={onPanicLock} title="Double-tap to trigger 0ms Panic Camouflage" className="bg-slate-900 border-b border-slate-800 p-4 pt-safe flex items-center justify-between sticky top-0 z-50 cursor-pointer">
+      <header onDoubleClick={handlePanicExit} title="Double-tap to trigger 0ms Panic Camouflage" className="bg-slate-900 border-b border-slate-800 p-4 pt-safe flex items-center justify-between sticky top-0 z-50 cursor-pointer">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center">
             <ShieldAlert className="w-5 h-5 text-amber-400" />
@@ -761,7 +781,7 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
 
         {/* Panic Wipe / Camouflage Button */}
         <button
-          onClick={onPanicLock}
+          onClick={handlePanicExit}
           className="flex items-center gap-1.5 bg-rose-950 hover:bg-rose-900 border border-rose-600/50 text-rose-300 text-xs font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all shadow-lg shadow-rose-950/50"
         >
           <EyeOff className="w-3.5 h-3.5 text-rose-400" />

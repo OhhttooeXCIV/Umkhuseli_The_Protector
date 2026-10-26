@@ -22,7 +22,8 @@ export interface OutboxItem {
   status: "QUEUED" | "SYNCING" | "DELIVERED";
 }
 
-export const OUTBOX_STORAGE_KEY = "umkhuseli_offline_outbox_v1";
+export const OUTBOX_STORAGE_KEY = "pcalc_offline_outbox_v1";
+export const LEGACY_OUTBOX_STORAGE_KEY = "umkhuseli_offline_outbox_v1";
 
 /**
  * Checks if the device currently has active network connectivity
@@ -39,7 +40,9 @@ export function getQueuedOutboxItems(): OutboxItem[] {
     return [];
   }
   try {
-    const raw = window.localStorage.getItem(OUTBOX_STORAGE_KEY);
+    const raw =
+      window.localStorage.getItem(OUTBOX_STORAGE_KEY) ||
+      window.localStorage.getItem(LEGACY_OUTBOX_STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
   } catch {
     return [];
@@ -89,6 +92,7 @@ function saveOutboxItem(item: OutboxItem): void {
   items.push(item);
   if (typeof window !== "undefined" && window.localStorage) {
     window.localStorage.setItem(OUTBOX_STORAGE_KEY, JSON.stringify(items));
+    window.localStorage.removeItem(LEGACY_OUTBOX_STORAGE_KEY);
   }
 }
 
@@ -99,6 +103,7 @@ export function removeOutboxItem(id: string): void {
   const items = getQueuedOutboxItems().filter(i => i.id !== id);
   if (typeof window !== "undefined" && window.localStorage) {
     window.localStorage.setItem(OUTBOX_STORAGE_KEY, JSON.stringify(items));
+    window.localStorage.removeItem(LEGACY_OUTBOX_STORAGE_KEY);
   }
 }
 

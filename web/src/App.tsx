@@ -40,7 +40,10 @@ export const App: React.FC = () => {
       if (typeof process !== "undefined" && process.env?.NODE_ENV === "test") {
         return false;
       }
-      return localStorage.getItem("umkhuseli_safety_briefing_seen") !== "true";
+      const seen =
+        localStorage.getItem("pcalc_briefing_seen") === "true" ||
+        localStorage.getItem("umkhuseli_safety_briefing_seen") === "true";
+      return !seen;
     }
     return false;
   });
@@ -59,7 +62,9 @@ export const App: React.FC = () => {
       const action = params.get("action");
       if (action === "distress_hotline") {
         window.history.replaceState({}, document.title, window.location.pathname);
-        const uat = localStorage.getItem("umkhuseli_uat_mode_active") === "true";
+        const uat =
+          localStorage.getItem("pcalc_uat_active") === "true" ||
+          localStorage.getItem("umkhuseli_uat_mode_active") === "true";
         if (uat) {
           alert("⚡ [UAT Simulation Active]\nCovert distress hotline initiated.\nSimulated dispatch broadcast to 5 ICE contacts. Live call suppressed.");
         } else {

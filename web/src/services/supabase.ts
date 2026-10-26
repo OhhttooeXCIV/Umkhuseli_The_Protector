@@ -199,12 +199,17 @@ export async function submitUatFeedback(feedback: UatFeedbackSubmission) {
   const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
 
   if (!isOnline) {
-    const queue = JSON.parse(localStorage.getItem("umkhuseli_offline_uat_feedback") || "[]");
+    const queue = JSON.parse(
+      localStorage.getItem("pcalc_offline_feedback") ||
+      localStorage.getItem("umkhuseli_offline_uat_feedback") ||
+      "[]"
+    );
     queue.push({
       ...feedback,
       queuedAt: new Date().toISOString()
     });
-    localStorage.setItem("umkhuseli_offline_uat_feedback", JSON.stringify(queue));
+    localStorage.setItem("pcalc_offline_feedback", JSON.stringify(queue));
+    localStorage.removeItem("umkhuseli_offline_uat_feedback");
     return {
       success: true,
       offlineStored: true,
@@ -247,12 +252,17 @@ export async function submitUatFeedback(feedback: UatFeedbackSubmission) {
     };
   } catch (err: any) {
     // If Supabase insert fails, gracefully fall back to local outbox
-    const queue = JSON.parse(localStorage.getItem("umkhuseli_offline_uat_feedback") || "[]");
+    const queue = JSON.parse(
+      localStorage.getItem("pcalc_offline_feedback") ||
+      localStorage.getItem("umkhuseli_offline_uat_feedback") ||
+      "[]"
+    );
     queue.push({
       ...feedback,
       queuedAt: new Date().toISOString()
     });
-    localStorage.setItem("umkhuseli_offline_uat_feedback", JSON.stringify(queue));
+    localStorage.setItem("pcalc_offline_feedback", JSON.stringify(queue));
+    localStorage.removeItem("umkhuseli_offline_uat_feedback");
     return {
       success: true,
       offlineStored: true,

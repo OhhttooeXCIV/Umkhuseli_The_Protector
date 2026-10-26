@@ -176,10 +176,12 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
     window.addEventListener("offline", updateTelemetry);
 
     const handleUatUpdate = () => setUatProfileState(getUatProfile());
+    window.addEventListener("pcalc_uat_profile_updated", handleUatUpdate);
     window.addEventListener("umkhuseli_uat_profile_updated", handleUatUpdate);
 
     return () => {
       window.removeEventListener(THEME_CHANGE_EVENT, handleThemeChange);
+      window.removeEventListener("pcalc_uat_profile_updated", handleUatUpdate);
       window.removeEventListener("umkhuseli_uat_profile_updated", handleUatUpdate);
       clearInterval(tick);
       clearInterval(loadsheddingInterval);

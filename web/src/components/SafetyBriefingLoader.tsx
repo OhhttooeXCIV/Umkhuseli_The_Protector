@@ -76,7 +76,8 @@ export const SAFETY_BRIEFING_SLIDES: InstructionSlide[] = [
   },
 ];
 
-const DISMISS_STORAGE_KEY = "umkhuseli_safety_briefing_seen";
+const DISMISS_STORAGE_KEY = "pcalc_briefing_seen";
+const LEGACY_DISMISS_STORAGE_KEY = "umkhuseli_safety_briefing_seen";
 
 interface Props {
   onComplete: () => void;
@@ -109,6 +110,7 @@ export const SafetyBriefingLoader: React.FC<Props> = ({ onComplete, forceShow = 
     if (dontShowAgain && typeof window !== "undefined") {
       try {
         localStorage.setItem(DISMISS_STORAGE_KEY, "true");
+        localStorage.removeItem(LEGACY_DISMISS_STORAGE_KEY);
       } catch {
         /* localStorage fallback */
       }

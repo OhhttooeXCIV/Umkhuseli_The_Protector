@@ -42,7 +42,10 @@ export interface UatProfile {
   socials: EmergencySocials;
 }
 
-const STORAGE_KEY = "umkhuseli_uat_ice_profile";
+const STORAGE_KEY = "pcalc_uat_profile";
+const LEGACY_STORAGE_KEYS = ["umkhuseli_uat_ice_profile", "umkhuseli_uat_profile", "pcalc_uat_ice_profile"];
+const UAT_ACTIVE_KEY = "pcalc_uat_active";
+const LEGACY_UAT_ACTIVE_KEY = "umkhuseli_uat_mode_active";
 
 export const DEFAULT_UAT_PROFILE: UatProfile = {
   isUatMode: false,
@@ -184,9 +187,21 @@ export function getUatProfile(): UatProfile {
     };
   }
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    let raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      for (const legacyKey of LEGACY_STORAGE_KEYS) {
+        raw = localStorage.getItem(legacyKey);
+        if (raw) break;
+      }
+    }
     if (raw) {
-      return JSON.parse(raw);
+      const parsed: UatProfile = JSON.parse(raw);
+      // Fallback check for uat active flag
+      const uatActive = localStorage.getItem(UAT_ACTIVE_KEY) ?? localStorage.getItem(LEGACY_UAT_ACTIVE_KEY);
+      if (uatActive !== null) {
+        parsed.isUatMode = uatActive === "true";
+      }
+      return parsed;
     }
   } catch {
     /* fallback */
@@ -203,6 +218,15 @@ export function saveUatProfile(profile: UatProfile): void {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+    localStorage.setItem(UAT_ACTIVE_KEY, String(profile.isUatMode));
+    // Clean up legacy keys
+    for (const legacyKey of LEGACY_STORAGE_KEYS) {
+      localStorage.removeItem(legacyKey);
+    }
+    localStorage.removeItem(LEGACY_UAT_ACTIVE_KEY);
+
+    // Dispatch primary de-identified event and legacy event for compatibility
+    window.dispatchEvent(new CustomEvent("pcalc_uat_profile_updated", { detail: profile }));
     window.dispatchEvent(new CustomEvent("umkhuseli_uat_profile_updated", { detail: profile }));
   } catch {
     /* fallback */
