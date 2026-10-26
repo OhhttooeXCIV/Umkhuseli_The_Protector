@@ -301,18 +301,20 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
     if (isUatMode) {
       setSosStatus("🧪 UAT SIMULATION: Dispatching simulated distress beacon to test guardians...");
       const simulatedPayload = {
-        areaName: "Johannesburg Central (Simulated UAT GPS)",
+        areaName: uatProfile.personal.address || "Johannesburg Central (Simulated UAT GPS)",
         latitude: -26.2041,
         longitude: 28.0473,
         batteryPercentage: 92,
         isCharging: false,
         deviceModel: navigator.userAgent.includes("Android") ? "Android Test Device" : "iOS/Web Test Device",
-        targetGuardians: UAT_SIMULATED_GUARDIANS,
+        targetGuardians: uatProfile.contacts,
+        personal: uatProfile.personal,
+        socials: uatProfile.socials,
         timestamp: new Date().toLocaleTimeString("en-ZA")
       };
       setSimulatedDispatchPayload(simulatedPayload);
       setSimulatedDispatchSent(true);
-      setSosStatus("✓ SIMULATED DISPATCH DELIVERED: Alert received by 2 test guardians. No live authorities called.");
+      setSosStatus(`✓ SIMULATED DISPATCH DELIVERED: Alert received by ${uatProfile.contacts.length} registered ICE guardians & emergency email. No live authorities called.`);
       return;
     }
 
@@ -584,10 +586,7 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
           </div>
           <button
             type="button"
-            onClick={() => {
-              setIsUatMode(!isUatMode);
-              setSimulatedDispatchSent(false);
-            }}
+            onClick={handleToggleUat}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
               isUatMode
                 ? "bg-amber-500 hover:bg-amber-400 text-black shadow-md shadow-amber-500/20"
