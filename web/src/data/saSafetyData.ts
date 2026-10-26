@@ -19,6 +19,43 @@ export interface ThuthuzelaCenter {
   contactNumber: string;
   altContactNumber?: string;
   address: string;
+  latitude: number;
+  longitude: number;
+  distanceKm?: number;
+}
+
+/**
+ * Calculates distance in kilometers between two GPS coordinates using Haversine formula
+ */
+export function calculateDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Earth radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return Math.round(R * c * 10) / 10;
+}
+
+/**
+ * Sorts centres by distance relative to a given user coordinate
+ */
+export function sortCentresByDistance(
+  centres: ThuthuzelaCenter[],
+  userLat?: number,
+  userLng?: number
+): (ThuthuzelaCenter & { distanceKm?: number })[] {
+  if (userLat === undefined || userLng === undefined || isNaN(userLat) || isNaN(userLng)) {
+    return centres;
+  }
+  return centres
+    .map((c) => ({
+      ...c,
+      distanceKm: calculateDistanceKm(userLat, userLng, c.latitude, c.longitude),
+    }))
+    .sort((a, b) => (a.distanceKm ?? 999999) - (b.distanceKm ?? 999999));
 }
 
 export const NATIONAL_LIFELINES: SafetyResource[] = [
@@ -89,7 +126,9 @@ export const THUTHUZELA_CENTERS: ThuthuzelaCenter[] = [
     province: "Gauteng",
     contactNumber: "0119339111",
     altContactNumber: "0119338000",
-    address: "26 Chris Hani Rd, Diepkloof Zone 6, Soweto"
+    address: "26 Chris Hani Rd, Diepkloof Zone 6, Soweto",
+    latitude: -26.2606,
+    longitude: 27.9429
   },
   {
     id: "gp_helen_joseph",
@@ -99,7 +138,9 @@ export const THUTHUZELA_CENTERS: ThuthuzelaCenter[] = [
     province: "Gauteng",
     contactNumber: "0114891011",
     altContactNumber: "0114890600",
-    address: "1 Perth Rd, Westdene, Johannesburg"
+    address: "1 Perth Rd, Westdene, Johannesburg",
+    latitude: -26.1839,
+    longitude: 27.9998
   },
   {
     id: "gp_kalafong",
@@ -109,7 +150,9 @@ export const THUTHUZELA_CENTERS: ThuthuzelaCenter[] = [
     province: "Gauteng",
     contactNumber: "0123186400",
     altContactNumber: "0123738011",
-    address: "Klipspringer St, Atteridgeville, Pretoria"
+    address: "Klipspringer St, Atteridgeville, Pretoria",
+    latitude: -25.7667,
+    longitude: 28.0906
   },
   {
     id: "gp_thembisa",
@@ -118,7 +161,9 @@ export const THUTHUZELA_CENTERS: ThuthuzelaCenter[] = [
     cityOrTown: "Tembisa, Ekurhuleni",
     province: "Gauteng",
     contactNumber: "0119232000",
-    address: "Flint Mazibuko St, Hospital View, Tembisa"
+    address: "Flint Mazibuko St, Hospital View, Tembisa",
+    latitude: -25.9925,
+    longitude: 28.2272
   },
   {
     id: "gp_far_east",
@@ -127,7 +172,9 @@ export const THUTHUZELA_CENTERS: ThuthuzelaCenter[] = [
     cityOrTown: "Springs, Ekurhuleni",
     province: "Gauteng",
     contactNumber: "0118128300",
-    address: "Hospital Rd, New State Areas, Springs"
+    address: "Hospital Rd, New State Areas, Springs",
+    latitude: -26.2575,
+    longitude: 28.4597
   },
 
   // WESTERN CAPE
@@ -139,7 +186,9 @@ export const THUTHUZELA_CENTERS: ThuthuzelaCenter[] = [
     province: "Western Cape",
     contactNumber: "0219181321",
     altContactNumber: "0219181911",
-    address: "Cnr Mike Pienaar Blvd & Frans Conradie Ave, Bellville"
+    address: "Cnr Mike Pienaar Blvd & Frans Conradie Ave, Bellville",
+    latitude: -33.8967,
+    longitude: 18.6258
   },
   {
     id: "wc_heideveld",
@@ -148,7 +197,9 @@ export const THUTHUZELA_CENTERS: ThuthuzelaCenter[] = [
     cityOrTown: "Athlone / Cape Flats, Cape Town",
     province: "Western Cape",
     contactNumber: "0216993200",
-    address: "Heideveld Rd, Heideveld, Cape Town"
+    address: "Heideveld Rd, Heideveld, Cape Town",
+    latitude: -33.9744,
+    longitude: 18.5447
   },
   {
     id: "wc_victoria",
@@ -157,7 +208,9 @@ export const THUTHUZELA_CENTERS: ThuthuzelaCenter[] = [
     cityOrTown: "Wynberg, Cape Town",
     province: "Western Cape",
     contactNumber: "0217991111",
-    address: "Alphen Hill Rd, Wynberg, Cape Town"
+    address: "Alphen Hill Rd, Wynberg, Cape Town",
+    latitude: -34.0097,
+    longitude: 18.4619
   },
   {
     id: "wc_khayelitsha",
@@ -166,7 +219,9 @@ export const THUTHUZELA_CENTERS: ThuthuzelaCenter[] = [
     cityOrTown: "Khayelitsha, Cape Town",
     province: "Western Cape",
     contactNumber: "0213604200",
-    address: "Cnr Steve Biko & Walter Sisulu Rds, Khayelitsha"
+    address: "Cnr Steve Biko & Walter Sisulu Rds, Khayelitsha",
+    latitude: -34.0411,
+    longitude: 18.6792
   },
 
   // KWAZULU-NATAL
@@ -177,7 +232,9 @@ export const THUTHUZELA_CENTERS: ThuthuzelaCenter[] = [
     cityOrTown: "Congella, Durban",
     province: "KwaZulu-Natal",
     contactNumber: "0313603111",
-    address: "Rick Turner Rd & Sydney Rd, Congella, Durban"
+    address: "Rick Turner Rd & Sydney Rd, Congella, Durban",
+    latitude: -29.8711,
+    longitude: 30.9906
   },
   {
     id: "kzn_rk_khan",
@@ -186,7 +243,9 @@ export const THUTHUZELA_CENTERS: ThuthuzelaCenter[] = [
     cityOrTown: "Chatsworth, Durban",
     province: "KwaZulu-Natal",
     contactNumber: "0314596000",
-    address: "336 R K Khan Cir, Westcliff, Chatsworth"
+    address: "336 R K Khan Cir, Westcliff, Chatsworth",
+    latitude: -29.9078,
+    longitude: 30.8872
   },
   {
     id: "kzn_mahatma_gandhi",
@@ -195,7 +254,9 @@ export const THUTHUZELA_CENTERS: ThuthuzelaCenter[] = [
     cityOrTown: "Phoenix, Durban",
     province: "KwaZulu-Natal",
     contactNumber: "0315021719",
-    address: "100 Phoenix Hwy, Phoenix, Durban"
+    address: "100 Phoenix Hwy, Phoenix, Durban",
+    latitude: -29.7042,
+    longitude: 31.0089
   },
 
   // EASTERN CAPE
@@ -206,7 +267,9 @@ export const THUTHUZELA_CENTERS: ThuthuzelaCenter[] = [
     cityOrTown: "Gqeberha (Port Elizabeth)",
     province: "Eastern Cape",
     contactNumber: "0414059111",
-    address: "Stanford Rd, Korsten, Gqeberha"
+    address: "Stanford Rd, Korsten, Gqeberha",
+    latitude: -33.9297,
+    longitude: 25.5861
   },
   {
     id: "ec_frere",
@@ -215,7 +278,9 @@ export const THUTHUZELA_CENTERS: ThuthuzelaCenter[] = [
     cityOrTown: "East London",
     province: "Eastern Cape",
     contactNumber: "0437091111",
-    address: "Amalinda Dr, Braelyn, East London"
+    address: "Amalinda Dr, Braelyn, East London",
+    latitude: -32.9972,
+    longitude: 27.8967
   },
 
   // FREE STATE
@@ -226,7 +291,9 @@ export const THUTHUZELA_CENTERS: ThuthuzelaCenter[] = [
     cityOrTown: "Bloemfontein",
     province: "Free State",
     contactNumber: "0514051911",
-    address: "Dr Belcher Rd, Heidedal, Bloemfontein"
+    address: "Dr Belcher Rd, Heidedal, Bloemfontein",
+    latitude: -29.1417,
+    longitude: 26.2411
   },
   {
     id: "fs_bongani",
@@ -235,7 +302,9 @@ export const THUTHUZELA_CENTERS: ThuthuzelaCenter[] = [
     cityOrTown: "Welkom",
     province: "Free State",
     contactNumber: "0579168000",
-    address: "Mothusi Rd, Thabong, Welkom"
+    address: "Mothusi Rd, Thabong, Welkom",
+    latitude: -27.9733,
+    longitude: 26.7419
   },
 
   // LIMPOPO
@@ -246,7 +315,9 @@ export const THUTHUZELA_CENTERS: ThuthuzelaCenter[] = [
     cityOrTown: "Polokwane",
     province: "Limpopo",
     contactNumber: "0152875000",
-    address: "Hospital St, Polokwane"
+    address: "Hospital St, Polokwane",
+    latitude: -23.9044,
+    longitude: 29.4689
   },
 
   // MPUMALANGA
@@ -257,7 +328,9 @@ export const THUTHUZELA_CENTERS: ThuthuzelaCenter[] = [
     cityOrTown: "Mbombela (Nelspruit)",
     province: "Mpumalanga",
     contactNumber: "0137416100",
-    address: "Piet Retief St, Mbombela"
+    address: "Piet Retief St, Mbombela",
+    latitude: -25.4744,
+    longitude: 30.9703
   },
 
   // NORTH WEST
@@ -268,7 +341,9 @@ export const THUTHUZELA_CENTERS: ThuthuzelaCenter[] = [
     cityOrTown: "Klerksdorp",
     province: "North West",
     contactNumber: "0184064600",
-    address: "Church St, Klerksdorp"
+    address: "Church St, Klerksdorp",
+    latitude: -26.8617,
+    longitude: 26.6667
   },
 
   // NORTHERN CAPE
@@ -279,7 +354,9 @@ export const THUTHUZELA_CENTERS: ThuthuzelaCenter[] = [
     cityOrTown: "Kimberley",
     province: "Northern Cape",
     contactNumber: "0538029111",
-    address: "Du Toitspan Rd, Belgravia, Kimberley"
+    address: "Du Toitspan Rd, Belgravia, Kimberley",
+    latitude: -28.7419,
+    longitude: 24.7639
   }
 ];
 

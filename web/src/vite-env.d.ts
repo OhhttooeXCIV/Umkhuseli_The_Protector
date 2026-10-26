@@ -60,4 +60,28 @@ declare module 'lucide-react' {
   export const Wifi: React.FC<any>;
   export const BatteryMedium: React.FC<any>;
   export const RotateCcw: React.FC<any>;
+  export const Trash2: React.FC<any>;
+  export const Briefcase: React.FC<any>;
+  export const ChevronDown: React.FC<any>;
+  export const ChevronUp: React.FC<any>;
+  export const ChevronLeft: React.FC<any>;
+  export const Plus: React.FC<any>;
+  export const Printer: React.FC<any>;
+  export const Edit3: React.FC<any>;
+  export const User: React.FC<any>;
+  export const PenTool: React.FC<any>;
+  export const Crosshair: React.FC<any>;
+  export const Compass: React.FC<any>;
+  export const Layers: React.FC<any>;
+  export const Scale: React.FC<any>;
+  export const AlertCircle: React.FC<any>;
+  export const Car: React.FC<any>;
+  export const Phone: React.FC<any>;
+  export const HeartPulse: React.FC<any>;
+  export const CheckCheck: React.FC<any>;
+}
+
+interface Window {
+  google?: any;
+  __umkhuseli_maps_init?: () => void;
 }

@@ -16,6 +16,8 @@ export interface EctaAffidavitInput {
   deponentName?: string;
   magistrateDistrict?: string;
   deviceFingerprint?: string;
+  signatureDataUrl?: string;
+  includeComplainantParticulars?: boolean;
 }
 
 /**
@@ -252,6 +254,14 @@ export function createEctaAffidavitPdf(data: EctaAffidavitInput): jsPDF {
   doc.setTextColor(100, 116, 139);
   doc.text("DEPONENT SIGNATURE / MARK", margin + 3, y + 4.5);
   doc.text("COMMISSIONER OF OATHS OFFICIAL STAMP & DATE", margin + boxWidth + 9, y + 4.5);
+
+  if (data.signatureDataUrl) {
+    try {
+      doc.addImage(data.signatureDataUrl, "PNG", margin + 2, y + 5, boxWidth - 4, boxHeight - 9);
+    } catch (e) {
+      console.warn("Failed to attach signature image to PDF:", e);
+    }
+  }
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(6.5);

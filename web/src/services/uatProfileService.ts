@@ -13,8 +13,12 @@ export interface IceContact {
   name: string;
   relationship: string;
   phone: string;
+  secondaryPhone?: string;
   email: string;
   isPrimary: boolean;
+  instagramHandle?: string;
+  tiktokHandle?: string;
+  facebookProfile?: string;
 }
 
 export interface PersonalProfile {
@@ -45,19 +49,25 @@ export const DEFAULT_UAT_PROFILE: UatProfile = {
   contacts: [
     {
       id: "ice-1",
-      name: "Sindi Khumalo",
+      name: "Lerato Khubeka",
       relationship: "Sister",
-      phone: "+27 82 555 0101",
-      email: "sindi.khumalo@example.co.za",
+      phone: "0820000001",
+      secondaryPhone: "0710000001",
+      email: "lerato.ice@example.com",
       isPrimary: true,
+      instagramHandle: "lerato_safeguard",
+      tiktokHandle: "lerato_k",
+      facebookProfile: "lerato.khubeka.sa",
     },
     {
       id: "ice-2",
       name: "Dr. Bongiwe Ndlovu",
       relationship: "Family Doctor / Medical ICE",
       phone: "+27 83 555 0102",
+      secondaryPhone: "+27 82 555 0199",
       email: "dr.bongiwe@example.co.za",
       isPrimary: false,
+      instagramHandle: "dr_bongiwe",
     },
     {
       id: "ice-3",
@@ -77,10 +87,10 @@ export const DEFAULT_UAT_PROFILE: UatProfile = {
     },
     {
       id: "ice-5",
-      name: "Lerato Modise",
+      name: "Sindi Khumalo",
       relationship: "Close Friend / Safe Haven Co-Holder",
       phone: "+27 84 555 0105",
-      email: "lerato.m@example.co.za",
+      email: "sindi.k@example.co.za",
       isPrimary: false,
     },
   ],
@@ -97,6 +107,72 @@ export const DEFAULT_UAT_PROFILE: UatProfile = {
     facebookProfile: "facebook.com/thandeka.nkosi.backup",
   },
 };
+
+/**
+ * Normalizes phone number into international dialing format for WhatsApp
+ */
+export function sanitizePhoneForWhatsApp(phone: string): string {
+  let cleaned = phone.replace(/[^\d+]/g, "");
+  if (cleaned.startsWith("+")) {
+    cleaned = cleaned.substring(1);
+  } else if (cleaned.startsWith("0")) {
+    cleaned = "27" + cleaned.substring(1);
+  }
+  return cleaned;
+}
+
+/**
+ * Generates an active 72-Hour Live Location WhatsApp Link to dispatch to an ICE contact.
+ */
+export function generateWhatsAppBeaconUrl(
+  contact: IceContact,
+  beaconToken: string = "beacon_72h_active",
+  coords?: { lat: number; lng: number }
+): string {
+  const phone = sanitizePhoneForWhatsApp(contact.phone || contact.secondaryPhone || "");
+  const origin = typeof window !== "undefined" && window.location.origin
+    ? window.location.origin
+    : "https://umkhuseli.app";
+  const beaconUrl = `${origin}?track=${encodeURIComponent(beaconToken)}`;
+
+  const locPart = coords
+    ? `\n📍 Last Known GPS: https://maps.google.com/?q=${coords.lat},${coords.lng}`
+    : "";
+
+  const text = encodeURIComponent(
+    `🚨 [UMKHUSELI SAFE HAVEN DISTRESS ALERT]\n` +
+    `Hello ${contact.name}, this is an emergency alert. I am currently facing an urgent situation and need your assistance.\n\n` +
+    `🛡️ 72-Hour Live Responder Link:\n${beaconUrl}${locPart}\n\n` +
+    `Please monitor my location or dispatch SAPS (10111) if I do not check in.`
+  );
+
+  return `https://api.whatsapp.com/send?phone=${phone}&text=${text}`;
+}
+
+/**
+ * Generates an emergency mailto link with distress telemetry to an ICE contact.
+ */
+export function generateDistressEmailUrl(
+  contact: IceContact,
+  coords?: { lat: number; lng: number }
+): string {
+  const recipient = contact.email || "";
+  const subject = encodeURIComponent("🚨 URGENT: GBV Distress Beacon Dispatched via Umkhuseli");
+  const locPart = coords
+    ? `\nCoordinates: ${coords.lat}, ${coords.lng}\nLive Map: https://maps.google.com/?q=${coords.lat},${coords.lng}\n`
+    : "";
+
+  const body = encodeURIComponent(
+    `EMERGENCY DISTRESS BEACON NOTIFICATION\n` +
+    `Recipient: ${contact.name} (${contact.relationship})\n` +
+    `Timestamp: ${new Date().toISOString()}\n` +
+    `${locPart}\n` +
+    `This alert was initiated from the Umkhuseli Safe Haven Protection System.\n` +
+    `Please attempt to verify my safety or contact the National GBV Command Centre at 0800 428 428.`
+  );
+
+  return `mailto:${recipient}?subject=${subject}&body=${body}`;
+}
 
 export function getUatProfile(): UatProfile {
   if (typeof window === "undefined") {
