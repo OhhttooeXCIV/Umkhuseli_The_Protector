@@ -31,6 +31,13 @@ import {
   submitUatFeedback,
   UAT_SIMULATED_GUARDIANS
 } from "../services/supabase";
+import {
+  getUatProfile,
+  saveUatProfile,
+  setUatMode,
+  UatProfile,
+  IceContact,
+} from "../services/uatProfileService";
 import { exportEctaAffidavitPdf, exportOrShareEctaAffidavitPdf, EctaAffidavitInput } from "../services/ectaSection15Pdf";
 import {
   isPlatformAuthenticatorAvailable,
@@ -50,10 +57,112 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState(false);
 
-  // UAT Live Testing & Simulation State
-  const [isUatMode, setIsUatMode] = useState(false);
+  // UAT Live Testing & Profile State
+  const [uatProfile, setUatProfileState] = useState<UatProfile>(getUatProfile);
+  const [isUatMode, setIsUatMode] = useState<boolean>(() => getUatProfile().isUatMode);
   const [simulatedDispatchSent, setSimulatedDispatchSent] = useState(false);
   const [simulatedDispatchPayload, setSimulatedDispatchPayload] = useState<any>(null);
+
+  // New Contact Form State
+  const [showAddContactForm, setShowAddContactForm] = useState(false);
+  const [newContactName, setNewContactName] = useState("");
+  const [newContactRel, setNewContactRel] = useState("Sister");
+  const [newContactPhone, setNewContactPhone] = useState("");
+  const [newContactEmail, setNewContactEmail] = useState("");
+  const [newContactPrimary, setNewContactPrimary] = useState(false);
+
+  // Personal Profile Form State
+  const [personalFullName, setPersonalFullName] = useState(() => getUatProfile().personal.fullName);
+  const [personalNationalId, setPersonalNationalId] = useState(() => getUatProfile().personal.nationalId);
+  const [personalAddress, setPersonalAddress] = useState(() => getUatProfile().personal.address);
+  const [personalMedical, setPersonalMedical] = useState(() => getUatProfile().personal.medicalNotes);
+
+  // Socials Form State
+  const [socialAlertEmail, setSocialAlertEmail] = useState(() => getUatProfile().socials.alertEmail);
+  const [socialTwitter, setSocialTwitter] = useState(() => getUatProfile().socials.twitterHandle);
+  const [socialInstagram, setSocialInstagram] = useState(() => getUatProfile().socials.instagramHandle);
+  const [socialFacebook, setSocialFacebook] = useState(() => getUatProfile().socials.facebookProfile);
+
+  const [profileSaveMessage, setProfileSaveMessage] = useState<string | null>(null);
+
+  const handleToggleUat = () => {
+    const next = !isUatMode;
+    setIsUatMode(next);
+    setUatMode(next);
+    setSimulatedDispatchSent(false);
+  };
+
+  const handleSavePersonalProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    const updated = {
+      ...uatProfile,
+      personal: {
+        fullName: personalFullName,
+        nationalId: personalNationalId,
+        address: personalAddress,
+        medicalNotes: personalMedical,
+      },
+    };
+    saveUatProfile(updated);
+    setUatProfileState(updated);
+    setProfileSaveMessage("Personal profile details saved to secure storage.");
+    setTimeout(() => setProfileSaveMessage(null), 3000);
+  };
+
+  const handleSaveSocials = (e: React.FormEvent) => {
+    e.preventDefault();
+    const updated = {
+      ...uatProfile,
+      socials: {
+        alertEmail: socialAlertEmail,
+        twitterHandle: socialTwitter,
+        instagramHandle: socialInstagram,
+        facebookProfile: socialFacebook,
+      },
+    };
+    saveUatProfile(updated);
+    setUatProfileState(updated);
+    setProfileSaveMessage("Emergency alert email & social accounts saved.");
+    setTimeout(() => setProfileSaveMessage(null), 3000);
+  };
+
+  const handleAddIceContact = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newContactName.trim() || !newContactPhone.trim()) return;
+    if (uatProfile.contacts.length >= 5) {
+      alert("Maximum of 5 ICE contacts allowed.");
+      return;
+    }
+
+    const newContact: IceContact = {
+      id: `ice-${Date.now()}`,
+      name: newContactName.trim(),
+      relationship: newContactRel,
+      phone: newContactPhone.trim(),
+      email: newContactEmail.trim(),
+      isPrimary: newContactPrimary,
+    };
+
+    const updatedContacts = newContactPrimary
+      ? uatProfile.contacts.map((c) => ({ ...c, isPrimary: false })).concat(newContact)
+      : uatProfile.contacts.concat(newContact);
+
+    const updated = { ...uatProfile, contacts: updatedContacts };
+    saveUatProfile(updated);
+    setUatProfileState(updated);
+    setShowAddContactForm(false);
+    setNewContactName("");
+    setNewContactPhone("");
+    setNewContactEmail("");
+    setNewContactPrimary(false);
+  };
+
+  const handleDeleteIceContact = (id: string) => {
+    const updatedContacts = uatProfile.contacts.filter((c) => c.id !== id);
+    const updated = { ...uatProfile, contacts: updatedContacts };
+    saveUatProfile(updated);
+    setUatProfileState(updated);
+  };
 
   // In-App UAT Feedback Form State
   const [feedbackAlias, setFeedbackAlias] = useState("");
