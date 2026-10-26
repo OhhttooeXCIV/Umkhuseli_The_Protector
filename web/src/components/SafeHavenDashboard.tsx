@@ -2093,6 +2093,102 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
               </div>
             )}
 
+            {/* 1. SURVIVOR EMERGENCY PROFILE */}
+            <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-sm">
+              <button
+                type="button"
+                onClick={() => setIsProfileExpanded((prev) => !prev)}
+                className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-850/40 transition-colors"
+                aria-expanded={isProfileExpanded}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-bold text-white">1. Survivor Emergency Profile</h3>
+                      <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border ${
+                        personalFullName
+                          ? "bg-emerald-950 text-emerald-300 border-emerald-700/50"
+                          : "bg-amber-950 text-amber-300 border-amber-700/50"
+                      }`}>
+                        {personalFullName ? "Profile Configured" : "Incomplete · Action Required"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Legal particulars & safe service address (Section 4(2) Protection Orders)
+                    </p>
+                  </div>
+                </div>
+                <div className="text-slate-400 p-1">
+                  {isProfileExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                </div>
+              </button>
+
+              {isProfileExpanded && (
+                <div className="p-4 pt-2 border-t border-slate-800/80 space-y-4">
+                  <p className="text-xs text-slate-400">
+                    Encrypted in local browser enclave. Attached to statutory Form 2 court dossiers and dispatched to ICE guardians during emergency beacons.
+                  </p>
+
+                  <form onSubmit={handleSavePersonalProfile} className="space-y-3 text-xs">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-slate-400 mb-1 text-[11px]">Legal Full Name</label>
+                        <input
+                          type="text"
+                          value={personalFullName}
+                          onChange={(e) => setPersonalFullName(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white"
+                          placeholder="e.g. Thandeka Nkosi"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-slate-400 mb-1 text-[11px]">National ID / Passport</label>
+                        <input
+                          type="text"
+                          value={personalNationalId}
+                          onChange={(e) => setPersonalNationalId(e.target.value)}
+                          className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white font-mono"
+                          placeholder="940815 0000 081"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-400 mb-1 text-[11px]">Safe Location / Landmark Address</label>
+                      <input
+                        type="text"
+                        value={personalAddress}
+                        onChange={(e) => setPersonalAddress(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white"
+                        placeholder="Safe residential address or trusted haven"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-slate-400 mb-1 text-[11px]">Critical Medical Aid & Dependent Notes</label>
+                      <textarea
+                        rows={2}
+                        value={personalMedical}
+                        onChange={(e) => setPersonalMedical(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white"
+                        placeholder="Blood type, allergies, chronic medications, minor dependents"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg text-xs transition-colors"
+                    >
+                      Save Personal Profile
+                    </button>
+                  </form>
+                </div>
+              )}
+            </div>
+
             {/* 2. 5 ICE GUARDIANS SECTION */}
             <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-sm">
               <button
