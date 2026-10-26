@@ -130,10 +130,10 @@ def build_pdf(output_path):
     # ═════════════════════════════════════════════════════════════════════════
     # SLIDE 1: COVER & MISSION
     # ═════════════════════════════════════════════════════════════════════════
-    story.append(Paragraph("NATIONAL GBV CRISIS TECHNOLOGY • SOUTH AFRICA", styles['SlideBadge']))
+    story.append(Paragraph("NATIONAL GBV CRISIS TECHNOLOGY • SOUTH AFRICA • FINAL MVP", styles['SlideBadge']))
     story.append(Paragraph("Umkhuseli: The Protector <font color='#D4AF37'>(Sankofa Safe)</font>", styles['SlideTitle']))
     story.append(Paragraph(
-        "A dual-persona discreet safety shield engineered for South African GBV survivors. "
+        "A dual-persona discreet safety shield engineered for South African GBV survivors • FNB AOTY 2026 Final MVP. "
         "Disguised as PowerCalc SA (Municipal Prepaid Electricity & STS Token Calculator) or a store-themed launcher, masking a hardware-encrypted domestic abuse evidence vault "
         "and zero-latency emergency beacon.",
         styles['SlideSubtitle']
@@ -385,5 +385,6 @@ def build_pdf(output_path):
     print(f"Generated: {output_path}")
 
 if __name__ == "__main__":
-    out = r"C:\Users\thoso\Sankofa_mvp\Umkhuseli_The_Protector\public\presentation_deck\Umkhuseli_Executive_Presentation_Deck.pdf"
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    out = os.path.join(project_root, "public", "presentation_deck", "Umkhuseli_Executive_Presentation_Deck_Final_MVP.pdf")
     build_pdf(out)

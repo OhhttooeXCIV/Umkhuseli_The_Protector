@@ -25,10 +25,10 @@ def build_pdf(output_path):
     story = []
 
     # Title & Metadata
-    story.append(Paragraph("UMKHUSELI: THE PROTECTOR • SANKOFA SAFE", styles['Badge']))
+    story.append(Paragraph("UMKHUSELI: THE PROTECTOR • SANKOFA SAFE • FINAL MVP", styles['Badge']))
     story.append(Paragraph("Requirements Specification & Use Cases", styles['DocTitle']))
     story.append(Paragraph(
-        "Product Requirements Document (PRD), Functional & Non-Functional Specifications, and Formal Use Cases • IEEE Std 830-1998 Aligned",
+        "Product Requirements Document (PRD), Functional & Non-Functional Specifications, and Formal Use Cases • IEEE Std 830-1998 Aligned • FNB AOTY 2026 Final MVP",
         styles['DocSubtitle']
     ))
     story.append(HRFlowable(width="100%", thickness=1.5, color=GOLD, spaceAfter=14))
@@ -247,5 +247,6 @@ def build_pdf(output_path):
     print(f"Generated: {output_path}")
 
 if __name__ == "__main__":
-    out = r"C:\Users\thoso\Sankofa_mvp\Umkhuseli_The_Protector\public\requirements_and_use_cases\Umkhuseli_Requirements_and_Use_Cases.pdf"
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    out = os.path.join(project_root, "public", "requirements_and_use_cases", "Umkhuseli_Requirements_and_Use_Cases_Final_MVP.pdf")
     build_pdf(out)

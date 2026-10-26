@@ -25,10 +25,10 @@ def build_pdf(output_path):
     story = []
 
     # Title & Metadata
-    story.append(Paragraph("UMKHUSELI: THE PROTECTOR • SANKOFA SAFE", styles['Badge']))
+    story.append(Paragraph("UMKHUSELI: THE PROTECTOR • SANKOFA SAFE • FINAL MVP", styles['Badge']))
     story.append(Paragraph("Lean Business Canvas & Milestone Roadmap", styles['DocTitle']))
     story.append(Paragraph(
-        "Commercial Strategy, Sustainability Model, Lean Canvas & Comprehensive Engineering Roadmap (2026 - 2027)",
+        "Commercial Strategy, Sustainability Model, Lean Canvas & Comprehensive Engineering Roadmap (2026 - 2027) • FNB AOTY 2026 Final MVP",
         styles['DocSubtitle']
     ))
     story.append(HRFlowable(width="100%", thickness=1.5, color=GOLD, spaceAfter=14))
@@ -205,5 +205,6 @@ def build_pdf(output_path):
     print(f"Generated: {output_path}")
 
 if __name__ == "__main__":
-    out = r"C:\Users\thoso\Sankofa_mvp\Umkhuseli_The_Protector\public\business_plan_and_roadmap\Umkhuseli_Lean_Business_Canvas_and_Roadmap.pdf"
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    out = os.path.join(project_root, "public", "business_plan_and_roadmap", "Umkhuseli_Lean_Business_Canvas_and_Roadmap_Final_MVP.pdf")
     build_pdf(out)

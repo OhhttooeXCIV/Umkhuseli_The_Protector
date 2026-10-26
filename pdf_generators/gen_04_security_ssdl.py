@@ -25,10 +25,10 @@ def build_pdf(output_path):
     story = []
 
     # Title & Metadata
-    story.append(Paragraph("UMKHUSELI: THE PROTECTOR • SANKOFA SAFE", styles['Badge']))
-    story.append(Paragraph("SSDL Security & POPIA Compliance", styles['DocTitle']))
+    story.append(Paragraph("UMKHUSELI: THE PROTECTOR • SANKOFA SAFE • FINAL MVP", styles['Badge']))
+    story.append(Paragraph("SSDL Security, Compliance & Governance", styles['DocTitle']))
     story.append(Paragraph(
-        "Security Software Development Lifecycle (SSDL), STRIDE Threat Modeling, AES-256-GCM Cryptography & South African Statutory POPIA / DVA Compliance",
+        "Security Software Development Lifecycle (SSDL), STRIDE Threat Modeling, AES-256-GCM Cryptography, Governance & South African Statutory POPIA, ECTA & DVA Compliance • FNB AOTY 2026 Final MVP",
         styles['DocSubtitle']
     ))
     story.append(HRFlowable(width="100%", thickness=1.5, color=GOLD, spaceAfter=14))
@@ -143,6 +143,55 @@ def build_pdf(output_path):
     ))
 
     story.append(Spacer(1, 8))
+
+    # 4. Security Governance & Legal Risk Matrix
+    story.append(Paragraph("4. Security Governance & Statutory Risk Matrix", styles['H1']))
+    story.append(Paragraph(
+        "Umkhuseli enforces an institutional governance framework ensuring zero legal liability for survivors while maintaining strict evidentiary rigor:",
+        styles['Body']
+    ))
+
+    gov_rows = [
+        [
+            Paragraph("<b>Statutory Mandate</b>", styles['TableHeader']),
+            Paragraph("<b>Regulatory Obligation</b>", styles['TableHeader']),
+            Paragraph("<b>Technical Enforcement Mechanism</b>", styles['TableHeader'])
+        ],
+        [
+            Paragraph("<b>POPIA Act 4 of 2013</b>", styles['TableTextBold']),
+            Paragraph("Protection of Special Personal Information (Sec 26) & Cross-Border Transfer (Sec 72).", styles['TableText']),
+            Paragraph("100% local-first storage. No overseas telemetry, zero tracking cookies, anonymous ephemeral UAT identifiers.", styles['TableText'])
+        ],
+        [
+            Paragraph("<b>ECTA Act 25 of 2002</b>", styles['TableTextBold']),
+            Paragraph("Section 15 evidentiary admissibility & integrity of data messages.", styles['TableText']),
+            Paragraph("Contemporaneous SHA-256 cryptographic hashing chained to device timestamps, establishing provenance for court clerks.", styles['TableText'])
+        ],
+        [
+            Paragraph("<b>DVA Act 116 / Act 14</b>", styles['TableTextBold']),
+            Paragraph("Statutory Form 2 Protection Order particulars & victim safety.", styles['TableText']),
+            Paragraph("Section 4(2) Safe Address Withholding; automated redacting of physical address from court paperwork.", styles['TableText'])
+        ],
+        [
+            Paragraph("<b>Cybercrimes Act 19 of 2020</b>", styles['TableTextBold']),
+            Paragraph("Protection against unlawful device access, interception, and spyware.", styles['TableText']),
+            Paragraph("Zero-millisecond RAM memory scrub on back-press; Window FLAG_SECURE prevention of screenshot scraping.", styles['TableText'])
+        ]
+    ]
+
+    t_gov = Table(gov_rows, colWidths=[105, 175, 207])
+    t_gov.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), SURFACE_ELEVATED),
+        ('GRID', (0,0), (-1,-1), 0.5, BORDER_COLOR),
+        ('TOPPADDING', (0,0), (-1,-1), 4),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+        ('LEFTPADDING', (0,0), (-1,-1), 5),
+        ('RIGHTPADDING', (0,0), (-1,-1), 5),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1), [WHITE, LIGHT_BG])
+    ]))
+    story.append(t_gov)
+    story.append(Spacer(1, 8))
+
     story.append(make_callout(
         "<b>OWASP Mobile Top 10 Alignment:</b> Umkhuseli satisfies M1 (Improper Credential Usage - StrongBox Keymaster), "
         "M2 (Inadequate Supply Chain - zero untrusted dependencies), M4 (Insufficient Input Validation - parameterized Room queries), "
@@ -156,5 +205,6 @@ def build_pdf(output_path):
     print(f"Generated: {output_path}")
 
 if __name__ == "__main__":
-    out = r"C:\Users\thoso\Sankofa_mvp\Umkhuseli_The_Protector\public\security_and_ssdl\Umkhuseli_SSDL_Security_and_POPIA_Compliance.pdf"
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    out = os.path.join(project_root, "public", "security_and_ssdl", "Umkhuseli_SSDL_Security_Compliance_and_Governance_Final_MVP.pdf")
     build_pdf(out)

@@ -15,6 +15,7 @@
 *Disguised as an innocent cultural proverbs launcher and municipal prepaid electricity calculator.*
 
 [Overview](#-overview--mission) •
+[Final MVP Docs](#-final-mvp-documentation-suite-fnbaoty-2026) •
 [Dual-Persona Stealth](#-dual-persona-stealth-architecture) •
 [Key Features](#-key-features) •
 [Kanban Board](#-project--kanban-board) •
@@ -36,6 +37,25 @@ In South Africa, where the femicide rate is five times the global average, stand
 > *"Safety without suspicion; evidence without leakage."*
 
 It delivers a zero-trace, dual-persona Android & Web platform combining everyday utility with covert life-saving SOS dispatch, zero-airtime USSD callbacks, and court-admissible Form 2 Protection Order incident documentation compliant with the South African Domestic Violence Act (Act 116 of 1998 / Act 14 of 2021) and POPIA.
+
+---
+
+## 📚 Final MVP Documentation Suite (FNBAOTY 2026)
+
+All publication-grade technical specifications, legal frameworks, and architecture documents are maintained in [`public/`](./public/) and cross-referenced in the **[Master Documentation Index](public/FINAL_MVP_DOCUMENTATION_INDEX.md)**:
+
+| Document | Focus & Canonical Content | Format / Link |
+|---|---|:---:|
+| **Master Index** | Complete overview, judging verification matrix & build guidelines | [Markdown](public/FINAL_MVP_DOCUMENTATION_INDEX.md) |
+| **User Stories & Journeys** | 5 Personas, 5 Mermaid user journeys, Gherkin acceptance criteria | [Markdown](public/USER_STORIES_AND_JOURNEYS_FINAL_MVP.md) • [PDF](public/user_journeys_and_stories/Umkhuseli_User_Journeys_and_Stories_Post-Feedback.pdf) |
+| **UML & Architecture** | Clean Architecture, C4 diagrams, class & sequence flows, ERD | [Markdown](public/UML_AND_SYSTEM_ARCHITECTURE_FINAL_MVP.md) • [PDF](public/uml_and_architecture/Umkhuseli_UML_and_System_Architecture_Post-Feedback.pdf) |
+| **Compliance & Governance** | DVA Act 116/1998 & 14/2021, ECTA Sec 15, POPIA, OWASP Mobile Top 10 | [Markdown](public/COMPLIANCE_AND_GOVERNANCE_FINAL_MVP.md) • [PDF](public/security_and_ssdl/Umkhuseli_SSDL_Security_and_POPIA_Compliance-Post-feedback.pdf) |
+| **Requirements & Use Cases** | 15 Functional, 10 Non-Functional Specifications & 8 Use Cases | [Markdown](public/REQUIREMENTS_AND_USE_CASES_FINAL_MVP.md) • [PDF](public/requirements_and_use_cases/Umkhuseli_Requirements_and_Use_Cases_Post-Feedback.pdf) |
+| **Kanban Board** | Delivery across Sprints 1–6 (131 SP, 238/238 automated tests) | [Markdown](public/KANBAN_BOARD_FINAL_MVP.md) • [PDF](public/business_plan_and_roadmap/Umkhuseli_Lean_Business_Canvas_and_Roadmap_Post-Feedback.pdf) |
+| **Future Epics & Rollouts** | 7 Advanced Epics (E-Hailing Sentinel, Acoustic AI, OPRF, Mesh) | [Markdown](public/FUTURE_EPICS_AND_ROLLOUTS_FINAL_MVP.md) |
+| **Limitations & R&D** | Doze mode, budget enclaves, ECTA corroboration & loadshedding | [Markdown](public/LIMITATIONS_AND_RD_FINAL_MVP.md) |
+| **Presentation Deck** | 8-Slide Executive Deck & 3-Minute Live Hackathon Demo Run Sheet | [Markdown](public/PRESENTATION_DECK_FINAL_MVP.md) • [Interactive Deck](public/presentation_deck.html) |
+| **PDF Catalog** | Full directory and index of publication-ready PDF artifacts | [Markdown](public/README_PDF_ARTIFACTS.md) |
 
 ---
 

@@ -1377,7 +1377,7 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
                   className="flex items-center justify-center gap-2 w-full py-2.5 bg-sky-700 hover:bg-sky-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-sky-700/20"
                 >
                   <Download className="w-4 h-4" aria-hidden="true" />
-                  <span>Download Android APK (PowerCalc SA v2.4.0)</span>
+                  <span>Download Android APK (PowerCalc SA v2.5.0)</span>
                 </a>
               </div>
 

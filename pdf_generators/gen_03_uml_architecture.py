@@ -25,10 +25,10 @@ def build_pdf(output_path):
     story = []
 
     # Title & Metadata
-    story.append(Paragraph("UMKHUSELI: THE PROTECTOR • SANKOFA SAFE", styles['Badge']))
+    story.append(Paragraph("UMKHUSELI: THE PROTECTOR • SANKOFA SAFE • FINAL MVP", styles['Badge']))
     story.append(Paragraph("UML Diagrams & System Architecture", styles['DocTitle']))
     story.append(Paragraph(
-        "Enterprise Clean Architecture, State Machine Specifications, Sequence Flows & Entity Data Models • Android Jetpack, Vercel PWA & Hardware Keystore",
+        "Enterprise Clean Architecture, State Machine Specifications, Sequence Flows & Entity Data Models • Android Jetpack, Vercel PWA & Hardware Keystore • FNB AOTY 2026 Final MVP",
         styles['DocSubtitle']
     ))
     story.append(HRFlowable(width="100%", thickness=1.5, color=GOLD, spaceAfter=14))
@@ -227,5 +227,6 @@ def build_pdf(output_path):
     print(f"Generated: {output_path}")
 
 if __name__ == "__main__":
-    out = r"C:\Users\thoso\Sankofa_mvp\Umkhuseli_The_Protector\public\uml_and_architecture\Umkhuseli_UML_and_System_Architecture.pdf"
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    out = os.path.join(project_root, "public", "uml_and_architecture", "Umkhuseli_UML_and_System_Architecture_Final_MVP.pdf")
     build_pdf(out)
