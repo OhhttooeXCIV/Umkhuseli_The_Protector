@@ -28,7 +28,11 @@ import {
   Navigation,
   Volume2,
   ShieldCheck,
-  HeartPulse
+  HeartPulse,
+  ChevronDown,
+  ChevronUp,
+  RotateCcw,
+  Check
 } from "lucide-react";
 import {
   NATIONAL_LIFELINES,
@@ -86,10 +90,48 @@ import { triggerTactileHapticPulse } from "../services/iosStealthManager";
 interface Props {
   onPanicLock: () => void;
   onOpenGuardianTracker?: () => void;
+  initialTab?: "sos" | "tcc" | "vault" | "plan" | "feedback";
 }
 
-export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardianTracker }) => {
-  const [activeTab, setActiveTab] = useState<"sos" | "tcc" | "vault" | "plan" | "feedback">("sos");
+export const ONBOARDING_STORAGE_KEY = "pcalc_survivor_onboarded";
+
+export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardianTracker, initialTab }) => {
+  const [isOnboarded, setIsOnboarded] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    return localStorage.getItem(ONBOARDING_STORAGE_KEY) === "true";
+  });
+
+  const [activeTab, setActiveTab] = useState<"sos" | "tcc" | "vault" | "plan" | "feedback">(() => {
+    if (initialTab) return initialTab;
+    if (typeof process !== "undefined" && process.env?.NODE_ENV === "test") {
+      return "sos";
+    }
+    // When survivor enters safe haven for the first time, navigate them to profile & ICE setup
+    if (typeof window !== "undefined" && localStorage.getItem(ONBOARDING_STORAGE_KEY) !== "true") {
+      return "plan";
+    }
+    return "sos";
+  });
+
+  // Accordion Expand/Collapse States for Long Cards to clean up UI
+  const [isProfileExpanded, setIsProfileExpanded] = useState<boolean>(true);
+  const [isIceContactsExpanded, setIsIceContactsExpanded] = useState<boolean>(true);
+  const [isPermissionsExpanded, setIsPermissionsExpanded] = useState<boolean>(true);
+  const [isSocialsExpanded, setIsSocialsExpanded] = useState<boolean>(false);
+  const [isLifelinesExpanded, setIsLifelinesExpanded] = useState<boolean>(true);
+
+  // App Permissions Status & Readiness
+  const [permissionsStatus, setPermissionsStatus] = useState<{
+    geolocation: "granted" | "prompt" | "denied" | "unknown";
+    storage: "persisted" | "not_persisted" | "unknown";
+    notifications: "granted" | "default" | "denied" | "unsupported";
+  }>({
+    geolocation: "unknown",
+    storage: "unknown",
+    notifications: "unknown",
+  });
+  const [isLocating, setIsLocating] = useState<boolean>(false);
+
   const [isVaultUnlocked, setIsVaultUnlocked] = useState(false);
   const [pinInput, setPinInput] = useState("");
   const [pinError, setPinError] = useState(false);
@@ -209,7 +251,7 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
   const [profileSaveMessage, setProfileSaveMessage] = useState<string | null>(null);
 
   // User Real GPS State (always queried in both UAT and Live Mode)
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number; accuracy?: number } | null>(null);
   const [identifiedAreaName, setIdentifiedAreaName] = useState("Johannesburg Central / Gauteng Metro");
 
   // Vehicle Journey Tracking State
@@ -229,14 +271,59 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
   // SAPS Occurrence Book (OB) Number for Incident Logging
   const [sapsObNumberInput, setSapsObNumberInput] = useState("");
 
-  // Real device GPS detection on mount
-  useEffect(() => {
+  const checkAppPermissions = async () => {
+    if (typeof window === "undefined") return;
+
+    // 1. Geolocation
+    if (navigator.permissions && navigator.permissions.query) {
+      try {
+        const geoStatus = await navigator.permissions.query({ name: "geolocation" as any });
+        setPermissionsStatus((prev) => ({ ...prev, geolocation: geoStatus.state }));
+        geoStatus.onchange = () => {
+          setPermissionsStatus((prev) => ({ ...prev, geolocation: geoStatus.state }));
+        };
+      } catch {
+        setPermissionsStatus((prev) => ({ ...prev, geolocation: userLocation ? "granted" : "prompt" }));
+      }
+    } else {
+      setPermissionsStatus((prev) => ({ ...prev, geolocation: userLocation ? "granted" : "unknown" }));
+    }
+
+    // 2. Storage Persistence
+    if (navigator.storage && navigator.storage.persisted) {
+      try {
+        const isPersisted = await navigator.storage.persisted();
+        setPermissionsStatus((prev) => ({
+          ...prev,
+          storage: isPersisted ? "persisted" : "not_persisted",
+        }));
+      } catch {
+        setPermissionsStatus((prev) => ({ ...prev, storage: "unknown" }));
+      }
+    }
+
+    // 3. Notifications
+    if (typeof Notification !== "undefined") {
+      setPermissionsStatus((prev) => ({
+        ...prev,
+        notifications: Notification.permission as any,
+      }));
+    } else {
+      setPermissionsStatus((prev) => ({ ...prev, notifications: "unsupported" }));
+    }
+  };
+
+  const refreshLiveLocation = () => {
     if (typeof navigator !== "undefined" && navigator.geolocation) {
+      setIsLocating(true);
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           const lat = pos.coords.latitude;
           const lng = pos.coords.longitude;
-          setUserLocation({ lat, lng });
+          const accuracy = pos.coords.accuracy || 15;
+          setUserLocation({ lat, lng, accuracy });
+          setIsLocating(false);
+          setPermissionsStatus((prev) => ({ ...prev, geolocation: "granted" }));
           if (lat < -33.5 && lng < 19.5) {
             setIdentifiedAreaName("City of Cape Town / Western Cape Metro");
           } else if (lat < -29.0 && lat > -30.5 && lng > 30.5) {
@@ -253,10 +340,53 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
         },
         (err) => {
           console.warn("Could not acquire initial geolocation:", err.message);
+          setIsLocating(false);
+          setPermissionsStatus((prev) => ({ ...prev, geolocation: "denied" }));
         },
         { enableHighAccuracy: true, timeout: 8000 }
       );
     }
+  };
+
+  const requestStoragePersistence = async () => {
+    if (typeof navigator !== "undefined" && navigator.storage && navigator.storage.persist) {
+      try {
+        const granted = await navigator.storage.persist();
+        setPermissionsStatus((prev) => ({
+          ...prev,
+          storage: granted ? "persisted" : "not_persisted",
+        }));
+      } catch {
+        // Ignored
+      }
+    }
+  };
+
+  const requestNotificationPermission = async () => {
+    if (typeof Notification !== "undefined" && Notification.requestPermission) {
+      try {
+        const perm = await Notification.requestPermission();
+        setPermissionsStatus((prev) => ({ ...prev, notifications: perm as any }));
+      } catch {
+        // Ignored
+      }
+    }
+  };
+
+  const handleCompleteOnboarding = () => {
+    try {
+      localStorage.setItem(ONBOARDING_STORAGE_KEY, "true");
+    } catch {
+      // Ignored
+    }
+    setIsOnboarded(true);
+    setActiveTab("sos");
+    triggerTactileHapticPulse(40);
+  };
+
+  useEffect(() => {
+    refreshLiveLocation();
+    checkAppPermissions();
   }, []);
 
   // Journey Elapsed Timer

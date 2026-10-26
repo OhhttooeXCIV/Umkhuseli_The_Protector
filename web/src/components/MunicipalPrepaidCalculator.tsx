@@ -16,6 +16,7 @@ import {
   Wifi,
   WifiOff,
   ChevronRight,
+  ChevronUp,
   BatteryMedium,
   Clock,
   RotateCcw,
@@ -109,6 +110,24 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
   const [tokenCopied, setTokenCopied] = useState(false);
   const [theme, setTheme] = useState<ThemeMode>(getInitialTheme);
   const [activeTab, setActiveTab] = useState<UtilityTab>("electricity");
+  const [showBackToTop, setShowBackToTop] = useState(false);
+
+  // Monitor scroll for Back to Top button
+  useEffect(() => {
+    const handleScroll = () => {
+      if (typeof window !== "undefined") {
+        setShowBackToTop(window.scrollY > 280);
+      }
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
 
   // Live Eskom Loadshedding Status
   const [loadshedding, setLoadshedding] = useState<LoadsheddingInfo>({
@@ -1420,6 +1439,19 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Floating Back to Top Button */}
+      {showBackToTop && (
+        <button
+          type="button"
+          onClick={scrollToTop}
+          className="fixed bottom-6 right-6 z-40 p-3 bg-slate-900/95 hover:bg-slate-850 text-sky-400 hover:text-white border border-sky-500/40 hover:border-sky-400 rounded-full shadow-2xl shadow-black/80 backdrop-blur-md transition-all duration-200 active:scale-95 flex items-center justify-center group"
+          aria-label="Back to top of page"
+          title="Back to top"
+        >
+          <ChevronUp className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform" aria-hidden="true" />
+        </button>
       )}
 
       {/* CSS-only marquee keyframe */}
