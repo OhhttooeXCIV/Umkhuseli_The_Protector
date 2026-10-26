@@ -79,6 +79,18 @@ declare module 'lucide-react' {
   export const Phone: React.FC<any>;
   export const HeartPulse: React.FC<any>;
   export const CheckCheck: React.FC<any>;
+  export const Droplet: React.FC<any>;
+  export const Droplets: React.FC<any>;
+  export const Sliders: React.FC<any>;
+  export const SlidersHorizontal: React.FC<any>;
+  export const Waves: React.FC<any>;
+  export const Activity: React.FC<any>;
+  export const TrendingDown: React.FC<any>;
+  export const TrendingUp: React.FC<any>;
+  export const Flame: React.FC<any>;
+  export const Calendar: React.FC<any>;
+  export const HelpCircle: React.FC<any>;
+  export const Gauge: React.FC<any>;
 }
 
 interface Window {

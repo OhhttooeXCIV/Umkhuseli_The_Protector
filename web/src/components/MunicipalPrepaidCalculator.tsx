@@ -26,6 +26,13 @@ import {
   LifeBuoy,
   PhoneCall,
   Sparkles,
+  Droplet,
+  Droplets,
+  Sliders,
+  Waves,
+  Activity,
+  TrendingDown,
+  Layers,
 } from "lucide-react";
 import {
   getInitialTheme,
@@ -45,6 +52,12 @@ import {
   getUatProfile,
   UatProfile,
 } from "../services/uatProfileService";
+import { WaterConservationSection } from "./decoy/WaterConservationSection";
+import { EnergySavingsAuditSection } from "./decoy/EnergySavingsAuditSection";
+import { SolarPaybackSection } from "./decoy/SolarPaybackSection";
+import { StsMeterGuideSection } from "./decoy/StsMeterGuideSection";
+
+export type UtilityTab = "electricity" | "water" | "energy" | "solar" | "sts_guide";
 
 interface MunicipalityTariff {
   name: string;
@@ -95,6 +108,7 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
   const [currentTime, setCurrentTime] = useState(new Date());
   const [tokenCopied, setTokenCopied] = useState(false);
   const [theme, setTheme] = useState<ThemeMode>(getInitialTheme);
+  const [activeTab, setActiveTab] = useState<UtilityTab>("electricity");
 
   // Live Eskom Loadshedding Status
   const [loadshedding, setLoadshedding] = useState<LoadsheddingInfo>({
@@ -346,7 +360,7 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
 
       {/* ── HERO HEADER ────────────────────────────────────────────────── */}
       <header className="bg-gradient-to-b from-white via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-900 dark:to-[#05080f] border-b border-slate-200 dark:border-slate-800/60">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
           {/* Brand + Secret Tap Zone (WCAG 2.5.3: Name naturally derived from visible text) */}
           <button
             type="button"
@@ -447,13 +461,49 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
               ))}
           </div>
         </div>
+
+        {/* Sub-Navigation Tabs Bar for Full-Fledged SPA Camouflage */}
+        <div className="border-t border-slate-200 dark:border-slate-800/70 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between overflow-x-auto no-scrollbar py-2 gap-2 text-xs">
+            <div className="flex items-center gap-1.5 min-w-max">
+              {[
+                { id: "electricity", label: "Electricity Vending & STS", icon: Zap },
+                { id: "water", label: "Water Conservation & Tariffs", icon: Droplet },
+                { id: "energy", label: "Energy & Geyser Audit", icon: Sliders },
+                { id: "solar", label: "Solar PV & Loadshedding ROI", icon: Sun },
+                { id: "sts_guide", label: "STS Meter Diagnostics & TID", icon: ShieldCheck },
+              ].map(({ id, label, icon: Icon }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setActiveTab(id as UtilityTab)}
+                  className={`px-3 py-2 rounded-xl font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                    activeTab === id
+                      ? "bg-sky-700 text-white shadow-md shadow-sky-700/20"
+                      : "text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-slate-950 dark:hover:text-white"
+                  }`}
+                >
+                  <Icon className="w-3.5 h-3.5" />
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="hidden lg:flex items-center gap-2 pl-4 text-[11px] font-semibold text-slate-600 dark:text-slate-400">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse" />
+              <span>NERSA 2026/27 Approved</span>
+            </div>
+          </div>
+        </div>
       </header>
 
       {/* ── MAIN CONTENT ───────────────────────────────────────────────── */}
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
-        {/* LEFT / PRIMARY: Calculator Card */}
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
+        {/* LEFT / PRIMARY: Main Interactive Work Area */}
         <div className="space-y-4">
-          {/* Factual Live Eskom Loadshedding Alert Banner (Direct Link to loadshedding.eskom.co.za) */}
+          {activeTab === "electricity" && (
+            <>
+              {/* Factual Live Eskom Loadshedding Alert Banner (Direct Link to loadshedding.eskom.co.za) */}
           <div className="flex items-start gap-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 rounded-2xl px-4 py-3 text-xs text-amber-950 dark:text-amber-200">
             <Zap className="w-4 h-4 text-amber-700 dark:text-amber-400 flex-shrink-0 mt-0.5 fill-amber-600 dark:fill-amber-400" aria-hidden="true" />
             <div>
@@ -717,6 +767,150 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
               </div>
             </div>
           )}
+
+              {/* ── RESOURCE CONSERVATION & MUNICIPAL ADVISORY (Fills empty space on wide screens) ── */}
+              <div className="space-y-4 pt-2">
+                {/* 3 Quick Highlight Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {/* Card 1: Geyser Management */}
+                  <div className="bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded-full border border-amber-200 dark:border-amber-800">
+                          Water Heating
+                        </span>
+                        <Zap className="w-4 h-4 text-amber-600" />
+                      </div>
+                      <h4 className="font-bold text-slate-900 dark:text-white text-xs">Geyser Thermostat Reset</h4>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
+                        Electric geysers draw <strong>39%</strong> of your total electricity bill. Lowering thermostat from 70°C to 55°C saves approx <strong>R220 / month</strong> without losing shower warmth.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("energy")}
+                      className="mt-3 text-[11px] font-bold text-sky-700 dark:text-sky-400 hover:text-sky-900 dark:hover:text-sky-300 flex items-center gap-1 group cursor-pointer"
+                    >
+                      <span>Open Energy Audit</span>
+                      <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                    </button>
+                  </div>
+
+                  {/* Card 2: Water Restrictions */}
+                  <div className="bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-2 py-0.5 rounded-full border border-sky-200 dark:border-sky-800">
+                          Water By-Laws
+                        </span>
+                        <Droplets className="w-4 h-4 text-sky-600" />
+                      </div>
+                      <h4 className="font-bold text-slate-900 dark:text-white text-xs">Stage 1 Restrictions Active</h4>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
+                        Hosepipe watering is prohibited between <strong>06:00 and 18:00</strong>. A single dripping tap loses <strong>900 litres</strong> per month, pushing your tariff into punitive Block 3.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("water")}
+                      className="mt-3 text-[11px] font-bold text-sky-700 dark:text-sky-400 hover:text-sky-900 dark:hover:text-sky-300 flex items-center gap-1 group cursor-pointer"
+                    >
+                      <span>Water Audit & Tariffs</span>
+                      <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                    </button>
+                  </div>
+
+                  {/* Card 3: Solar & Battery */}
+                  <div className="bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+                          Clean Energy
+                        </span>
+                        <Sun className="w-4 h-4 text-emerald-600" />
+                      </div>
+                      <h4 className="font-bold text-slate-900 dark:text-white text-xs">Solar PV Payback (4.1 Yrs)</h4>
+                      <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
+                        At a R2,500 monthly municipal spend, a 5kW hybrid inverter with 5.12kWh lithium storage offsets <strong>~80%</strong> of grid reliance with full loadshedding immunity.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("solar")}
+                      className="mt-3 text-[11px] font-bold text-sky-700 dark:text-sky-400 hover:text-sky-900 dark:hover:text-sky-300 flex items-center gap-1 group cursor-pointer"
+                    >
+                      <span>Model Solar Payback</span>
+                      <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* ── APPLIANCE CONSUMPTION BENCHMARK MATRIX (Interactive Live Rates) ── */}
+                <div className="bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-200 dark:border-slate-800 pb-3">
+                    <div className="flex items-center gap-2">
+                      <Sliders className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                      <h4 className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm">
+                        Household Appliance Consumption Benchmark ({selectedMuni.name.split(" (")[0]})
+                      </h4>
+                    </div>
+                    <span className="text-[10px] font-mono text-slate-500 self-start sm:self-auto">
+                      Rate: R{selectedMuni.ratePerKwh.toFixed(2)}/kWh
+                    </span>
+                  </div>
+
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-slate-200 dark:border-slate-800 text-[10px] uppercase font-bold text-slate-500">
+                          <th className="py-2 pr-3">Appliance</th>
+                          <th className="py-2 px-3">Rating</th>
+                          <th className="py-2 px-3">Daily Duty</th>
+                          <th className="py-2 px-3">Monthly kWh</th>
+                          <th className="py-2 pl-3 text-right">Est. Monthly Cost</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
+                        {[
+                          { name: "Electric Geyser (Standard element)", watts: 3000, hours: 3.5 },
+                          { name: "Swimming Pool Pump (0.75kW)", watts: 750, hours: 5.0 },
+                          { name: "Inverter Air Conditioner", watts: 1600, hours: 4.0 },
+                          { name: "Stove Large Hotplate", watts: 2000, hours: 1.5 },
+                          { name: "Rapid Boil Electric Kettle", watts: 2200, hours: 0.5 },
+                          { name: "Frost-Free Refrigerator / Freezer", watts: 220, hours: 10.0 },
+                          { name: "Wi-Fi Router + TV Standby Load", watts: 65, hours: 24.0 },
+                        ].map((row) => {
+                          const mKwh = ((row.watts * row.hours) / 1000) * 30.4;
+                          const mCost = mKwh * selectedMuni.ratePerKwh;
+                          return (
+                            <tr key={row.name} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                              <td className="py-2.5 pr-3 font-semibold text-slate-800 dark:text-slate-200">{row.name}</td>
+                              <td className="py-2.5 px-3 font-mono text-slate-600 dark:text-slate-400">{row.watts}W</td>
+                              <td className="py-2.5 px-3 text-slate-600 dark:text-slate-400">{row.hours}h / day</td>
+                              <td className="py-2.5 px-3 font-mono font-bold text-slate-900 dark:text-white">{mKwh.toFixed(1)} kWh</td>
+                              <td className="py-2.5 pl-3 text-right font-mono font-bold text-sky-700 dark:text-sky-300">
+                                R{Math.round(mCost)}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  <p className="text-[10px] text-slate-500 pt-1 flex items-center gap-1">
+                    <Info className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>Calculations automatically incorporate {selectedMuni.name.split(" (")[0]} 2026/27 NERSA tariff including 15% VAT.</span>
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
+
+          {activeTab === "water" && <WaterConservationSection />}
+          {activeTab === "energy" && <EnergySavingsAuditSection ratePerKwh={selectedMuni.ratePerKwh} />}
+          {activeTab === "solar" && <SolarPaybackSection />}
+          {activeTab === "sts_guide" && <StsMeterGuideSection />}
         </div>
 
         {/* RIGHT SIDEBAR: Info panels (WCAG Compliant) */}
@@ -805,6 +999,35 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
             </div>
           </div>
 
+          {/* Water Restrictions & Dam Basin Card */}
+          <div className="bg-white dark:bg-slate-900/80 rounded-2xl border border-sky-300 dark:border-sky-800/40 overflow-hidden shadow-sm">
+            <div className="bg-sky-50 dark:bg-sky-950/50 border-b border-sky-200 dark:border-sky-800/40 px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Droplets className="w-4 h-4 text-sky-700 dark:text-sky-400" />
+                <span className="font-bold text-sm text-slate-900 dark:text-white">Water Basin Status</span>
+              </div>
+              <span className="text-[10px] bg-sky-200 dark:bg-sky-900/60 text-sky-900 dark:text-sky-200 border border-sky-300 dark:border-sky-700 rounded-full px-2 py-0.5 font-bold">
+                Stage 1
+              </span>
+            </div>
+            <div className="p-4 space-y-2 text-xs">
+              <div className="flex justify-between items-center text-[11px]">
+                <span className="text-slate-600 dark:text-slate-400 font-medium">Integrated Vaal Basin</span>
+                <span className="font-mono font-bold text-slate-900 dark:text-white">79.4% Capacity</span>
+              </div>
+              <p className="text-[11px] text-slate-700 dark:text-slate-300 leading-relaxed">
+                Hosepipe garden watering prohibited between <strong>06:00 and 18:00</strong>. Automatic sprinklers suspended.
+              </p>
+              <button
+                type="button"
+                onClick={() => setActiveTab("water")}
+                className="text-sky-700 dark:text-sky-400 hover:underline font-bold text-[11px] flex items-center gap-1 pt-1 cursor-pointer"
+              >
+                <span>Household Water Audit & Tariffs →</span>
+              </button>
+            </div>
+          </div>
+
           {/* MASKED SA Emergency Contacts Directory (Issue 4 - Camouflaged as Technical & Security Infrastructure) */}
           <div className="bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200 dark:border-slate-700/60 overflow-hidden shadow-sm">
             <div className="bg-slate-100 dark:bg-slate-800/90 border-b border-slate-200 dark:border-slate-700/60 px-4 py-3 flex items-center justify-between">
@@ -868,6 +1091,40 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
             </div>
           </div>
 
+          {/* STS Meter TID Rollover & USSD Cheatsheet */}
+          <div className="bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200 dark:border-slate-700/60 overflow-hidden shadow-sm">
+            <div className="bg-slate-100 dark:bg-slate-800/90 border-b border-slate-200 dark:border-slate-700/60 px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span className="font-bold text-sm text-slate-900 dark:text-white">STS Meter Verification</span>
+              </div>
+              <span className="text-[10px] font-mono font-bold text-emerald-700 dark:text-emerald-400">
+                KRN2 Ready
+              </span>
+            </div>
+            <div className="p-4 space-y-2 text-xs text-slate-700 dark:text-slate-300">
+              <div className="flex justify-between items-center text-[11px]">
+                <span className="font-medium">Conlog Keypad Check</span>
+                <span className="font-mono font-bold text-sky-700 dark:text-sky-400">#005#</span>
+              </div>
+              <div className="flex justify-between items-center text-[11px]">
+                <span className="font-medium">Landis + Gyr Check</span>
+                <span className="font-mono font-bold text-sky-700 dark:text-sky-400">i005</span>
+              </div>
+              <div className="flex justify-between items-center text-[11px]">
+                <span className="font-medium">Zero-Rated USSD Vending</span>
+                <span className="font-mono font-bold text-amber-700 dark:text-amber-400">*120*321#</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveTab("sts_guide")}
+                className="text-sky-700 dark:text-sky-400 hover:underline font-bold text-[11px] flex items-center gap-1 pt-1.5 cursor-pointer"
+              >
+                <span>Full Meter Diagnostics Directory →</span>
+              </button>
+            </div>
+          </div>
+
           {/* Download / portal entry (WCAG Compliant) */}
           <button
             type="button"
@@ -890,20 +1147,52 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
 
       {/* ── FOOTER (WCAG AA Compliant: Contrast > 7:1) ─────────────────────────────────────────────────────── */}
       <footer className="border-t border-slate-200 dark:border-slate-800/80 bg-white dark:bg-slate-950 mt-auto">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] font-medium text-slate-800 dark:text-slate-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] font-medium text-slate-800 dark:text-slate-200">
           <div className="flex items-center gap-3">
             <Shield className="w-4 h-4 text-slate-600 dark:text-slate-400" aria-hidden="true" />
-            <span>PowerCalc SA · NERSA-approved municipal electricity vending · 2026/27</span>
+            <span>PowerCalc SA · NERSA-approved municipal utility services · 2026/27</span>
           </div>
-          <div className="flex items-center gap-4">
-            <span>IEC 62055-41 STS Compliant</span>
+          <div className="flex items-center gap-4 flex-wrap justify-center sm:justify-end">
+            <button
+              type="button"
+              onClick={() => setActiveTab("electricity")}
+              className="hover:underline text-slate-700 dark:text-slate-300 cursor-pointer"
+            >
+              Electricity
+            </button>
+            <span aria-hidden="true">·</span>
+            <button
+              type="button"
+              onClick={() => setActiveTab("water")}
+              className="hover:underline text-slate-700 dark:text-slate-300 cursor-pointer"
+            >
+              Water Conservation
+            </button>
+            <span aria-hidden="true">·</span>
+            <button
+              type="button"
+              onClick={() => setActiveTab("energy")}
+              className="hover:underline text-slate-700 dark:text-slate-300 cursor-pointer"
+            >
+              Energy Audit
+            </button>
+            <span aria-hidden="true">·</span>
+            <button
+              type="button"
+              onClick={() => setActiveTab("solar")}
+              className="hover:underline text-slate-700 dark:text-slate-300 cursor-pointer"
+            >
+              Solar ROI
+            </button>
+            <span aria-hidden="true">·</span>
+            <span>IEC 62055-41 STS</span>
             <span aria-hidden="true">·</span>
             {onOpenBriefing && (
               <>
                 <button
                   type="button"
                   onClick={onOpenBriefing}
-                  className="text-sky-800 dark:text-sky-300 hover:text-sky-950 dark:hover:text-sky-100 hover:underline font-semibold"
+                  className="text-sky-800 dark:text-sky-300 hover:text-sky-950 dark:hover:text-sky-100 hover:underline font-semibold cursor-pointer"
                 >
                   Distress Numbers Guide
                 </button>
@@ -913,7 +1202,7 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
             <button
               type="button"
               onClick={openPortalModal}
-              className="text-sky-800 dark:text-sky-300 hover:text-sky-950 dark:hover:text-sky-100 underline decoration-sky-500 transition-colors font-semibold"
+              className="text-sky-800 dark:text-sky-300 hover:text-sky-950 dark:hover:text-sky-100 underline decoration-sky-500 transition-colors font-semibold cursor-pointer"
             >
               Consumer Portal
             </button>
