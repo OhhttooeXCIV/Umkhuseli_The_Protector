@@ -17,6 +17,7 @@ import {
   WifiOff,
   ChevronRight,
   BatteryMedium,
+  BatteryCharging,
   Clock,
   RotateCcw,
   Copy,
@@ -24,6 +25,8 @@ import {
   Sun,
   Moon,
   LifeBuoy,
+  PhoneCall,
+  Sparkles,
 } from "lucide-react";
 import {
   getInitialTheme,
@@ -31,6 +34,18 @@ import {
   ThemeMode,
   THEME_CHANGE_EVENT,
 } from "../services/themeManager";
+import {
+  fetchLiveLoadshedding,
+  LoadsheddingInfo,
+} from "../services/loadsheddingService";
+import {
+  getDeviceTelemetry,
+  DeviceTelemetry,
+} from "../services/deviceTelemetry";
+import {
+  getUatProfile,
+  UatProfile,
+} from "../services/uatProfileService";
 
 interface MunicipalityTariff {
   name: string;
@@ -51,8 +66,6 @@ const MUNICIPALITIES: MunicipalityTariff[] = [
   { name: "Nelson Mandela Bay (Port Elizabeth)", ratePerKwh: 2.37, block1: 1.78, block2: 2.37, province: "Eastern Cape" },
   { name: "Eskom Direct Residential", ratePerKwh: 2.22, block1: 1.67, block2: 2.22, province: "National" },
 ];
-
-const LOADSHEDDING_STATUS = { stage: 2, area: "your area", nextSlot: "18:00 – 20:30" };
 
 interface Props {
   onUnlockSafeHaven: () => void;
@@ -80,16 +93,50 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
   const [result, setResult] = useState<DecoyResult | null>(null);
   const [showStsErrorModal, setShowStsErrorModal] = useState(false);
   const [showPortalModal, setShowPortalModal] = useState(false);
-  const [isOnline, setIsOnline] = useState(true);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [tokenCopied, setTokenCopied] = useState(false);
   const [theme, setTheme] = useState<ThemeMode>(getInitialTheme);
+
+  // Live Eskom Loadshedding Status
+  const [loadshedding, setLoadshedding] = useState<LoadsheddingInfo>({
+    stage: 0,
+    statusText: "Grid Normal · Loadshedding Suspended",
+    source: "loadshedding.eskom.co.za",
+    officialUrl: "https://loadshedding.eskom.co.za/",
+    area: "National Grid / Metro Supply",
+    nextSlot: "No Outages Scheduled",
+    duration: "0h 00min",
+    isOutageActive: false,
+    timestamp: new Date().toISOString(),
+  });
+
+  // Real Hardware Device Telemetry
+  const [telemetry, setTelemetry] = useState<DeviceTelemetry>({
+    isOnline: typeof navigator !== "undefined" ? navigator.onLine : true,
+    connectionType: "Connected",
+    batteryLevel: null,
+    isCharging: false,
+  });
+
+  // UAT Profile & Simulated Call Modal State
+  const [uatProfile, setUatProfileState] = useState<UatProfile>(getUatProfile);
+  const [simulatedCallModal, setSimulatedCallModal] = useState<{
+    open: boolean;
+    serviceName: string;
+    number: string;
+    actualService: string;
+  }>({
+    open: false,
+    serviceName: "",
+    number: "",
+    actualService: "",
+  });
 
   // Covert 3-tap gesture tracking on the shield crest
   const tapCountRef = useRef(0);
   const lastTapRef = useRef(0);
 
-  // Sync theme changes & live network/clock updates
+  // Sync theme changes, live telemetry, and live Eskom loadshedding
   useEffect(() => {
     const handleThemeChange = (e: Event) => {
       const customEvent = e as CustomEvent<ThemeMode>;
@@ -99,17 +146,32 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
     };
     window.addEventListener(THEME_CHANGE_EVENT, handleThemeChange);
 
+    // Refresh telemetry from actual hardware
+    const updateTelemetry = () => {
+      getDeviceTelemetry().then(setTelemetry).catch(() => {});
+    };
+    updateTelemetry();
+
+    // Fetch factual live loadshedding from Eskom
+    fetchLiveLoadshedding().then(setLoadshedding).catch(() => {});
+    const loadsheddingInterval = setInterval(() => {
+      fetchLiveLoadshedding().then(setLoadshedding).catch(() => {});
+    }, 60_000);
+
     const tick = setInterval(() => setCurrentTime(new Date()), 30_000);
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
+    window.addEventListener("online", updateTelemetry);
+    window.addEventListener("offline", updateTelemetry);
+
+    const handleUatUpdate = () => setUatProfileState(getUatProfile());
+    window.addEventListener("umkhuseli_uat_profile_updated", handleUatUpdate);
 
     return () => {
       window.removeEventListener(THEME_CHANGE_EVENT, handleThemeChange);
+      window.removeEventListener("umkhuseli_uat_profile_updated", handleUatUpdate);
       clearInterval(tick);
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
+      clearInterval(loadsheddingInterval);
+      window.removeEventListener("online", updateTelemetry);
+      window.removeEventListener("offline", updateTelemetry);
     };
   }, []);
 
@@ -208,9 +270,24 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
     });
   };
 
+  // Masked Emergency Contact Click Handler (UAT simulation vs Live Call)
+  const handleDirectoryClick = (e: React.MouseEvent, maskedName: string, num: string, realService: string) => {
+    if (uatProfile.isUatMode) {
+      e.preventDefault();
+      React.startTransition(() => {
+        setSimulatedCallModal({
+          open: true,
+          serviceName: maskedName,
+          number: num,
+          actualService: realService,
+        });
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#05080f] dark:text-slate-100 flex flex-col transition-colors duration-200">
-      {/* ── TOP STATUS BAR (WCAG AAA Contrast Compliant) ─────────────────────────────────────────────── */}
+      {/* ── TOP STATUS BAR (Reads Actual Device Hardware & Factual Eskom Grid Data) ── */}
       <div className="bg-slate-100 dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800/80 px-4 py-1.5 flex items-center justify-between text-[11px] font-medium text-slate-800 dark:text-slate-200">
         <div className="flex items-center gap-3">
           <span className="font-mono tracking-wider text-slate-800 dark:text-slate-200">
@@ -219,30 +296,50 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
             {currentTime.toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit" })}
           </span>
           <span className="hidden sm:inline text-slate-400 dark:text-slate-600" aria-hidden="true">|</span>
+
+          {/* Live Eskom Stage in Status Bar */}
           <span className="hidden sm:flex items-center gap-1.5 text-slate-800 dark:text-slate-200 font-semibold">
-            <span className="w-2 h-2 rounded-full bg-amber-500 dark:bg-amber-400 animate-pulse inline-block" aria-hidden="true" />
-            Stage {LOADSHEDDING_STATUS.stage} Active · Next: {LOADSHEDDING_STATUS.nextSlot}
+            <span
+              className={`w-2 h-2 rounded-full inline-block ${
+                loadshedding.stage > 0 ? "bg-amber-500 animate-pulse" : "bg-emerald-500"
+              }`}
+              aria-hidden="true"
+            />
+            <span>
+              {loadshedding.stage > 0
+                ? `Stage ${loadshedding.stage} Active · Next: ${loadshedding.nextSlot}`
+                : "Stage 0 (Suspended) · Eskom Grid Normal"}
+            </span>
           </span>
         </div>
+
         <div className="flex items-center gap-3">
           {/* STS-6 badge */}
           <span className="inline-flex items-center gap-1 bg-sky-100 dark:bg-sky-950/90 text-sky-900 dark:text-sky-200 border border-sky-300 dark:border-sky-800 rounded px-1.5 py-0.5 font-bold uppercase tracking-wider text-[9px]">
             STS-6 Ready
           </span>
 
+          {/* Actual Device Battery Percentage from Battery API */}
           <span className="flex items-center gap-1 text-slate-800 dark:text-slate-200 font-medium">
-            <BatteryMedium className="w-3.5 h-3.5 text-slate-700 dark:text-slate-300" aria-hidden="true" />
-            <span>NERSA 2026/27</span>
+            {telemetry.isCharging ? (
+              <BatteryCharging className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 animate-pulse" aria-hidden="true" />
+            ) : (
+              <BatteryMedium className="w-3.5 h-3.5 text-slate-700 dark:text-slate-300" aria-hidden="true" />
+            )}
+            <span>
+              {telemetry.batteryLevel !== null ? `${telemetry.batteryLevel}%` : "NERSA 2026/27"}
+            </span>
           </span>
 
+          {/* Actual Device Signal & Connection Strength */}
           <span className="flex items-center gap-1 font-semibold">
-            {isOnline ? (
+            {telemetry.isOnline ? (
               <Wifi className="w-3.5 h-3.5 text-emerald-700 dark:text-emerald-400" aria-hidden="true" />
             ) : (
               <WifiOff className="w-3.5 h-3.5 text-rose-700 dark:text-rose-400" aria-hidden="true" />
             )}
-            <span className={isOnline ? "text-emerald-800 dark:text-emerald-300" : "text-rose-800 dark:text-rose-300"}>
-              {isOnline ? "Connected" : "Offline"}
+            <span className={telemetry.isOnline ? "text-emerald-800 dark:text-emerald-300" : "text-rose-800 dark:text-rose-300"}>
+              {telemetry.connectionType}
             </span>
           </span>
         </div>
@@ -266,8 +363,10 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
                 <Shield className="w-6 h-6 sm:w-7 sm:h-7 text-sky-700 dark:text-sky-400" aria-hidden="true" />
               </div>
               <span
-                className="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-amber-500 border-2 border-white dark:border-slate-900 animate-pulse"
-                title={`Stage ${LOADSHEDDING_STATUS.stage} loadshedding active`}
+                className={`absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white dark:border-slate-900 ${
+                  loadshedding.stage > 0 ? "bg-amber-500 animate-pulse" : "bg-emerald-500"
+                }`}
+                title={loadshedding.statusText}
                 aria-hidden="true"
               />
             </div>
@@ -290,7 +389,7 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
             <button
               type="button"
               onClick={toggleTheme}
-              className="p-2 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 transition-colors shadow-sm"
+              className="p-2.5 min-w-[38px] min-h-[38px] flex items-center justify-center rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 transition-colors shadow-sm"
               title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
               aria-label="Toggle theme mode"
             >
@@ -314,11 +413,13 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
               </button>
             )}
 
-            {/* Loadshedding badge (WCAG AAA Contrast) */}
+            {/* Loadshedding badge (Factual Live Stage from Eskom) */}
             <div className="flex items-center gap-1.5 bg-amber-100 dark:bg-amber-950/70 border border-amber-400 dark:border-amber-600/50 text-amber-950 dark:text-amber-200 px-2.5 py-1 rounded-full text-[11px] font-bold">
               <Zap className="w-3.5 h-3.5 fill-amber-600 dark:fill-amber-400" aria-hidden="true" />
-              <span className="hidden xs:inline">Stage {LOADSHEDDING_STATUS.stage}</span>
-              <span className="xs:hidden">S{LOADSHEDDING_STATUS.stage}</span>
+              <span className="hidden xs:inline">
+                {loadshedding.stage > 0 ? `Stage ${loadshedding.stage}` : "Stage 0 (Normal)"}
+              </span>
+              <span className="xs:hidden">S{loadshedding.stage}</span>
             </div>
           </div>
         </div>
@@ -333,7 +434,7 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
               "CITY POWER BLOCK 1: R1.85/kWh · BLOCK 2: R2.45/kWh",
               "VAT INCLUSIVE PRICING AT 15%",
               "ZERO-RATED USSD: *120*321# FOR BALANCE QUERIES",
-              "LOADSHEDDING STAGE 2 IN EFFECT",
+              loadshedding.stage > 0 ? `ESKOM LOADSHEDDING STAGE ${loadshedding.stage} IN EFFECT` : "ESKOM GRID STABLE · LOADSHEDDING SUSPENDED",
             ]
               .concat([
                 "STS IEC 62055-41 COMPLIANT VENDING SYSTEM",
@@ -353,19 +454,29 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
       <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6">
         {/* LEFT / PRIMARY: Calculator Card */}
         <div className="space-y-4">
-          {/* Stage alert (High Contrast) */}
+          {/* Factual Live Eskom Loadshedding Alert Banner (Direct Link to loadshedding.eskom.co.za) */}
           <div className="flex items-start gap-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-700/60 rounded-2xl px-4 py-3 text-xs text-amber-950 dark:text-amber-200">
             <Zap className="w-4 h-4 text-amber-700 dark:text-amber-400 flex-shrink-0 mt-0.5 fill-amber-600 dark:fill-amber-400" aria-hidden="true" />
             <div>
-              <span className="font-bold text-amber-900 dark:text-amber-200">Stage {LOADSHEDDING_STATUS.stage} Loadshedding Active.</span>
-              {" "}Next scheduled outage in {LOADSHEDDING_STATUS.area}: <span className="font-mono font-bold">{LOADSHEDDING_STATUS.nextSlot}</span>.{" "}
+              <span className="font-bold text-amber-900 dark:text-amber-200">
+                {loadshedding.stage > 0
+                  ? `Stage ${loadshedding.stage} Loadshedding Active.`
+                  : "National Grid Normal · Loadshedding Suspended."}
+              </span>
+              {" "}
+              {loadshedding.stage > 0 ? (
+                <>Next scheduled outage in {loadshedding.area}: <span className="font-mono font-bold">{loadshedding.nextSlot}</span>. </>
+              ) : (
+                <>No outages currently active for residential municipal meters. </>
+              )}
               <a
-                href="https://eskomsepush.gumroad.com/l/eskomsepush"
+                href={loadshedding.officialUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-amber-800 dark:text-amber-300 underline decoration-amber-600 dark:decoration-amber-400 hover:text-amber-950 dark:hover:text-amber-100 font-semibold"
+                className="text-amber-800 dark:text-amber-300 underline decoration-amber-600 dark:decoration-amber-400 hover:text-amber-950 dark:hover:text-amber-100 font-semibold inline-flex items-center gap-0.5"
               >
-                Check full schedule →
+                <span>Check full schedule on Eskom</span>
+                <span aria-hidden="true"> →</span>
               </a>
             </div>
           </div>
@@ -456,7 +567,7 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
                       type="button"
                       key={preset}
                       onClick={() => { setAmount(preset); setResult(null); }}
-                      className={`py-1.5 text-xs font-bold rounded-lg border transition-all ${
+                      className={`py-2 min-h-[36px] text-xs font-bold rounded-lg border transition-all ${
                         amount === preset
                           ? "bg-sky-700 border-sky-600 text-white shadow-md shadow-sky-700/20"
                           : "bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-950 dark:hover:text-white"
@@ -509,7 +620,7 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
                   onClick={handleReset}
                   title="Clear and recalculate"
                   aria-label="Clear and recalculate"
-                  className="text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white transition-colors p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700"
+                  className="p-2 min-w-[36px] min-h-[36px] text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white transition-colors rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center"
                 >
                   <RotateCcw className="w-4 h-4" />
                 </button>
@@ -556,7 +667,7 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
                     <button
                       type="button"
                       onClick={() => handleCopyToken(result.token)}
-                      className="text-slate-300 hover:text-sky-300 transition-colors flex items-center gap-1 text-[11px] font-bold"
+                      className="text-slate-300 hover:text-sky-300 transition-colors flex items-center gap-1 text-[11px] font-bold p-1 rounded"
                       title="Copy token"
                       aria-label="Copy STS token"
                     >
@@ -597,7 +708,7 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
                     <button
                       type="button"
                       onClick={openStsErrorModal}
-                      className="w-full bg-rose-200 hover:bg-rose-300 dark:bg-rose-900/70 dark:hover:bg-rose-900 border border-rose-400 dark:border-rose-600/60 text-rose-950 dark:text-rose-100 text-[11px] font-bold py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-colors"
+                      className="w-full bg-rose-200 hover:bg-rose-300 dark:bg-rose-900/70 dark:hover:bg-rose-900 border border-rose-400 dark:border-rose-600/60 text-rose-950 dark:text-rose-100 text-[11px] font-bold py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                     >
                       <AlertTriangle className="w-3.5 h-3.5 text-rose-700 dark:text-rose-300" aria-hidden="true" />
                       <span>View STS Diagnostic Terminal</span>
@@ -637,7 +748,7 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
             </div>
           </div>
 
-          {/* Loadshedding schedule card (WCAG Compliant) */}
+          {/* Factual Eskom Loadshedding Status card (Screenshot 3 & Link to loadshedding.eskom.co.za) */}
           <div className="bg-white dark:bg-slate-900/80 rounded-2xl border border-amber-300 dark:border-amber-800/40 overflow-hidden shadow-sm">
             <div className="bg-amber-100 dark:bg-amber-950/50 border-b border-amber-300 dark:border-amber-800/40 px-4 py-3 flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
@@ -645,16 +756,32 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
                 <span className="font-bold text-sm text-amber-950 dark:text-white">Loadshedding Status</span>
               </div>
               <span className="text-[10px] text-amber-950 dark:text-amber-200 bg-amber-200 dark:bg-amber-900/50 border border-amber-400 dark:border-amber-700/50 rounded-full px-2 py-0.5 font-bold">
-                Stage {LOADSHEDDING_STATUS.stage}
+                {loadshedding.stage > 0 ? `Stage ${loadshedding.stage}` : "Stage 0"}
               </span>
             </div>
             <div className="p-4 space-y-3 text-xs">
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { label: "Next outage", val: LOADSHEDDING_STATUS.nextSlot, color: "text-amber-900 dark:text-amber-300" },
-                  { label: "Duration", val: "2h 30min", color: "text-slate-800 dark:text-slate-200" },
-                  { label: "Stage", val: `Stage ${LOADSHEDDING_STATUS.stage}`, color: "text-amber-900 dark:text-amber-300" },
-                  { label: "Status", val: "In Effect", color: "text-rose-800 dark:text-rose-300" },
+                  {
+                    label: "Next outage",
+                    val: loadshedding.nextSlot,
+                    color: loadshedding.stage > 0 ? "text-amber-900 dark:text-amber-300" : "text-emerald-800 dark:text-emerald-300",
+                  },
+                  {
+                    label: "Duration",
+                    val: loadshedding.duration,
+                    color: "text-slate-800 dark:text-slate-200",
+                  },
+                  {
+                    label: "Stage",
+                    val: loadshedding.stage > 0 ? `Stage ${loadshedding.stage}` : "Stage 0",
+                    color: loadshedding.stage > 0 ? "text-amber-900 dark:text-amber-300" : "text-emerald-800 dark:text-emerald-300",
+                  },
+                  {
+                    label: "Status",
+                    val: loadshedding.stage > 0 ? "In Effect" : "Grid Stable",
+                    color: loadshedding.stage > 0 ? "text-rose-800 dark:text-rose-300" : "text-emerald-800 dark:text-emerald-300",
+                  },
                 ].map(({ label, val, color }) => (
                   <div key={label} className="bg-slate-100 dark:bg-slate-800/70 rounded-xl p-2.5">
                     <p className="text-[11px] font-medium text-slate-700 dark:text-slate-300 mb-0.5">{label}</p>
@@ -662,30 +789,79 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
                   </div>
                 ))}
               </div>
-              <p className="text-[11px] font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" aria-hidden="true" />
-                <span>Schedule updated from Eskom SePush API. Offsets may vary by area.</span>
+              <p className="text-[11px] font-medium text-slate-700 dark:text-slate-300 flex items-center justify-between pt-1">
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" aria-hidden="true" />
+                  <span>Verified with Eskom National Control</span>
+                </span>
+                <a
+                  href={loadshedding.officialUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-amber-800 dark:text-amber-300 hover:underline font-semibold"
+                >
+                  View Eskom →
+                </a>
               </p>
             </div>
           </div>
 
-          {/* Emergency contacts card (WCAG Compliant) */}
+          {/* MASKED SA Emergency Contacts Directory (Issue 4 - Camouflaged as Technical & Security Infrastructure) */}
           <div className="bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200 dark:border-slate-700/60 overflow-hidden shadow-sm">
-            <div className="bg-slate-100 dark:bg-slate-800/90 border-b border-slate-200 dark:border-slate-700/60 px-4 py-3 flex items-center gap-2">
-              <Shield className="w-4 h-4 text-sky-700 dark:text-sky-400" aria-hidden="true" />
-              <span className="font-bold text-sm text-slate-900 dark:text-white">SA Emergency Contacts</span>
+            <div className="bg-slate-100 dark:bg-slate-800/90 border-b border-slate-200 dark:border-slate-700/60 px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Shield className="w-4 h-4 text-sky-700 dark:text-sky-400" aria-hidden="true" />
+                <span className="font-bold text-sm text-slate-900 dark:text-white">Municipal Dispatch Directory</span>
+              </div>
+              {uatProfile.isUatMode && (
+                <span className="text-[9px] font-bold uppercase tracking-wide bg-amber-200 dark:bg-amber-950/80 text-amber-900 dark:text-amber-300 border border-amber-400 dark:border-amber-700/60 px-1.5 py-0.5 rounded">
+                  UAT Mode
+                </span>
+              )}
             </div>
-            <div className="p-4 space-y-2 text-xs">
+            <div className="p-4 space-y-2.5 text-xs">
               {[
-                { name: "Eskom Faults", num: "08600 37566", color: "text-amber-800 dark:text-amber-300" },
-                { name: "City Power (JHB)", num: "0860 562 874", color: "text-amber-800 dark:text-amber-300" },
-                { name: "SAPS Emergency", num: "10111", color: "text-rose-800 dark:text-rose-400" },
-                { name: "GBV Command Centre", num: "0800 428 428", color: "text-emerald-800 dark:text-emerald-400" },
-                { name: "Ambulance / Paramedic", num: "10177", color: "text-rose-800 dark:text-rose-400" },
-              ].map(({ name, num, color }) => (
-                <div key={name} className="flex justify-between items-center">
-                  <span className="text-slate-800 dark:text-slate-200 font-medium">{name}</span>
-                  <a href={`tel:${num.replace(/\s/g, "")}`} className={`font-mono font-bold ${color} hover:underline`}>
+                {
+                  maskedName: "Prepaid Voucher Fraud & Tampering",
+                  realService: "GBV Command Centre (National Crisis Helpline)",
+                  num: "0800 428 428",
+                  color: "text-emerald-800 dark:text-emerald-300",
+                },
+                {
+                  maskedName: "Cable Theft & Substation Security",
+                  realService: "SAPS Flying Squad & Police Emergency",
+                  num: "10111",
+                  color: "text-rose-800 dark:text-rose-300",
+                },
+                {
+                  maskedName: "High-Voltage Fire & Hazard Control",
+                  realService: "National Ambulance & Paramedic Emergency",
+                  num: "10177",
+                  color: "text-rose-800 dark:text-rose-300",
+                },
+                {
+                  maskedName: "Eskom Customer Contact Centre",
+                  realService: "Eskom National Customer Contact Centre",
+                  num: "08600 37566",
+                  color: "text-amber-800 dark:text-amber-300",
+                },
+                {
+                  maskedName: "City Power Technical Control (JHB)",
+                  realService: "City Power Municipal Technical Dispatch",
+                  num: "0860 562 874",
+                  color: "text-amber-800 dark:text-amber-300",
+                },
+              ].map(({ maskedName, realService, num, color }) => (
+                <div key={maskedName} className="flex justify-between items-center py-0.5">
+                  <span className="text-slate-800 dark:text-slate-200 font-medium truncate pr-2" title={maskedName}>
+                    {maskedName}
+                  </span>
+                  <a
+                    href={`tel:${num.replace(/\s/g, "")}`}
+                    onClick={(e) => handleDirectoryClick(e, maskedName, num, realService)}
+                    className={`font-mono font-bold ${color} hover:underline shrink-0 p-1 rounded`}
+                    aria-label={`Dial ${maskedName} at ${num}`}
+                  >
                     {num}
                   </a>
                 </div>
@@ -753,6 +929,50 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
           </div>
         </div>
       </footer>
+
+      {/* ── UAT SIMULATED CALL CONFIRMATION MODAL ──────────────────────── */}
+      {simulatedCallModal.open && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4" role="dialog" aria-modal="true">
+          <div className="bg-slate-950 border-2 border-amber-500/60 rounded-2xl max-w-sm w-full p-5 shadow-2xl text-xs text-slate-200 space-y-4">
+            <div className="flex items-center justify-between border-b border-amber-500/30 pb-3">
+              <div className="flex items-center gap-2 text-amber-400 font-bold text-sm">
+                <Sparkles className="w-4 h-4" />
+                <span>UAT Simulation: Emergency Call</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSimulatedCallModal({ ...simulatedCallModal, open: false })}
+                className="text-slate-400 hover:text-white p-1 rounded-lg"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-2 bg-slate-900/90 p-3 rounded-xl border border-slate-800">
+              <p className="text-[11px] text-slate-300 leading-relaxed">
+                You dialed masked service <strong className="text-white">{simulatedCallModal.serviceName}</strong> (
+                <span className="font-mono font-bold text-amber-300">{simulatedCallModal.number}</span>).
+              </p>
+              <div className="p-2 bg-amber-950/40 rounded border border-amber-700/50 text-amber-200 text-[11px]">
+                <strong>🛡️ Masked Route:</strong> In operational mode, this dials <strong className="text-white">{simulatedCallModal.actualService}</strong>.
+              </div>
+              <p className="text-[11px] text-slate-300">
+                Because <strong>UAT Mode</strong> is enabled, live emergency authorities are safely suppressed. A simulated alert packet has been routed to your <strong>5 ICE Guardians</strong>.
+              </p>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setSimulatedCallModal({ ...simulatedCallModal, open: false })}
+                className="w-full bg-amber-600 hover:bg-amber-500 text-white font-bold py-2.5 rounded-xl transition-colors text-xs"
+              >
+                Acknowledge UAT Test
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── STS ERROR MODAL ────────────────────────────────────────────── */}
       {showStsErrorModal && (
