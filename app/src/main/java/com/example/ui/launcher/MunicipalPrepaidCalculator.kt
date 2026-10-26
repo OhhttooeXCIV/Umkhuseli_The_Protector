@@ -59,6 +59,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -520,6 +521,77 @@ fun MunicipalPrepaidCalculator(
                 color = Color(0xFF64748B),
                 fontSize = 11.sp
             )
+        }
+    }
+
+    if (showStsErrorDialog) {
+        Dialog(onDismissRequest = { showStsErrorDialog = false }) {
+            Card(
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF090D16)),
+                border = androidx.compose.foundation.BorderStroke(2.dp, Color(0xFFB91C1C)),
+                modifier = Modifier.fillMaxWidth().padding(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Icon(
+                                imageVector = Icons.Default.Info,
+                                contentDescription = null,
+                                tint = Color(0xFFEF4444),
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Text(
+                                text = "STS DIAGNOSTIC — ERROR 30",
+                                color = Color(0xFFF87171),
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.Black, RoundedCornerShape(10.dp))
+                            .border(1.dp, Color(0xFF1E293B), RoundedCornerShape(10.dp))
+                            .padding(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text("METER NO: $meterNumber", color = Color.White, fontSize = 11.sp, fontFamily = FontFamily.Monospace)
+                        Text("AUTHORITY: ${selectedMunicipality.name.uppercase(Locale.ROOT)}", color = Color.White, fontSize = 11.sp, fontFamily = FontFamily.Monospace)
+                        Text("STATUS: TRANSACTION HALTED (0x8830)", color = Color(0xFFF87171), fontSize = 11.sp, fontWeight = FontWeight.Bold, fontFamily = FontFamily.Monospace)
+                        Text("FAULT CODE: TID_ROLLOVER_KRN2_EXPIRED", color = Color.White, fontSize = 11.sp, fontFamily = FontFamily.Monospace)
+                        Text("FAULT: Meter Key Revision Expired. Meter rejected key rollover window.", color = Color.White, fontSize = 11.sp, fontFamily = FontFamily.Monospace)
+                        Text("HELPDESK: Eskom 08600 37566 / City Power 0860 562 874", color = Color(0xFF38BDF8), fontSize = 11.sp, fontFamily = FontFamily.Monospace)
+                        Text("REF TICKET: ESK-ZA-8841-KRN2", color = Color.White, fontSize = 11.sp, fontFamily = FontFamily.Monospace)
+                    }
+
+                    Text(
+                        text = "Official STS Association diagnostic standard IEC 62055-41. Do not re-enter invalid voucher — may cause meter lockout.",
+                        color = Color(0xFF94A3B8),
+                        fontSize = 10.sp,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Button(
+                        onClick = { showStsErrorDialog = false },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF1E293B)),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Acknowledge & Close Diagnostic", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
         }
     }
 }

@@ -1272,7 +1272,7 @@ export const MunicipalPrepaidCalculator: React.FC<Props> = ({
             <div className="flex items-center justify-between border-b border-rose-900/60 pb-3">
               <div className="flex items-center gap-2 text-rose-400 font-bold text-sm tracking-wider" id="sts-diag-title">
                 <AlertOctagon className="w-5 h-5 animate-pulse" aria-hidden="true" />
-                <span>STS DIAGNOSTIC — ERROR 30</span>
+                <span>STS DIAGNOSTIC — ERROR 30: KRN2 ROLLOVER TERMINAL</span>
               </div>
               <button
                 type="button"
