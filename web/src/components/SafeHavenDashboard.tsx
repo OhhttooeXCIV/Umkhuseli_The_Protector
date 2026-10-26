@@ -2093,29 +2093,52 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
               </div>
             )}
 
-            {/* 1. 5 ICE GUARDIANS SECTION */}
-            <div className="bg-slate-900 rounded-2xl p-5 border border-slate-800 space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="flex items-center gap-2 text-white font-bold text-sm">
-                    <Users className="w-4 h-4 text-amber-400" />
-                    <span>ICE Contacts ({uatProfile.contacts.length} / 5)</span>
+            {/* 2. 5 ICE GUARDIANS SECTION */}
+            <div className="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-sm">
+              <button
+                type="button"
+                onClick={() => setIsIceContactsExpanded((prev) => !prev)}
+                className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-850/40 transition-colors"
+                aria-expanded={isIceContactsExpanded}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shrink-0">
+                    <Users className="w-5 h-5" />
                   </div>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Receive distress alerts, live GPS link, and 72-hr WhatsApp beacons
-                  </p>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-sm font-bold text-white">2. Emergency ICE Guardians</h3>
+                      <span className="text-[10px] bg-amber-950 border border-amber-700/50 text-amber-300 font-mono font-bold px-2 py-0.5 rounded-full">
+                        {uatProfile.contacts.length} / 5 Registered
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Receive live GPS link, 72-hr WhatsApp beacons & multi-portal alerts
+                    </p>
+                  </div>
                 </div>
-                {uatProfile.contacts.length < 5 && (
-                  <button
-                    type="button"
-                    onClick={() => setShowAddContactForm(true)}
-                    className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow transition-colors flex items-center gap-1"
-                  >
-                    <PlusCircle className="w-3.5 h-3.5" />
-                    <span>+ Add ICE</span>
-                  </button>
-                )}
-              </div>
+                <div className="text-slate-400 p-1">
+                  {isIceContactsExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                </div>
+              </button>
+
+              {isIceContactsExpanded && (
+                <div className="p-4 pt-2 border-t border-slate-800/80 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-slate-400">
+                      Emergency guardians notified during duress PIN 9999 or SOS countdown.
+                    </p>
+                    {uatProfile.contacts.length < 5 && (
+                      <button
+                        type="button"
+                        onClick={() => setShowAddContactForm(true)}
+                        className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow transition-colors flex items-center gap-1"
+                      >
+                        <PlusCircle className="w-3.5 h-3.5" />
+                        <span>+ Add ICE</span>
+                      </button>
+                    )}
+                  </div>
 
               {/* Contact List */}
               <div className="space-y-3">
@@ -2384,6 +2407,8 @@ export const SafeHavenDashboard: React.FC<Props> = ({ onPanicLock, onOpenGuardia
                       </div>
                     </form>
                   )}
+                </div>
+              )}
                 </div>
               )}
             </div>
