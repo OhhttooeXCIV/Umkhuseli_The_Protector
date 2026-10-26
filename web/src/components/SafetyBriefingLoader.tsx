@@ -241,8 +241,9 @@ export const SafetyBriefingLoader: React.FC<Props> = ({ onComplete, forceShow = 
             disabled={index === 0}
             className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed text-slate-300 transition-colors"
             title="Previous instruction"
+            aria-label="Previous instruction"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-4 h-4" aria-hidden="true" />
           </button>
 
           {/* Dots */}
@@ -269,8 +270,9 @@ export const SafetyBriefingLoader: React.FC<Props> = ({ onComplete, forceShow = 
             onClick={handleNext}
             className="p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition-colors"
             title={index === SAFETY_BRIEFING_SLIDES.length - 1 ? "Enter Portal" : "Next instruction"}
+            aria-label={index === SAFETY_BRIEFING_SLIDES.length - 1 ? "Enter Portal" : "Next instruction"}
           >
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
 
