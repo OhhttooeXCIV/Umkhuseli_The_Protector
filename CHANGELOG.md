@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.6.0] - (Private Repository / Commercial Release - Sankofa Digital)
+
+> [!IMPORTANT]
+> **Release Governance & Demarcation Notice**:
+> - **Release for FNB_AOTY_2026 is `v2.5.0`**: Final, frozen Hackathon MVP evaluation baseline for First National Bank App of the Year 2026. Made public for **14 calendar days only** strictly for FNB AOTY 2026 judges, mentors, and accredited stakeholders for the Hackathon's intended evaluation purpose ONLY!
+> - **Release `v2.6.0` (Latest) is Sankofa Digital's Continuation**: Developed and maintained on a **separate, private proprietary repository** with its own new release tag (`v2.6.0`), referencing this public repository which terminates at `v2.5.0`.
+> - **Proprietary Rights Reserved**: Outside the construct of the AOTY Hackathon, full ownership and intellectual property are reserved and retained by Sankofa Digital.
+> - See [`RELEASE_LOG.md`](./RELEASE_LOG.md) for full governance terms, release matrix, and private repository ingestion procedures.
+
+### Planned & Active Enterprise Capabilities (Sankofa Digital Private Repository)
+- **Enterprise Continuation**: Developed on private repository `git@github.com:SankofaDigital/Umkhuseli-Core.git` branching from public upstream tag `v2.5.0`.
+- **Enterprise Multi-Tenant C2 Dispatcher**: Real-time incident command dashboard for private security providers, university campuses, and GBV NGO response networks.
+- **Direct Carrier Reverse-Billed USSD Gateway**: Direct SS7/SMPP partnerships with Vodacom, MTN, Telkom, and Cell C for zero-balance cell-tower emergency beacons.
+- **Audio Sentry Acoustic Distress AI**: On-device edge ML classifier detecting domestic distress vocal markers, screaming, and glass breaking.
+- **Bolt & e-Hailing Route Corridor Sentinel**: Real-time corridor deviation watchdog and dead-man timer for survivor transport safety.
+- **OPRF PSI Stealth Contact Discovery**: Oblivious Pseudorandom Function Private Set Intersection for zero-knowledge guardian pairing.
+- **P2P Wi-Fi Direct Encrypted Mesh Share**: Peer-to-peer evidence replication and offline emergency beacons during grid collapse.
+
+---
+
 ## [2.5.0] - 2026-10-26 - Final Hackathon MVP Release (FNB AOTY 2026)
 
 ### Added
