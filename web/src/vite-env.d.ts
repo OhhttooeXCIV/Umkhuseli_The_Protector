@@ -91,6 +91,30 @@ declare module 'lucide-react' {
   export const Calendar: React.FC<any>;
   export const HelpCircle: React.FC<any>;
   export const Gauge: React.FC<any>;
+  export const Camera: React.FC<any>;
+  export const Settings: React.FC<any>;
+  export const Image: React.FC<any>;
+  export const CloudSun: React.FC<any>;
+  export const Music: React.FC<any>;
+  export const Circle: React.FC<any>;
+  export const Square: React.FC<any>;
+  export const Play: React.FC<any>;
+  export const Pause: React.FC<any>;
+  export const SkipForward: React.FC<any>;
+  export const SkipBack: React.FC<any>;
+  export const Shuffle: React.FC<any>;
+  export const Repeat: React.FC<any>;
+  export const Disc: React.FC<any>;
+  export const ListMusic: React.FC<any>;
+  export const DownloadCloud: React.FC<any>;
+  export const Minus: React.FC<any>;
+  export const Bell: React.FC<any>;
+  export const RefreshCw: React.FC<any>;
+  export const Globe: React.FC<any>;
+  export const Building2: React.FC<any>;
+  export const Map: React.FC<any>;
+  export const Delete: React.FC<any>;
+  export const Mic: React.FC<any>;
 }
 
 interface Window {
