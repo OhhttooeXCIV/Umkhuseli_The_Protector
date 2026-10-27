@@ -27,9 +27,27 @@ describe('Chameleon Disguise Architecture - Disguise Manager', () => {
     expect(getActiveDisguise()).toBe('DAILY_DEVOTIONAL');
   });
 
+  it('sets and retrieves MUSIC_PLAYER (Coco Bongo Beats) disguise', () => {
+    const meta = setActiveDisguise('MUSIC_PLAYER');
+    expect(meta.id).toBe('MUSIC_PLAYER');
+    expect(meta.name).toBe('Coco Bongo Beats');
+    expect(meta.title).toBe('Edge City Audio & Music');
+    expect(localStorage.getItem(DISGUISE_STORAGE_KEY)).toBe('MUSIC_PLAYER');
+    expect(getActiveDisguise()).toBe('MUSIC_PLAYER');
+  });
+
+  it('sets and retrieves ANDROID_LAUNCHER (Ipkiss Launcher) disguise', () => {
+    const meta = setActiveDisguise('ANDROID_LAUNCHER');
+    expect(meta.id).toBe('ANDROID_LAUNCHER');
+    expect(meta.name).toBe('Ipkiss Launcher');
+    expect(meta.title).toBe('Minimalist Mobile Home');
+    expect(localStorage.getItem(DISGUISE_STORAGE_KEY)).toBe('ANDROID_LAUNCHER');
+    expect(getActiveDisguise()).toBe('ANDROID_LAUNCHER');
+  });
+
   it('switches back to MUNICIPAL_PREPAID and persists correctly', () => {
-    setActiveDisguise('DAILY_DEVOTIONAL');
-    expect(getActiveDisguise()).toBe('DAILY_DEVOTIONAL');
+    setActiveDisguise('MUSIC_PLAYER');
+    expect(getActiveDisguise()).toBe('MUSIC_PLAYER');
 
     const meta = setActiveDisguise('MUNICIPAL_PREPAID');
     expect(meta.id).toBe('MUNICIPAL_PREPAID');
@@ -42,34 +60,47 @@ describe('Chameleon Disguise Architecture - Disguise Manager', () => {
     const handler = vi.fn();
     window.addEventListener(DISGUISE_EVENT_NAME, handler);
 
-    setActiveDisguise('DAILY_DEVOTIONAL');
+    setActiveDisguise('MUSIC_PLAYER');
     expect(handler).toHaveBeenCalledTimes(1);
 
     window.removeEventListener(DISGUISE_EVENT_NAME, handler);
   });
 
-  it('returns comprehensive metadata for MUNICIPAL_PREPAID', () => {
-    const meta = getDisguiseMetadata('MUNICIPAL_PREPAID');
-    expect(meta.title).toBe('Prepaid Electricity Portal');
-    expect(meta.icon).toBe('Zap');
-    expect(meta.themeColor).toBe('#0F172A');
+  it('returns comprehensive metadata for all 4 facades', () => {
+    const m1 = getDisguiseMetadata('MUNICIPAL_PREPAID');
+    expect(m1.title).toBe('Prepaid Electricity Portal');
+    expect(m1.icon).toBe('Zap');
+    expect(m1.themeColor).toBe('#0F172A');
+
+    const m2 = getDisguiseMetadata('MUSIC_PLAYER');
+    expect(m2.title).toBe('Edge City Audio & Music');
+    expect(m2.icon).toBe('Music');
+    expect(m2.themeColor).toBe('#09090B');
+
+    const m3 = getDisguiseMetadata('DAILY_DEVOTIONAL');
+    expect(m3.title).toBe('Daily Scripture & Devotional');
+    expect(m3.icon).toBe('BookOpen');
+    expect(m3.themeColor).toBe('#1E1B4B');
+
+    const m4 = getDisguiseMetadata('ANDROID_LAUNCHER');
+    expect(m4.title).toBe('Minimalist Mobile Home');
+    expect(m4.icon).toBe('LayoutGrid');
+    expect(m4.themeColor).toBe('#18181B');
   });
 
-  it('returns comprehensive metadata for DAILY_DEVOTIONAL', () => {
-    const meta = getDisguiseMetadata('DAILY_DEVOTIONAL');
-    expect(meta.title).toBe('Daily Scripture & Devotional');
-    expect(meta.icon).toBe('BookOpen');
-    expect(meta.themeColor).toBe('#1E1B4B');
-  });
-
-  it('returns all supported disguise configurations', () => {
+  it('returns all 4 supported disguise configurations', () => {
     const all = getAllDisguises();
-    expect(all).toHaveLength(2);
-    expect(all.map((d) => d.id)).toEqual(['MUNICIPAL_PREPAID', 'DAILY_DEVOTIONAL']);
+    expect(all).toHaveLength(4);
+    expect(all.map((d) => d.id)).toEqual([
+      'MUNICIPAL_PREPAID',
+      'MUSIC_PLAYER',
+      'DAILY_DEVOTIONAL',
+      'ANDROID_LAUNCHER',
+    ]);
   });
 
   it('resets disguise state back to MUNICIPAL_PREPAID', () => {
-    setActiveDisguise('DAILY_DEVOTIONAL');
+    setActiveDisguise('MUSIC_PLAYER');
     resetDisguise();
     expect(localStorage.getItem(DISGUISE_STORAGE_KEY)).toBeNull();
     expect(getActiveDisguise()).toBe('MUNICIPAL_PREPAID');
