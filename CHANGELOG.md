@@ -7,23 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.6.0] - (Private Repository / Commercial Release - Sankofa Digital)
+## [2.6.0] - 2026-10-27 - Chameleon Facades & Android Launcher Suite (Sankofa Digital Commercial Release)
 
 > [!IMPORTANT]
-> **Release Governance & Demarcation Notice**:
-> - **Release for FNB_AOTY_2026 is `v2.5.0`**: Final, frozen Hackathon MVP evaluation baseline for First National Bank App of the Year 2026. Made public for **14 calendar days only** strictly for FNB AOTY 2026 judges, mentors, and accredited stakeholders for the Hackathon's intended evaluation purpose ONLY!
-> - **Release `v2.6.0` (Latest) is Sankofa Digital's Continuation**: Developed and maintained on a **separate, private proprietary repository** with its own new release tag (`v2.6.0`), referencing this public repository which terminates at `v2.5.0`.
-> - **Proprietary Rights Reserved**: Outside the construct of the AOTY Hackathon, full ownership and intellectual property are reserved and retained by Sankofa Digital.
-> - See [`RELEASE_LOG.md`](./RELEASE_LOG.md) for full governance terms, release matrix, and private repository ingestion procedures.
+> **Commercial Release Governance & Demarcation Notice**:
+> - **FNB_AOTY_2026 Hackathon Baseline is `v2.5.0`**: Final, frozen evaluation baseline submitted for First National Bank App of the Year 2026, hosted publicly for 14 calendar days strictly for accredited Hackathon judges, adjudicators, and mentors.
+> - **Commercial Continuation is `v2.6.0` (Latest)**: Developed, maintained, and deployed on this commercial repository (`https://github.com/Sankofa-Digital-Studio/Umk_Commercial.git`) under Sankofa Digital's full and exclusive intellectual property ownership.
+> - **Public-Facing Decoy Domain**: Deployed to production at `https://ishekomberera.vercel.app`.
 
-### Planned & Active Enterprise Capabilities (Sankofa Digital Private Repository)
-- **Enterprise Continuation**: Developed on private repository `git@github.com:SankofaDigital/Umkhuseli-Core.git` branching from public upstream tag `v2.5.0`.
-- **Enterprise Multi-Tenant C2 Dispatcher**: Real-time incident command dashboard for private security providers, university campuses, and GBV NGO response networks.
-- **Direct Carrier Reverse-Billed USSD Gateway**: Direct SS7/SMPP partnerships with Vodacom, MTN, Telkom, and Cell C for zero-balance cell-tower emergency beacons.
-- **Audio Sentry Acoustic Distress AI**: On-device edge ML classifier detecting domestic distress vocal markers, screaming, and glass breaking.
-- **Bolt & e-Hailing Route Corridor Sentinel**: Real-time corridor deviation watchdog and dead-man timer for survivor transport safety.
-- **OPRF PSI Stealth Contact Discovery**: Oblivious Pseudorandom Function Private Set Intersection for zero-knowledge guardian pairing.
-- **P2P Wi-Fi Direct Encrypted Mesh Share**: Peer-to-peer evidence replication and offline emergency beacons during grid collapse.
+### Added
+- **'The Mask' Chameleon Camouflage Architecture (4 Dynamic Disguise Facades)**:
+  - **Face 1: PowerCalc SA** (`MunicipalPrepaidCalculator.tsx`): Authentic municipal prepaid utility calculator supporting Eskom, City of Johannesburg, Cape Town, eThekwini, Tshwane, and Mangaung STS-6 token vending, tariff breakdown charts, and PDF receipt downloads.
+  - **Face 2: Coco Bongo Beats** (`CocoBongoMusicFacade.tsx`): South African music streaming player featuring Amapiano, Afro House, Gospel, and Maskandi curated playlists, vinyl spinning album art, audio scrubbers, and offline caching decoys.
+  - **Face 3: GraceShare Bible SA / Izwi LeNkosi** (`DailyDevotionalFacade.tsx`): Faith-based devotional portal with multilingual scriptures (English, isiZulu *IBhayibheli Elingcwele*, Sesotho *Bibele*), downloadable verse cards for WhatsApp Status, and WhatsApp-style voice note sermons with audio waveforms (1.0x, 1.5x, 2.0x speeds).
+  - **Face 4: Ipkiss Minimalist Launcher** (`AndroidLauncherFacade.tsx` & `launcher/*`): Native Android home screen interface for standalone PWA and APK environments featuring realistic clock widget, weather badge, Google search bar, app drawer grid, dock, and dialer modal.
+- **Unified Covert Security & Sensor Matrix**:
+  - **Universal Safe Haven Unlock (PIN 8426)**: Supported uniformly across search inputs, concordance keypads, dialpad (`*#8426#`), and audio duration scrubber (`08:42`).
+  - **Covert Multi-Tap Gestures**: 3-tap rapid gesture on municipal crest, 3-tap gesture on spinning vinyl album art, or 4-tap gesture on scripture cross within 800-1000ms.
+  - **Universal Silent Duress SOS (PIN 9999)**: Submitting `9999` silently dispatches a high-priority distress beacon to 5 ICE guardians while displaying realistic decoys (STS Error 30 terminal, track queued `#9999`, intercession prayer confirmation, or carrier MMI dialer decoy `Call forwarding unconditional: Voice disabled`).
+  - **Long-Press Duress Trigger**: Long-pressing the Favorite Heart for 4 consecutive seconds silently triggers duress dispatch.
+  - **0ms Instant Panic Camouflage Guarantee**: Escape key, double-tap background, or Android hardware back/home instantly resets UI to the active camouflage facade with synchronous RAM memory wiping and cryptographic keystore purging.
+- **State Management & Disguise Catalog (`disguiseManager.ts` v2.6.0)**:
+  - Multi-persona switching across `MUNICIPAL_PREPAID`, `MUSIC_PLAYER`, `DAILY_DEVOTIONAL`, and `ANDROID_LAUNCHER`.
+  - Obfuscated localStorage persistence (`umkhuseli_active_disguise`) and custom window event broadcasting (`umkhuseli_disguise_change`).
+  - Public-facing production domain configuration: `ishekomberera.vercel.app`.
+- **Architectural Preservation & Invariants**:
+  - Safe Haven cryptographic core (`SafeHavenDashboard.tsx`, AES-256-GCM vault, ECTA Section 15 affidavit generation, Audio Sentry, SOS emergency service) remains completely untouched and isolated.
+- **Automated Test Suite Expansion**:
+  - Added `androidLauncherFacade.test.tsx` (12 tests) verifying home screen rendering, dialer unlock (`*#8426#`), duress SOS (`*#9999#`), app routing, and Android navigation.
+  - Added `cocoBongoMusicFacade.test.tsx` (9 tests) verifying music player UI, playback toggling, genre filtering, covert 3-tap album art unlock, scrubber unlock (`08:42`), and duress triggers.
+  - Added `dailyDevotionalFacade.test.tsx` (8 tests) verifying multilingual scriptures, bookmarks, search unlock (`8426`), prayer duress (`9999`), and 4-tap cross gesture.
+  - Updated `disguiseManager.test.ts` (9 tests) verifying catalog integrity and state persistence.
+  - Total passing automated tests: 231 tests across 32 test suites (100% green).
 
 ---
 
