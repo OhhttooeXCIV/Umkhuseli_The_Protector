@@ -31,7 +31,12 @@ import { UssdSimulationModal } from "./UssdSimulationModal";
 import { triggerTactileHapticPulse } from "../services/iosStealthManager";
 import { useHttpToasts } from "../hooks/useHttpToasts";
 import { HttpToastNotification } from "./common/HttpToastNotification";
-import { getCachedLiveLocation, watchLiveLocation } from "../services/liveLocationService";
+import {
+  getCachedLiveLocation,
+  watchLiveLocation,
+  saveLiveLocation,
+  inferAreaAndProvince,
+} from "../services/liveLocationService";
 
 // Modular Safe Haven Tab Components
 import { SosEmergencyTab } from "./safehaven/SosEmergencyTab";
@@ -109,8 +114,14 @@ export const SafeHavenDashboard: React.FC<Props> = ({
     storage: "unknown",
     notifications: "unknown",
   });
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number; accuracy?: number } | null>(null);
-  const [identifiedAreaName, setIdentifiedAreaName] = useState<string>("Johannesburg Central");
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number; accuracy?: number } | null>(() => {
+    const cached = getCachedLiveLocation();
+    return cached ? { lat: cached.lat, lng: cached.lng, accuracy: cached.accuracy } : null;
+  });
+  const [identifiedAreaName, setIdentifiedAreaName] = useState<string>(() => {
+    const cached = getCachedLiveLocation();
+    return cached?.areaName || "South Africa Safety Zone";
+  });
   const [isLocating, setIsLocating] = useState<boolean>(false);
 
   const formatElapsed = (sec: number): string => {
@@ -130,11 +141,14 @@ export const SafeHavenDashboard: React.FC<Props> = ({
     setIsLocating(true);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
+        saveLiveLocation(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy || 15);
+        const meta = inferAreaAndProvince(pos.coords.latitude, pos.coords.longitude);
         setUserLocation({
           lat: pos.coords.latitude,
           lng: pos.coords.longitude,
           accuracy: pos.coords.accuracy,
         });
+        setIdentifiedAreaName(meta.areaName);
         setPermissionsStatus((p) => ({ ...p, geolocation: "granted" }));
         setIsLocating(false);
       },
