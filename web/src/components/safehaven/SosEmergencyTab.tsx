@@ -18,6 +18,7 @@ import {
 import { NATIONAL_LIFELINES } from "../../data/saSafetyData";
 import { VehicleJourneyDetails } from "../../services/journeyTrackerService";
 import { startAudibleSiren, stopAudibleSiren, isSirenActive } from "../../services/audibleSirenService";
+import { getCachedLiveLocation } from "../../services/liveLocationService";
 
 interface SosEmergencyTabProps {
   activeJourney: VehicleJourneyDetails | null;
@@ -71,7 +72,11 @@ export const SosEmergencyTab: React.FC<SosEmergencyTabProps> = ({
     }
   };
 
-  const offlineSmsBody = `EMERGENCY SOS: Survivor in immediate danger. GPS: -26.2041, 28.0473 (Accuracy ~10m). Dispatch immediate SAPS / Medical assistance. Time: ${new Date().toLocaleTimeString("en-ZA")}`;
+  const cachedGps = getCachedLiveLocation();
+  const liveGpsString = cachedGps
+    ? `${cachedGps.lat.toFixed(4)}, ${cachedGps.lng.toFixed(4)} (Accuracy ~${Math.round(cachedGps.accuracy || 15)}m)`
+    : "Live GPS Acquired";
+  const offlineSmsBody = `EMERGENCY SOS: Survivor in immediate danger. GPS: ${liveGpsString}. Dispatch immediate SAPS / Medical assistance. Time: ${new Date().toLocaleTimeString("en-ZA")}`;
 
   return (
     <div className="space-y-5 animate-in fade-in duration-200">
@@ -235,7 +240,14 @@ export const SosEmergencyTab: React.FC<SosEmergencyTabProps> = ({
             <div className="bg-black/60 p-2.5 rounded-lg font-mono text-[11px] text-slate-300 space-y-1 border border-slate-800">
               <div><strong>ICE 1:</strong> Sister Lerato (+27 82 000 0001)</div>
               <div><strong>ICE 2:</strong> Coordinator Sipho (+27 82 000 0002)</div>
-              <div><strong>GPS:</strong> -26.2041, 28.0473 (JHB Central)</div>
+              <div>
+                <strong>GPS:</strong>{" "}
+                {simulatedDispatchPayload.gps
+                  ? `${simulatedDispatchPayload.gps.lat.toFixed(4)}, ${simulatedDispatchPayload.gps.lng.toFixed(4)}`
+                  : cachedGps
+                  ? `${cachedGps.lat.toFixed(4)}, ${cachedGps.lng.toFixed(4)}`
+                  : "Live Device Telemetry Active"}
+              </div>
               <div><strong>Battery:</strong> 92% | Time: {simulatedDispatchPayload.timestamp}</div>
             </div>
 
