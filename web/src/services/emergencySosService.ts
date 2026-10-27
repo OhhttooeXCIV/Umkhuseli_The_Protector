@@ -21,6 +21,7 @@ import {
   generateWhatsAppBeaconUrl,
   generateDistressEmailUrl
 } from "./uatProfileService";
+import { saveLiveLocation, getCachedLiveLocation } from "./liveLocationService";
 
 export interface GeoLocationResult {
   latitude: number;
@@ -61,11 +62,21 @@ export interface DuressDispatchReport {
  * Retrieves live device GPS coordinates with timeout and fallback.
  */
 export async function getLiveGeoCoordinates(timeoutMs: number = 3500): Promise<GeoLocationResult> {
+  const cachedLive = getCachedLiveLocation();
+
   if (typeof navigator === "undefined" || !navigator.geolocation) {
+    if (cachedLive) {
+      return {
+        latitude: cachedLive.lat,
+        longitude: cachedLive.lng,
+        accuracy: cachedLive.accuracy,
+        source: "GPS_HARDWARE"
+      };
+    }
     return {
-      latitude: -26.2041,
-      longitude: 28.0473,
-      accuracy: 50,
+      latitude: 0,
+      longitude: 0,
+      accuracy: 0,
       source: "DEFAULT_SAFE_HAVEN"
     };
   }
@@ -76,12 +87,21 @@ export async function getLiveGeoCoordinates(timeoutMs: number = 3500): Promise<G
     const timer = setTimeout(() => {
       if (!resolved) {
         resolved = true;
-        resolve({
-          latitude: -26.2041,
-          longitude: 28.0473,
-          accuracy: 100,
-          source: "APPROXIMATE_IP"
-        });
+        if (cachedLive) {
+          resolve({
+            latitude: cachedLive.lat,
+            longitude: cachedLive.lng,
+            accuracy: cachedLive.accuracy,
+            source: "GPS_HARDWARE"
+          });
+        } else {
+          resolve({
+            latitude: 0,
+            longitude: 0,
+            accuracy: 0,
+            source: "APPROXIMATE_IP"
+          });
+        }
       }
     }, timeoutMs);
 
@@ -90,6 +110,7 @@ export async function getLiveGeoCoordinates(timeoutMs: number = 3500): Promise<G
         if (!resolved) {
           resolved = true;
           clearTimeout(timer);
+          saveLiveLocation(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy);
           resolve({
             latitude: pos.coords.latitude,
             longitude: pos.coords.longitude,
@@ -102,12 +123,21 @@ export async function getLiveGeoCoordinates(timeoutMs: number = 3500): Promise<G
         if (!resolved) {
           resolved = true;
           clearTimeout(timer);
-          resolve({
-            latitude: -26.2041,
-            longitude: 28.0473,
-            accuracy: 100,
-            source: "DEFAULT_SAFE_HAVEN"
-          });
+          if (cachedLive) {
+            resolve({
+              latitude: cachedLive.lat,
+              longitude: cachedLive.lng,
+              accuracy: cachedLive.accuracy,
+              source: "GPS_HARDWARE"
+            });
+          } else {
+            resolve({
+              latitude: 0,
+              longitude: 0,
+              accuracy: 0,
+              source: "DEFAULT_SAFE_HAVEN"
+            });
+          }
         }
       },
       {

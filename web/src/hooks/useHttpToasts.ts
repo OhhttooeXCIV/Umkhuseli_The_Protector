@@ -46,7 +46,9 @@ export function useHttpToasts() {
   return {
     toasts,
     addToast,
+    showToast: addToast,
     dismissToast,
+    removeToast: dismissToast,
     clearToasts
   };
 }

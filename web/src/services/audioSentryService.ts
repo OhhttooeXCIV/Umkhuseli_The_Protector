@@ -7,6 +7,8 @@
  * 3. Township Taxi Rank rapid 3-tap panic trigger tagged with SA geofences.
  */
 
+import { getCachedLiveLocation } from "./liveLocationService";
+
 export interface Coordinates {
   latitude: number;
   longitude: number;
@@ -511,7 +513,7 @@ export class SafeWalkSentinel {
       checkpointIntervalMinutes: config.checkpointIntervalMinutes,
       gracePeriodSeconds: config.gracePeriodSeconds ?? 60,
       duressPin: config.duressPin ?? "9999",
-      startCoords: config.startCoords ?? { latitude: -26.2041, longitude: 28.0473 }
+      startCoords: config.startCoords ?? (getCachedLiveLocation() ? { latitude: getCachedLiveLocation()!.lat, longitude: getCachedLiveLocation()!.lng } : { latitude: 0, longitude: 0 })
     };
 
     this.currentCheckpointIndex = 0;

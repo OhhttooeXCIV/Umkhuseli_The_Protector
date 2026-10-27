@@ -5,6 +5,8 @@
  * deadman timer escalation, synthesized fake incoming call generator, and emergency ICE broadcast payload formatting.
  */
 
+import { getCachedLiveLocation } from "./liveLocationService";
+
 export interface Coordinates {
   latitude: number;
   longitude: number;
@@ -692,7 +694,10 @@ export class RouteCorridorSentinel {
   public generateDistressPayload(
     eventType: 'ROUTE_DEVIATION_EMERGENCY' | 'HAZARD_STOP_EMERGENCY' | 'DEADMAN_EXPIRED' | 'MANUAL_SOS' | 'DURESS_TRIGGER' = 'DEADMAN_EXPIRED'
   ): EmergencyDispatchPayload {
-    const defaultCoords: Coordinates = { latitude: -26.2041, longitude: 28.0473 }; // Johannesburg central fallback
+    const cachedGps = getCachedLiveLocation();
+    const defaultCoords: Coordinates = cachedGps
+      ? { latitude: cachedGps.lat, longitude: cachedGps.lng }
+      : { latitude: 0, longitude: 0 };
     const originCoords = this.origin || defaultCoords;
     const destCoords = this.destination || defaultCoords;
     const currentCoords: Coordinates = this.lastTelemetry

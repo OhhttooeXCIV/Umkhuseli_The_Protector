@@ -20,6 +20,7 @@ import {
 import { requestPersistentStorage } from "./services/storagePersistence";
 import { applyTheme, getInitialTheme } from "./services/themeManager";
 import { SpeedInsights } from '@vercel/speed-insights/react';
+import { getCachedLiveLocation } from "./services/liveLocationService";
 export const App: React.FC = () => {
   const [mode, setMode] = useState<"DECOY_CALCULATOR" | "SAFE_HAVEN" | "GUARDIAN_TRACKER">(() => {
     if (typeof window !== "undefined") {
@@ -277,13 +278,14 @@ export const App: React.FC = () => {
       });
 
       if (typeof localStorage !== "undefined") {
+        const cachedLive = getCachedLiveLocation();
         const beaconData = {
           id: activeBeaconToken,
           token: activeBeaconToken,
           dispatchedAt: report?.dispatchedAt || new Date().toISOString(),
-          latitude: report?.coordinates?.latitude ?? -26.2041,
-          longitude: report?.coordinates?.longitude ?? 28.0473,
-          accuracyMeters: report?.coordinates?.accuracy ?? 14,
+          latitude: report?.coordinates?.latitude ?? (cachedLive ? cachedLive.lat : 0),
+          longitude: report?.coordinates?.longitude ?? (cachedLive ? cachedLive.lng : 0),
+          accuracyMeters: report?.coordinates?.accuracy ?? (cachedLive ? cachedLive.accuracy : 15),
           areaName: report?.areaName || area,
           batteryPercentage: report?.telemetry?.batteryPercentage ?? 90,
           isCharging: report?.telemetry?.isCharging ?? false,

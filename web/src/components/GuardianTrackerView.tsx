@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   ShieldAlert,
   PhoneCall,
@@ -10,9 +10,16 @@ import {
   CheckCircle2,
   Navigation,
   ArrowLeft,
-  EyeOff
+  EyeOff,
+  RefreshCw,
 } from "lucide-react";
 import { THUTHUZELA_CENTERS, sortCentresByDistance } from "../data/saSafetyData";
+import { getCachedLiveLocation } from "../services/liveLocationService";
+import {
+  readDeviceLocationWithDetails,
+  inferSouthAfricanLocationSync,
+  SouthAfricanLocationDetails
+} from "../services/deviceLocationResolver";
 
 interface Props {
   beaconToken?: string;
@@ -25,9 +32,11 @@ export const GuardianTrackerView: React.FC<Props> = ({
 }) => {
   const [acknowledged, setAcknowledged] = useState(false);
   const [discreetMode, setDiscreetMode] = useState(false);
+  const [isReadingLocation, setIsReadingLocation] = useState(false);
+  const [isLiveDeviceGps, setIsLiveDeviceGps] = useState(false);
 
   // Read live beacon parameters on load from URL query params or localStorage
-  const beacon = useMemo(() => {
+  const initialBeacon = useMemo(() => {
     let lat: number | undefined;
     let lng: number | undefined;
     let acc: number | undefined;
@@ -36,6 +45,7 @@ export const GuardianTrackerView: React.FC<Props> = ({
     let dispatchedAt = new Date(Date.now() - 4 * 60 * 1000).toISOString();
     let areaName = "Johannesburg Central / Gauteng";
     let isCharging = false;
+    let hasExplicitBeaconCoordinates = false;
 
     if (typeof window !== "undefined") {
       const searchParams = new URLSearchParams(window.location.search);
@@ -48,6 +58,7 @@ export const GuardianTrackerView: React.FC<Props> = ({
       if (urlLat && urlLng) {
         lat = parseFloat(urlLat);
         lng = parseFloat(urlLng);
+        hasExplicitBeaconCoordinates = true;
       }
       if (urlAcc) acc = parseFloat(urlAcc);
       if (urlBat) bat = parseInt(urlBat, 10);
@@ -62,6 +73,7 @@ export const GuardianTrackerView: React.FC<Props> = ({
             if (parsed.latitude !== undefined && parsed.longitude !== undefined) {
               lat = parsed.latitude;
               lng = parsed.longitude;
+              hasExplicitBeaconCoordinates = true;
             }
             if (parsed.accuracyMeters !== undefined) acc = parsed.accuracyMeters;
             else if (parsed.accuracy !== undefined) acc = parsed.accuracy;
@@ -77,15 +89,12 @@ export const GuardianTrackerView: React.FC<Props> = ({
       }
     }
 
-    // Default fallbacks to Johannesburg Central
-    const finalLat = lat !== undefined && !isNaN(lat) ? lat : -26.2041;
-    const finalLng = lng !== undefined && !isNaN(lng) ? lng : 28.0473;
-    const finalAcc = acc !== undefined && !isNaN(acc) ? acc : 14;
+    // Default to Johannesburg Central (-26.2041, 28.0473) if coordinates are not provided
+    const cachedLiveGps = getCachedLiveLocation();
+    const finalLat = lat !== undefined && !isNaN(lat) ? lat : (cachedLiveGps ? cachedLiveGps.lat : -26.2041);
+    const finalLng = lng !== undefined && !isNaN(lng) ? lng : (cachedLiveGps ? cachedLiveGps.lng : 28.0473);
+    const finalAcc = acc !== undefined && !isNaN(acc) ? acc : (cachedLiveGps?.accuracy ?? 14);
     const finalBat = bat !== undefined && !isNaN(bat) ? bat : 78;
-
-    // Dynamically calculate nearest TCC facility by distance
-    const sortedCentres = sortCentresByDistance(THUTHUZELA_CENTERS, finalLat, finalLng);
-    const nearestTcc = sortedCentres[0] || THUTHUZELA_CENTERS[0];
 
     return {
       id: tokenVal,
@@ -96,15 +105,118 @@ export const GuardianTrackerView: React.FC<Props> = ({
       areaName,
       batteryPercentage: finalBat,
       isCharging,
-      nearestTcc
+      hasExplicitBeaconCoordinates
     };
   }, [beaconToken]);
 
-  const googleMapsUrl = `https://maps.google.com/?q=${beacon.latitude},${beacon.longitude}`;
+  // Active coordinates & telemetry
+  const [currentCoords, setCurrentCoords] = useState({
+    latitude: initialBeacon.latitude,
+    longitude: initialBeacon.longitude,
+    accuracyMeters: initialBeacon.accuracyMeters,
+  });
+
+  const [currentAreaName, setCurrentAreaName] = useState(initialBeacon.areaName);
+
+  // Resolved structured South African location (District, Region, City, Town)
+  const [locationDetails, setLocationDetails] = useState<SouthAfricanLocationDetails>(() =>
+    inferSouthAfricanLocationSync(
+      initialBeacon.latitude,
+      initialBeacon.longitude,
+      initialBeacon.accuracyMeters,
+      initialBeacon.hasExplicitBeaconCoordinates ? "BEACON_TELEMETRY" : "CACHE"
+    )
+  );
+
+  // Synchronize state if initialBeacon changes
+  useEffect(() => {
+    setCurrentCoords({
+      latitude: initialBeacon.latitude,
+      longitude: initialBeacon.longitude,
+      accuracyMeters: initialBeacon.accuracyMeters,
+    });
+    setCurrentAreaName(initialBeacon.areaName);
+    setLocationDetails(
+      inferSouthAfricanLocationSync(
+        initialBeacon.latitude,
+        initialBeacon.longitude,
+        initialBeacon.accuracyMeters,
+        initialBeacon.hasExplicitBeaconCoordinates ? "BEACON_TELEMETRY" : "CACHE"
+      )
+    );
+  }, [initialBeacon]);
+
+  // Read actual device location on mount if no explicit fixed beacon was supplied
+  useEffect(() => {
+    let isMounted = true;
+
+    if (!initialBeacon.hasExplicitBeaconCoordinates && typeof navigator !== "undefined" && navigator.geolocation) {
+      setIsReadingLocation(true);
+      readDeviceLocationWithDetails({ timeoutMs: 8000, highAccuracy: true })
+        .then((details) => {
+          if (isMounted) {
+            setCurrentCoords({
+              latitude: details.latitude,
+              longitude: details.longitude,
+              accuracyMeters: details.accuracy
+            });
+            setLocationDetails(details);
+            setIsLiveDeviceGps(true);
+            if (details.town) {
+              setCurrentAreaName(`${details.town} / ${details.province}`);
+            }
+          }
+        })
+        .catch(() => {
+          // Graceful silent fallback to default coordinates
+        })
+        .finally(() => {
+          if (isMounted) setIsReadingLocation(false);
+        });
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [initialBeacon.hasExplicitBeaconCoordinates]);
+
+  // Manual GPS refresh handler
+  const handleRefreshLocation = async () => {
+    setIsReadingLocation(true);
+    try {
+      const details = await readDeviceLocationWithDetails({ timeoutMs: 10000, highAccuracy: true });
+      setCurrentCoords({
+        latitude: details.latitude,
+        longitude: details.longitude,
+        accuracyMeters: details.accuracy
+      });
+      setLocationDetails(details);
+      setIsLiveDeviceGps(true);
+      if (details.town) {
+        setCurrentAreaName(`${details.town} / ${details.province}`);
+      }
+    } catch (err) {
+      console.warn("Manual GPS location refresh failed:", err);
+    } finally {
+      setIsReadingLocation(false);
+    }
+  };
+
+  // Dynamically calculate nearest TCC facility by distance based on active coordinates
+  const nearestTcc = useMemo(() => {
+    const sortedCentres = sortCentresByDistance(
+      THUTHUZELA_CENTERS,
+      currentCoords.latitude,
+      currentCoords.longitude
+    );
+    return sortedCentres[0] || THUTHUZELA_CENTERS[0];
+  }, [currentCoords.latitude, currentCoords.longitude]);
+
+  const googleMapsUrl = `https://maps.google.com/?q=${currentCoords.latitude},${currentCoords.longitude}`;
 
   const handleAcknowledge = () => {
     setAcknowledged(true);
-    const ackPayload = { token: beacon.id, timestamp: Date.now() };
+    const ackPayload = { token: initialBeacon.id, timestamp: Date.now() };
 
     if (typeof localStorage !== "undefined") {
       try {
@@ -118,7 +230,7 @@ export const GuardianTrackerView: React.FC<Props> = ({
       try {
         if ("BroadcastChannel" in window) {
           const channel = new BroadcastChannel("pcalc_emergency_channel");
-          channel.postMessage({ type: "BEACON_ACKNOWLEDGED", token: beacon.id, timestamp: Date.now() });
+          channel.postMessage({ type: "BEACON_ACKNOWLEDGED", token: initialBeacon.id, timestamp: Date.now() });
           channel.close();
         }
       } catch {
@@ -127,7 +239,7 @@ export const GuardianTrackerView: React.FC<Props> = ({
 
       try {
         window.dispatchEvent(
-          new CustomEvent("pcalc_beacon_acknowledged", { detail: { token: beacon.id } })
+          new CustomEvent("pcalc_beacon_acknowledged", { detail: { token: initialBeacon.id } })
         );
       } catch {
         /* custom event fallback */
@@ -202,7 +314,7 @@ export const GuardianTrackerView: React.FC<Props> = ({
               EMERGENCY SOS BEACON ACTIVE
             </span>
             <span className="text-[10px] font-mono text-slate-400">
-              Ref: {beacon.id.substring(0, 8)}
+              Ref: {initialBeacon.id.substring(0, 8)}
             </span>
           </div>
 
@@ -226,7 +338,7 @@ export const GuardianTrackerView: React.FC<Props> = ({
               <Battery className="w-4 h-4 text-emerald-400 shrink-0" />
               <div>
                 <span className="text-[10px] text-slate-500 block">PHONE BATTERY</span>
-                <span className="font-semibold text-emerald-400">{beacon.batteryPercentage}%</span>
+                <span className="font-semibold text-emerald-400">{initialBeacon.batteryPercentage}%</span>
               </div>
             </div>
           </div>
@@ -237,17 +349,94 @@ export const GuardianTrackerView: React.FC<Props> = ({
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5 text-rose-400" />
-              Last Known Coordinates
+              {isLiveDeviceGps ? "Live Device Coordinates" : "Last Known Coordinates"}
             </span>
-            <span className="text-[10px] text-emerald-400 font-mono">
-              Accuracy: ±{beacon.accuracyMeters}m
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-emerald-400 font-mono">
+                Accuracy: ±{currentCoords.accuracyMeters}m
+              </span>
+              <button
+                type="button"
+                onClick={handleRefreshLocation}
+                disabled={isReadingLocation}
+                className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors disabled:opacity-50 border border-slate-700 focus:outline-none focus:ring-1 focus:ring-sky-500"
+                title="Refresh device location"
+                aria-label="Refresh device location"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isReadingLocation ? "animate-spin text-sky-400" : ""}`} />
+              </button>
+            </div>
           </div>
 
-          <div className="bg-slate-950 p-3 rounded-xl border border-slate-800">
-            <div className="text-sm font-bold text-white mb-0.5">{beacon.areaName}</div>
-            <div className="text-xs font-mono text-slate-400">
-              {beacon.latitude.toFixed(4)}, {beacon.longitude.toFixed(4)}
+          <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 space-y-2.5">
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <div className="text-sm font-bold text-white mb-0.5">{currentAreaName}</div>
+                <div className="text-xs font-mono text-slate-400">
+                  {currentCoords.latitude.toFixed(4)}, {currentCoords.longitude.toFixed(4)}
+                </div>
+              </div>
+              <span
+                className={`text-[9px] px-2 py-0.5 rounded-full font-mono font-bold uppercase tracking-wider ${
+                  isLiveDeviceGps
+                    ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                    : "bg-slate-800 text-slate-400 border border-slate-700"
+                }`}
+              >
+                {isLiveDeviceGps ? "Live GPS" : "Beacon Fix"}
+              </span>
+            </div>
+
+            {/* Structured Administrative Hierarchy Breakdown: District, Region, City, Town */}
+            <div className="pt-2.5 border-t border-slate-800/80 grid grid-cols-2 gap-2 text-xs">
+              <div className="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800/60">
+                <span className="text-[9px] text-slate-400 block uppercase font-mono font-bold tracking-wider">
+                  District
+                </span>
+                <span
+                  className="text-white font-semibold text-xs block leading-tight mt-0.5 truncate"
+                  data-testid="location-district"
+                  title={locationDetails.district}
+                >
+                  {locationDetails.district}
+                </span>
+              </div>
+              <div className="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800/60">
+                <span className="text-[9px] text-slate-400 block uppercase font-mono font-bold tracking-wider">
+                  Region
+                </span>
+                <span
+                  className="text-white font-semibold text-xs block leading-tight mt-0.5 truncate"
+                  data-testid="location-region"
+                  title={locationDetails.region}
+                >
+                  {locationDetails.region}
+                </span>
+              </div>
+              <div className="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800/60">
+                <span className="text-[9px] text-slate-400 block uppercase font-mono font-bold tracking-wider">
+                  City
+                </span>
+                <span
+                  className="text-white font-semibold text-xs block leading-tight mt-0.5 truncate"
+                  data-testid="location-city"
+                  title={locationDetails.city}
+                >
+                  {locationDetails.city}
+                </span>
+              </div>
+              <div className="bg-slate-900/90 p-2.5 rounded-lg border border-slate-800/60">
+                <span className="text-[9px] text-slate-400 block uppercase font-mono font-bold tracking-wider">
+                  Town / Suburb
+                </span>
+                <span
+                  className="text-white font-semibold text-xs block leading-tight mt-0.5 truncate"
+                  data-testid="location-town"
+                  title={`${locationDetails.town}${locationDetails.suburb && locationDetails.suburb !== locationDetails.town ? ` (${locationDetails.suburb})` : ""}`}
+                >
+                  {locationDetails.town}{locationDetails.suburb && locationDetails.suburb !== locationDetails.town ? ` (${locationDetails.suburb})` : ""}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -285,18 +474,18 @@ export const GuardianTrackerView: React.FC<Props> = ({
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-3 flex items-center justify-between">
             <div className="pr-2">
               <span className="text-[10px] uppercase font-bold text-amber-400 block">
-                Nearest Care Facility ({beacon.nearestTcc.province})
+                Nearest Care Facility ({nearestTcc.province})
               </span>
-              <h4 className="text-xs font-bold text-white">{beacon.nearestTcc.name}</h4>
+              <h4 className="text-xs font-bold text-white">{nearestTcc.name}</h4>
               <p className="text-[10px] text-slate-400">
-                {beacon.nearestTcc.hospitalOrLocation}
-                {beacon.nearestTcc.distanceKm !== undefined && (
-                  <span> • {beacon.nearestTcc.distanceKm.toFixed(1)} km away</span>
+                {nearestTcc.hospitalOrLocation}
+                {nearestTcc.distanceKm !== undefined && (
+                  <span> • {nearestTcc.distanceKm.toFixed(1)} km away</span>
                 )}
               </p>
             </div>
             <a
-              href={`tel:${beacon.nearestTcc.contactNumber}`}
+              href={`tel:${nearestTcc.contactNumber}`}
               className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold p-2.5 rounded-lg flex items-center justify-center shrink-0"
               title="Call Care Centre"
             >

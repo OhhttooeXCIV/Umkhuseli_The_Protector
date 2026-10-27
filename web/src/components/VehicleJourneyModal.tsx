@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Car,
   X,
@@ -21,6 +21,7 @@ import {
   generateJourneySmsUrl
 } from "../services/journeyTrackerService";
 import { IceContact } from "../services/uatProfileService";
+import { getLiveLocation, getCachedLiveLocation } from "../services/liveLocationService";
 
 interface Props {
   isOpen: boolean;
@@ -76,11 +77,15 @@ export const VehicleJourneyModal: React.FC<Props> = ({
   isOpen,
   onClose,
   onStartJourney,
-  currentLocationAddress = "Johannesburg Central / Gauteng Metro",
+  currentLocationAddress,
   currentCoords,
   iceContacts,
   userName = "Umkhuseli Survivor"
 }) => {
+  const cachedGps = getCachedLiveLocation();
+  const [activeCoords, setActiveCoords] = useState<{ lat: number; lng: number } | undefined>(
+    currentCoords || (cachedGps ? { lat: cachedGps.lat, lng: cachedGps.lng } : undefined)
+  );
   const [rideType, setRideType] = useState<RideProviderType>("Uber");
   const [vehicleMake, setVehicleMake] = useState("Toyota");
   const [customMake, setCustomMake] = useState("");
@@ -92,13 +97,28 @@ export const VehicleJourneyModal: React.FC<Props> = ({
   const [customDamage, setCustomDamage] = useState("");
   const [driverName, setDriverName] = useState("");
   const [driverPhone, setDriverPhone] = useState("");
-  const [originAddress, setOriginAddress] = useState(currentLocationAddress);
+  const [originAddress, setOriginAddress] = useState(
+    currentLocationAddress || cachedGps?.areaName || "Current GPS Location"
+  );
   const [destinationAddress, setDestinationAddress] = useState("");
   const [selectedContactIds, setSelectedContactIds] = useState<string[]>(() =>
     iceContacts.map((c) => c.id)
   );
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [createdJourney, setCreatedJourney] = useState<VehicleJourneyDetails | null>(null);
+
+  useEffect(() => {
+    if (!currentCoords) {
+      getLiveLocation({ timeoutMs: 6000 })
+        .then((loc) => {
+          setActiveCoords({ lat: loc.lat, lng: loc.lng });
+          if (!currentLocationAddress) {
+            setOriginAddress(loc.areaName);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [currentCoords, currentLocationAddress]);
 
   if (!isOpen) return null;
 
@@ -151,8 +171,8 @@ export const VehicleJourneyModal: React.FC<Props> = ({
       driverPhone: driverPhone.trim() || undefined,
       originAddress: originAddress.trim() || "Current Location",
       destinationAddress: destinationAddress.trim() || "Destination Unspecified",
-      originCoords: currentCoords,
-      currentCoords: currentCoords,
+      originCoords: activeCoords || currentCoords,
+      currentCoords: activeCoords || currentCoords,
       startTime: new Date().toLocaleTimeString("en-ZA", { hour: "2-digit", minute: "2-digit" }),
       startTimestamp: Date.now(),
       selectedIceContactIds: selectedContactIds,

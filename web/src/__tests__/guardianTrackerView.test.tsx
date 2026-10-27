@@ -1,9 +1,14 @@
-import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import React from "react";
 import { GuardianTrackerView } from "../components/GuardianTrackerView";
 
 describe("GuardianTrackerView Component (Feature 3: Zero-Install Ephemeral Responder Console)", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+
   it("renders tactical rescue console header, live beacon banner, and telemetry", () => {
     render(<GuardianTrackerView beaconToken="test-beacon-token-99" />);
 
@@ -109,5 +114,66 @@ describe("GuardianTrackerView Component (Feature 3: Zero-Install Ephemeral Respo
     fireEvent.click(backBtn);
 
     expect(mockExit).toHaveBeenCalledTimes(1);
+  });
+
+  it("displays structured South African location hierarchy (District, Region, City, Town)", () => {
+    localStorage.setItem(
+      "pcalc_last_beacon",
+      JSON.stringify({
+        id: "district-test-beacon",
+        latitude: -26.2041,
+        longitude: 28.0473,
+        accuracyMeters: 14,
+        areaName: "Johannesburg Central / Gauteng",
+      })
+    );
+
+    render(<GuardianTrackerView />);
+
+    expect(screen.getByText("District")).toBeInTheDocument();
+    expect(screen.getByText("Region")).toBeInTheDocument();
+    expect(screen.getByText("City")).toBeInTheDocument();
+    expect(screen.getByText("Town / Suburb")).toBeInTheDocument();
+
+    expect(screen.getByTestId("location-district")).toHaveTextContent(
+      "City of Johannesburg Metropolitan Municipality"
+    );
+    expect(screen.getByTestId("location-region")).toHaveTextContent("Gauteng Central (Region F)");
+    expect(screen.getByTestId("location-city")).toHaveTextContent("Johannesburg");
+    expect(screen.getByTestId("location-town")).toHaveTextContent("Johannesburg Central");
+  });
+
+  it("reads device location and refreshes location telemetry when refresh button is clicked", async () => {
+    const mockGetCurrentPosition = vi.fn().mockImplementation((success) => {
+      success({
+        coords: {
+          latitude: -33.9249,
+          longitude: 18.4241,
+          accuracy: 10,
+        },
+      });
+    });
+
+    Object.defineProperty(global.navigator, "geolocation", {
+      value: {
+        getCurrentPosition: mockGetCurrentPosition,
+      },
+      writable: true,
+      configurable: true,
+    });
+
+    render(<GuardianTrackerView beaconToken="refresh-test" />);
+
+    const refreshBtn = screen.getByRole("button", { name: /Refresh device location/i });
+    expect(refreshBtn).toBeInTheDocument();
+
+    fireEvent.click(refreshBtn);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("location-city")).toHaveTextContent("Cape Town");
+      expect(screen.getByTestId("location-district")).toHaveTextContent(
+        "City of Cape Town Metropolitan Municipality"
+      );
+    });
   });
 });

@@ -23,7 +23,13 @@ import {
   Building2,
   Map as MapIcon
 } from "lucide-react";
-import { THUTHUZELA_CENTERS, ThuthuzelaCenter, SA_PROVINCES } from "../data/saSafetyData";
+import { THUTHUZELA_CENTERS, ThuthuzelaCenter, SA_PROVINCES, sortCentresByDistance } from "../data/saSafetyData";
+import {
+  getLiveLocation,
+  watchLiveLocation,
+  getCachedLiveLocation,
+  LiveLocation
+} from "../services/liveLocationService";
 
 export type ScopeType = "city" | "province" | "country";
 
@@ -103,20 +109,36 @@ export const GoogleMapsSafeHavenView: React.FC<Props> = ({
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
 
-  // User coordinates state (default Johannesburg CBD)
-  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number }>({
-    lat: -26.2041,
-    lng: 28.0473,
+  // Authentic live location state (reads directly from live device GPS telemetry)
+  const initialLiveLocation = getCachedLiveLocation();
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(
+    initialLiveLocation ? { lat: initialLiveLocation.lat, lng: initialLiveLocation.lng } : null
+  );
+  const [accuracyMeters, setAccuracyMeters] = useState<number>(
+    initialLiveLocation ? initialLiveLocation.accuracy : 0
+  );
+  const [identifiedArea, setIdentifiedArea] = useState<string>(
+    initialLiveLocation ? initialLiveLocation.areaName : "Acquiring Live GPS Location..."
+  );
+  const [isDetecting, setIsDetecting] = useState(!initialLiveLocation);
+  const [selectedCenter, setSelectedCenter] = useState<ThuthuzelaCenter | null>(() => {
+    if (initialLiveLocation) {
+      return (
+        sortCentresByDistance(THUTHUZELA_CENTERS, initialLiveLocation.lat, initialLiveLocation.lng)[0] ||
+        THUTHUZELA_CENTERS[0]
+      );
+    }
+    return THUTHUZELA_CENTERS[0];
   });
-  const [accuracyMeters, setAccuracyMeters] = useState<number>(25);
-  const [identifiedArea, setIdentifiedArea] = useState<string>("Detecting Area...");
-  const [isDetecting, setIsDetecting] = useState(false);
-  const [selectedCenter, setSelectedCenter] = useState<ThuthuzelaCenter | null>(THUTHUZELA_CENTERS[0]);
 
-  // Offline Scope Selection State
+  // Offline Scope Selection State (prepopulated from user's live location)
   const [scopeType, setScopeType] = useState<ScopeType>("city");
-  const [selectedCity, setSelectedCity] = useState<string>("Johannesburg");
-  const [selectedProvince, setSelectedProvince] = useState<string>("Gauteng");
+  const [selectedCity, setSelectedCity] = useState<string>(
+    initialLiveLocation ? initialLiveLocation.metro : "Johannesburg"
+  );
+  const [selectedProvince, setSelectedProvince] = useState<string>(
+    initialLiveLocation ? initialLiveLocation.province : "Gauteng"
+  );
 
   // Offline Cache & Expiry State
   const [offlineDownloaded, setOfflineDownloaded] = useState(false);
@@ -125,22 +147,39 @@ export const GoogleMapsSafeHavenView: React.FC<Props> = ({
   const [activeAlertMessage, setActiveAlertMessage] = useState<string | null>(null);
 
   // Live OpenStreetMap (OSM) viewer state
-  const [osmCenter, setOsmCenter] = useState<{ lat: number; lng: number }>({
-    lat: -26.2041,
-    lng: 28.0473,
+  const [osmCenter, setOsmCenter] = useState<{ lat: number; lng: number }>(() => {
+    if (initialLiveLocation) {
+      return { lat: initialLiveLocation.lat, lng: initialLiveLocation.lng };
+    }
+    return { lat: -28.4793, lng: 24.6727 }; // National geographic center of South Africa
   });
-  const [osmZoom, setOsmZoom] = useState<number>(12);
+  const [osmZoom, setOsmZoom] = useState<number>(initialLiveLocation ? 12 : 6);
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef<{ x: number; y: number; center: { lat: number; lng: number } }>({
     x: 0,
     y: 0,
-    center: { lat: -26.2041, lng: 28.0473 },
+    center: initialLiveLocation
+      ? { lat: initialLiveLocation.lat, lng: initialLiveLocation.lng }
+      : { lat: -28.4793, lng: 24.6727 },
   });
 
   // Google Maps Instance Refs
   const googleMapRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
   const userMarkerRef = useRef<any>(null);
+  const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  const setSafeTimeout = (fn: () => void, ms: number) => {
+    const id = setTimeout(fn, ms);
+    timeoutsRef.current.push(id);
+    return id;
+  };
+
+  useEffect(() => {
+    return () => {
+      timeoutsRef.current.forEach((id) => clearTimeout(id));
+    };
+  }, []);
 
   // Check and restore existing offline map cache on mount
   useEffect(() => {
@@ -158,57 +197,65 @@ export const GoogleMapsSafeHavenView: React.FC<Props> = ({
     }
   }, []);
 
-  // Detect initial location
-  useEffect(() => {
-    detectLocation();
-  }, []);
+  const applyLiveLocation = (liveLoc: LiveLocation) => {
+    setUserCoords({ lat: liveLoc.lat, lng: liveLoc.lng });
+    setAccuracyMeters(liveLoc.accuracy);
+    setIdentifiedArea(liveLoc.areaName);
+    setSelectedCity(liveLoc.metro);
+    setSelectedProvince(liveLoc.province);
+    setIsDetecting(false);
 
-  const detectLocation = () => {
-    setIsDetecting(true);
-    if (typeof navigator !== "undefined" && navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const lat = pos.coords.latitude;
-          const lng = pos.coords.longitude;
-          setUserCoords({ lat, lng });
-          setOsmCenter({ lat, lng });
-          setAccuracyMeters(Math.round(pos.coords.accuracy || 20));
-          setIsDetecting(false);
+    // Prepopulate closest safe haven based on real live coordinates
+    const closest = sortCentresByDistance(THUTHUZELA_CENTERS, liveLoc.lat, liveLoc.lng)[0];
+    if (closest) {
+      setSelectedCenter(closest);
+      if (onSelectCenter) onSelectCenter(closest);
+    }
 
-          inferAreaName(lat, lng);
+    setOsmCenter({ lat: liveLoc.lat, lng: liveLoc.lng });
+    setOsmZoom(12);
 
-          // Center Google map if initialized
-          if (googleMapRef.current && window.google?.maps) {
-            googleMapRef.current.panTo({ lat, lng });
-            updateUserMarker(lat, lng);
-          }
-        },
-        (err) => {
-          console.warn("Geolocation lookup error:", err.message);
-          setIsDetecting(false);
-          setIdentifiedArea("Johannesburg Central / Gauteng Metro");
-        },
-        { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 }
-      );
-    } else {
-      setIsDetecting(false);
-      setIdentifiedArea("Johannesburg Central / Gauteng Metro");
+    if (googleMapRef.current && window.google?.maps) {
+      googleMapRef.current.panTo({ lat: liveLoc.lat, lng: liveLoc.lng });
+      updateUserMarker(liveLoc.lat, liveLoc.lng);
     }
   };
 
-  const inferAreaName = (lat: number, lng: number) => {
-    if (lat < -33.5 && lng < 19.5) {
-      setIdentifiedArea("City of Cape Town / Western Cape Metro");
-    } else if (lat < -29.0 && lat > -30.5 && lng > 30.5) {
-      setIdentifiedArea("eThekwini Metro / Durban Coastal");
-    } else if (lat < -25.5 && lat > -26.5 && lng > 27.5 && lng < 28.5) {
-      setIdentifiedArea("City of Johannesburg / Gauteng Central");
-    } else if (lat < -25.4 && lng > 28.0 && lng < 28.5) {
-      setIdentifiedArea("City of Tshwane / Pretoria");
-    } else if (lat < -33.5 && lng > 25.0 && lng < 26.5) {
-      setIdentifiedArea("Nelson Mandela Bay / Gqeberha");
-    } else {
-      setIdentifiedArea("South Africa Municipal Safety Zone");
+  // Continuous real-time GPS tracking from device hardware
+  useEffect(() => {
+    const unwatch = watchLiveLocation(
+      (liveLoc) => {
+        applyLiveLocation(liveLoc);
+      },
+      (err) => {
+        console.warn("Live GPS lookup:", err?.message || err);
+        setIsDetecting(false);
+        const cached = getCachedLiveLocation();
+        if (cached) {
+          applyLiveLocation(cached);
+        } else {
+          setIdentifiedArea("Live GPS Required (Enable Device Location)");
+        }
+      }
+    );
+    return () => unwatch();
+  }, []);
+
+  const detectLocation = async () => {
+    setIsDetecting(true);
+    setIdentifiedArea("Acquiring Live GPS Location...");
+    try {
+      const liveLoc = await getLiveLocation({ highAccuracy: true, timeoutMs: 8000 });
+      applyLiveLocation(liveLoc);
+    } catch (err: any) {
+      console.warn("Live geolocation lookup error:", err?.message || err);
+      setIsDetecting(false);
+      const cached = getCachedLiveLocation();
+      if (cached) {
+        applyLiveLocation(cached);
+      } else {
+        setIdentifiedArea("Live GPS Required (Enable Device Location)");
+      }
     }
   };
 
@@ -252,8 +299,8 @@ export const GoogleMapsSafeHavenView: React.FC<Props> = ({
 
     try {
       const mapOptions = {
-        center: userCoords,
-        zoom: 12,
+        center: userCoords || { lat: -28.4793, lng: 24.6727 },
+        zoom: userCoords ? 12 : 6,
         mapTypeId: "roadmap",
         internalUsageAttributionIds: ["gmp_git_agentskills_v1"],
         disableDefaultUI: false,
@@ -334,7 +381,9 @@ export const GoogleMapsSafeHavenView: React.FC<Props> = ({
         markersRef.current.push(marker);
       });
 
-      updateUserMarker(userCoords.lat, userCoords.lng);
+      if (userCoords) {
+        updateUserMarker(userCoords.lat, userCoords.lng);
+      }
     } catch (e: any) {
       console.warn("Google Maps init exception:", e);
       setMapError(e.message || "Map render failed");
@@ -451,10 +500,14 @@ export const GoogleMapsSafeHavenView: React.FC<Props> = ({
         localStorage.setItem("umkhuseli_offline_map_package", JSON.stringify(newPackage));
         localStorage.setItem("umkhuseli_offline_package_name", newPackage.packageName);
         // Backwards compatibility key
-        localStorage.setItem(
-          `umkhuseli_offline_map_${userCoords.lat.toFixed(2)}_${userCoords.lng.toFixed(2)}`,
-          JSON.stringify(newPackage)
-        );
+        if (userCoords) {
+          localStorage.setItem(
+            `umkhuseli_offline_map_${userCoords.lat.toFixed(2)}_${userCoords.lng.toFixed(2)}`,
+            JSON.stringify(newPackage)
+          );
+        } else {
+          localStorage.setItem("umkhuseli_offline_map_latest", JSON.stringify(newPackage));
+        }
       }
 
       setCachedPackage(newPackage);
@@ -468,7 +521,7 @@ export const GoogleMapsSafeHavenView: React.FC<Props> = ({
       // Immediate alert after being set
       const alertMsg = `Offline map for ${meta.label} downloaded. Expiry Date: ${formattedExpiry}. Automatic reminder alerts armed. Offline municipal safety waypoints & TCC directory cached locally.`;
       setOfflineStatusMsg(alertMsg);
-      setTimeout(() => setOfflineStatusMsg(null), 8000);
+      setSafeTimeout(() => setOfflineStatusMsg(null), 8000);
     } catch (e: any) {
       console.error("Offline map cache failed:", e);
       setOfflineStatusMsg("Offline cache completed.");
@@ -562,7 +615,7 @@ export const GoogleMapsSafeHavenView: React.FC<Props> = ({
     const msg = `Offline map for ${cachedPackage.scopeLabel} renewed for +30 days. Expiry Date: ${formattedExpiry}. Automatic reminder alerts re-armed.`;
     setOfflineStatusMsg(msg);
     setActiveAlertMessage(null);
-    setTimeout(() => setOfflineStatusMsg(null), 8000);
+    setSafeTimeout(() => setOfflineStatusMsg(null), 8000);
   };
 
   // Delete Cache
@@ -579,7 +632,7 @@ export const GoogleMapsSafeHavenView: React.FC<Props> = ({
     setOfflineDownloaded(false);
     setActiveAlertMessage(null);
     setOfflineStatusMsg("Offline map cache deleted.");
-    setTimeout(() => setOfflineStatusMsg(null), 4000);
+    setSafeTimeout(() => setOfflineStatusMsg(null), 4000);
   };
 
   // Countdown Calculation
@@ -656,8 +709,12 @@ export const GoogleMapsSafeHavenView: React.FC<Props> = ({
 
   // Center on User Coords
   const handleCenterOnUser = () => {
-    setOsmCenter({ lat: userCoords.lat, lng: userCoords.lng });
-    setOsmZoom(12);
+    if (userCoords) {
+      setOsmCenter({ lat: userCoords.lat, lng: userCoords.lng });
+      setOsmZoom(12);
+    } else {
+      detectLocation();
+    }
   };
 
   // Pan controls
@@ -711,7 +768,7 @@ export const GoogleMapsSafeHavenView: React.FC<Props> = ({
 
           <div className="text-right">
             <span className="text-[10px] font-mono bg-slate-800 text-sky-300 px-2 py-0.5 rounded border border-slate-700 font-semibold block">
-              ±{accuracyMeters}m GPS
+              {accuracyMeters > 0 ? `±${accuracyMeters}m GPS` : "GPS Pending"}
             </span>
           </div>
         </div>
@@ -1126,7 +1183,7 @@ export const GoogleMapsSafeHavenView: React.FC<Props> = ({
               </div>
 
               {/* User Live Coordinates Beacon */}
-              {(() => {
+              {userCoords && (() => {
                 const { screenX, screenY } = latLngToScreen(
                   userCoords.lat,
                   userCoords.lng,
@@ -1308,7 +1365,11 @@ export const GoogleMapsSafeHavenView: React.FC<Props> = ({
                 © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer" className="underline hover:text-slate-200">OpenStreetMap</a> contributors
               </span>
               <a
-                href={`https://maps.google.com/?q=${userCoords.lat},${userCoords.lng}`}
+                href={
+                  userCoords
+                    ? `https://maps.google.com/?q=${userCoords.lat},${userCoords.lng}`
+                    : `https://maps.google.com/?q=${selectedCenter.latitude},${selectedCenter.longitude}`
+                }
                 target="_blank"
                 rel="noreferrer"
                 className="text-sky-400 hover:underline flex items-center gap-1"
@@ -1335,13 +1396,14 @@ export const GoogleMapsSafeHavenView: React.FC<Props> = ({
             </div>
             <div className="text-right">
               <span className="text-[11px] font-mono font-bold bg-amber-950 text-amber-300 border border-amber-800 px-2 py-0.5 rounded-full inline-block">
-                {getDistanceKm(
-                  userCoords.lat,
-                  userCoords.lng,
-                  selectedCenter.latitude,
-                  selectedCenter.longitude
-                )}{" "}
-                km
+                {userCoords
+                  ? `${getDistanceKm(
+                      userCoords.lat,
+                      userCoords.lng,
+                      selectedCenter.latitude,
+                      selectedCenter.longitude
+                    )} km`
+                  : "GPS Pending"}
               </span>
             </div>
           </div>
