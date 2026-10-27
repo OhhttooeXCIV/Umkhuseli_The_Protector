@@ -143,11 +143,14 @@ export function sanitizePhoneForWhatsApp(phone: string): string {
  * Generates an active 72-Hour Live Location WhatsApp Link to dispatch to an ICE contact.
  */
 export function generateWhatsAppBeaconUrl(
-  contact: IceContact,
+  contact: IceContact | string,
   beaconToken: string = "beacon_72h_active",
   coords?: { lat: number; lng: number }
 ): string {
-  const phone = sanitizePhoneForWhatsApp(contact.phone || contact.secondaryPhone || "");
+  const phone = typeof contact === "string"
+    ? sanitizePhoneForWhatsApp(contact)
+    : sanitizePhoneForWhatsApp(contact.phone || contact.secondaryPhone || "");
+  const contactName = typeof contact === "string" ? "Guardian" : contact.name;
   const origin = typeof window !== "undefined" && window.location.origin
     ? window.location.origin
     : "https://umkhuseli.app";
@@ -159,7 +162,7 @@ export function generateWhatsAppBeaconUrl(
 
   const text = encodeURIComponent(
     `🚨 [UMKHUSELI SAFE HAVEN DISTRESS ALERT]\n` +
-    `Hello ${contact.name}, this is an emergency alert. I am currently facing an urgent situation and need your assistance.\n\n` +
+    `Hello ${contactName}, this is an emergency alert. I am currently facing an urgent situation and need your assistance.\n\n` +
     `🛡️ 72-Hour Live Responder Link:\n${beaconUrl}${locPart}\n\n` +
     `Please monitor my location or dispatch SAPS (10111) if I do not check in.`
   );

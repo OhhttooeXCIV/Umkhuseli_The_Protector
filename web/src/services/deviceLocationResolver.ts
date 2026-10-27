@@ -641,8 +641,23 @@ export async function readDeviceLocationWithDetails(options?: {
   const highAccuracy = options?.highAccuracy ?? true;
 
   if (typeof navigator === "undefined" || !navigator.geolocation) {
-    // Default to Johannesburg Central fallback
-    return inferSouthAfricanLocationSync(-26.2041, 28.0473, 50, "CACHE");
+    if (typeof localStorage !== "undefined") {
+      try {
+        const raw = localStorage.getItem("umkhuseli_last_device_location");
+        if (raw) {
+          const parsed: SouthAfricanLocationDetails = JSON.parse(raw);
+          return { ...parsed, source: "CACHE" };
+        }
+        const cachedRaw = localStorage.getItem("umkhuseli_cached_live_location");
+        if (cachedRaw) {
+          const c = JSON.parse(cachedRaw);
+          return inferSouthAfricanLocationSync(c.lat, c.lng, c.accuracy || 20, "CACHE");
+        }
+      } catch {
+        /* ignore storage read failure */
+      }
+    }
+    throw new Error("Live device GPS hardware is unavailable and no cached GPS location is stored.");
   }
 
   return new Promise((resolve, reject) => {

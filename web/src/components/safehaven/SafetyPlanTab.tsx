@@ -23,6 +23,7 @@ import {
   generateDistressEmailUrl,
   generateWhatsAppBeaconUrl,
 } from "../../services/uatProfileService";
+import { getCachedLiveLocation } from "../../services/liveLocationService";
 import { GoogleMapsSafeHavenView } from "../GoogleMapsSafeHavenView";
 import { EscapeGoBagChecklist } from "../EscapeGoBagChecklist";
 import { SouthAfricanLegalRights } from "../SouthAfricanLegalRights";
@@ -418,7 +419,11 @@ export const SafetyPlanTab: React.FC<SafetyPlanTabProps> = ({
                       <span>Call Guardian</span>
                     </a>
                     <a
-                      href={generateWhatsAppBeaconUrl(contact.phone, { lat: -26.2041, lng: 28.0473 })}
+                      href={generateWhatsAppBeaconUrl(
+                        contact,
+                        "beacon_72h_active",
+                        getCachedLiveLocation() ? { lat: getCachedLiveLocation()!.lat, lng: getCachedLiveLocation()!.lng } : undefined
+                      )}
                       target="_blank"
                       rel="noreferrer"
                       className="flex-1 py-1.5 px-3 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 text-emerald-300 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
