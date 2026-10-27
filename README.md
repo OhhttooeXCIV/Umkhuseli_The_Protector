@@ -8,7 +8,7 @@
 [![IP & Ownership](https://img.shields.io/badge/Ownership-Sankofa%20Digital%20(All%20Rights%20Reserved)-purple?style=for-the-badge)](#-intellectual-property--governance-declaration)
 
 [![Build & Test Matrix](https://img.shields.io/badge/CI%2FCD-Passing-brightgreen?style=for-the-badge&logo=github-actions)](.github/workflows/ci.yml)
-[![Web PWA Tests](https://img.shields.io/badge/Vitest-193%2F193%20Passed%20(28%20Suites)-6E9F18?style=for-the-badge&logo=vitest)](web/src/__tests__)
+[![Web PWA Tests](https://img.shields.io/badge/Vitest-231%2F231%20Passed%20(32%20Suites)-6E9F18?style=for-the-badge&logo=vitest)](web/src/__tests__)
 [![Android Platform](https://img.shields.io/badge/Android-API%2024%20to%2036-3DDC84?style=for-the-badge&logo=android)](app/build.gradle.kts)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.1.0-7F52FF?style=for-the-badge&logo=kotlin)](build.gradle.kts)
 [![Cryptography](https://img.shields.io/badge/Encryption-AES--256--GCM%20%2B%20StrongBox-red?style=for-the-badge)](public/COMPLIANCE_AND_GOVERNANCE_FINAL_MVP.md)

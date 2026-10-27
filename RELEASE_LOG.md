@@ -127,37 +127,34 @@ Following formal consultation with FNB App of the Year hackathon mentors, the sc
 
 ---
 
-## 🔒 Release v2.6.0 (Latest) — Sankofa Digital Continuation (Private Repository)
+## 🔒 Release v2.6.0 (Latest) — Sankofa Digital Continuation (Commercial Repository)
 
 ### Commercial Rationale & Enterprise Architecture
 
-While `v2.5.0` fulfills all requirements for the FNB AOTY 2026 Hackathon MVP, **Release `v2.6.0` (Latest)** marks the transition of the Umkhuseli platform into an enterprise-ready, commercially viable safety and crisis infrastructure platform under the exclusive development of **Sankofa Digital**.
+While `v2.5.0` fulfills all requirements for the FNB AOTY 2026 Hackathon MVP, **Release `v2.6.0` (Latest)** marks the deployment of the Umkhuseli platform into an enterprise-ready, commercially viable safety and crisis infrastructure platform under the exclusive development of **Sankofa Digital**.
 
-To protect intellectual property, proprietary algorithms, and sensitive telecommunication integrations, `v2.6.0` is developed on a **dedicated private repository**:
-- **Repository URI**: `git@github.com:SankofaDigital/Umkhuseli-Core.git` *(Private)*
-- **Upstream Public Tag**: `v2.5.0` (`https://github.com/OhhttooeXCIV/Umkhuseli_The_Protector.git`)
+- **Repository URI**: `https://github.com/Sankofa-Digital-Studio/Umk_Commercial.git` *(Commercial Repository)*
+- **Upstream Public Baseline**: `v2.5.0` (`https://github.com/OhhttooeXCIV/Umkhuseli_The_Protector.git`)
 - **Active Release Tag**: `v2.6.0`
+- **Production Public Decoy Domain**: `https://ishekomberera.vercel.app`
 
-### Private Repository Lineage & Upstream Reference
+### Features Delivered in Release v2.6.0
 
-The private repository directly inherits the complete history of this public repository up to commit `080a213` (`v2.5.0`), ensuring complete traceability while keeping enterprise extensions secure:
+1. **'The Mask' Chameleon Camouflage Engine**:
+   - **Face 1: PowerCalc SA** (`MunicipalPrepaidCalculator.tsx`): Municipal STS-6 electricity & water token vending and tariff analyzer.
+   - **Face 2: Coco Bongo Beats** (`CocoBongoMusicFacade.tsx`): South African music streaming player featuring Amapiano, Afro House, Gospel, and Maskandi playlists, vinyl spinning album art, audio scrubbers, and offline caching decoys.
+   - **Face 3: GraceShare Bible SA / Izwi LeNkosi** (`DailyDevotionalFacade.tsx`): Faith-based devotional portal with multilingual scriptures (English, isiZulu, Sesotho), downloadable verse cards, and WhatsApp-style voice note sermons with audio waveforms (1.0x, 1.5x, 2.0x speeds).
+   - **Face 4: Ipkiss Minimalist Launcher** (`AndroidLauncherFacade.tsx` & `launcher/*`): Native Android home screen interface with realistic clock widget, weather badge, Google search bar, app drawer grid, dock, and dialer modal.
 
-```mermaid
-gitGraph
-   commit id: "Initial Proto"
-   commit id: "v2.0.0 Dual-Persona"
-   commit id: "v2.3.0 Doze & StrongBox"
-   commit id: "v2.4.0 FNB Alignment"
-   commit id: "v2.5.0 (FNB AOTY 2026)" tag: "v2.5.0 (FNB_AOTY_2026_MVP)"
-   branch private-commercial-continuation
-   checkout private-commercial-continuation
-   commit id: "Sankofa Enterprise Init"
-   commit id: "Carrier Reverse Billing"
-   commit id: "Acoustic AI Sentry"
-   commit id: "v2.6.0 (Latest)" tag: "v2.6.0 (Sankofa Private)"
-   checkout main
-   commit id: "Public Repo End-of-Life"
-```
+2. **Unified Covert Security & Sensor Matrix**:
+   - **Universal Unlock PIN 8426**: Unlocks Safe Haven via search bars, concordance keypad, dialpad (`*#8426#`), and audio duration scrubber (`08:42`).
+   - **Multi-Tap Gestures**: 3-tap rapid gesture on municipal crest, 3-tap gesture on spinning vinyl album art, or 4-tap gesture on scripture cross.
+   - **Silent Duress SOS (PIN 9999)**: Submitting `9999` silently dispatches distress beacon to 5 ICE guardians while displaying realistic decoys (STS Error 30 terminal, track queued `#9999`, intercession prayer confirmation, or carrier MMI dialer decoy `*#9999#`).
+   - **0ms Instant Panic Camouflage**: Escape key, background tap, or Android hardware back/home instantly resets UI to the active facade with synchronous RAM wiping and cryptographic session purge.
+
+3. **Automated Test Suite Maturity (100% Green)**:
+   - Vitest unit suites for all 4 facades (`androidLauncherFacade.test.tsx`, `cocoBongoMusicFacade.test.tsx`, `dailyDevotionalFacade.test.tsx`, `disguiseManager.test.ts`).
+   - 38/38 facade tests passing; 231 total tests across 32 test suites passing.
 
 ### Advanced Feature Roadmap in v2.6.0+
 
