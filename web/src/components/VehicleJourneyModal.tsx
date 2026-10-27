@@ -481,24 +481,33 @@ export const VehicleJourneyModal: React.FC<Props> = ({
               <div className="space-y-1.5">
                 {iceContacts
                   .filter((c) => createdJourney?.selectedIceContactIds.includes(c.id))
-                  .map((contact) => (
-                    <a
-                      key={contact.id}
-                      href={createdJourney ? generateJourneyWhatsAppUrl(createdJourney, contact.phone, userName) : "#"}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-600/30 text-emerald-300 hover:bg-emerald-900/40 transition-colors"
-                    >
-                      <div className="flex items-center gap-2">
-                        <Share2 className="w-3.5 h-3.5 text-emerald-400" />
-                        <span className="font-bold text-white">{contact.name}</span>
-                        <span className="text-[10px] text-emerald-400">({contact.relationship})</span>
-                      </div>
-                      <span className="text-[10px] font-bold bg-emerald-500/20 px-2 py-0.5 rounded text-emerald-300">
-                        WhatsApp Link
-                      </span>
-                    </a>
-                  ))}
+                  .map((contact) => {
+                    const waUrl = createdJourney ? generateJourneyWhatsAppUrl(createdJourney, contact.phone, userName) : "";
+                    return (
+                      <a
+                        key={contact.id}
+                        href={waUrl || "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => {
+                          if (!waUrl) {
+                            e.preventDefault();
+                            alert("Journey alert is generating. Please wait a moment.");
+                          }
+                        }}
+                        className="flex items-center justify-between p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-600/30 text-emerald-300 hover:bg-emerald-900/40 transition-colors"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Share2 className="w-3.5 h-3.5 text-emerald-400" />
+                          <span className="font-bold text-white">{contact.name}</span>
+                          <span className="text-[10px] text-emerald-400">({contact.relationship})</span>
+                        </div>
+                        <span className="text-[10px] font-bold bg-emerald-500/20 px-2 py-0.5 rounded text-emerald-300">
+                          WhatsApp Link
+                        </span>
+                      </a>
+                    );
+                  })}
               </div>
             </div>
 
