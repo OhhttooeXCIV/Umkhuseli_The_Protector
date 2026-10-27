@@ -51,25 +51,25 @@ The hackathon demonstration focuses exclusively on executing these 5 features wi
 
 ```mermaid
 kanban
-  5-Feature MVP Baseline (Verified)
+  v2.5.0 Hackathon MVP Baseline (Verified)
     [FEAT-01] Chameleon Disguise Engine (Launcher + PowerCal SA)
     [FEAT-02] ECTA Section 15 Tamper-Evident Evidence Vault
     [FEAT-03] Loadshedding-Resilient Emergency Dispatch & Duress 9999
     [FEAT-04] Statutory Form 2 DVA Court Preparation Pack
     [FEAT-05] Offline 9-Province Thuthuzela Care Centre (TCC) Directory
-  Review & Live Pitch Rehearsal
-    [QA-01] 3-Minute Live Hackathon Demo Run-Sheet
-    [QA-02] ECTA Sec 15 Disclaimers in Safe Haven UI
-    [QA-03] Android 14+ Doze Mode Background Location Service
-  Future Horizons: Horizon 1 (Phase 2)
+  v2.6.0 Chameleon Facades & Android Launcher (Delivered)
+    [FEAT-601] Face 2: Coco Bongo Beats Music Camouflage
+    [FEAT-602] Face 3: GraceShare Bible SA & Voice Sermons
+    [FEAT-603] Face 4: Ipkiss Minimalist Native Android Launcher
+    [SEC-604] Unified Covert Sensor Matrix (8426, 9999, *#8426#, *#9999#)
+    [ARCH-605] Safe Haven Cryptographic Core Preservation
+    [QA-606] 38/38 Automated Facade Tests Passing (100% Green)
+  v2.7.0 Enterprise Horizons (Active Backlog)
     [H1-01] Safe Journey E-Hailing Corridor Sentinel
     [H1-02] Audio Sentry Ambient Acoustic Distress Classifier
-    [H1-03] Direct Carrier VAS Airtime & Data Tokens
-  Future Horizons: Horizon 2 (Phase 3)
+    [H1-03] Direct Carrier Reverse-Billed USSD Gateway (*134*UMKHUSELI#)
     [H2-01] OPRF PSI Private Set Intersection Contact Discovery
     [H2-02] Touched by an Angel Citizen First-Responder KYC Network
-    [H2-03] P2P Wi-Fi Direct Covert Mesh Share
-    [H2-04] Ward-Level Geofenced Community Forum
 ```
 
 ---
