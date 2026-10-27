@@ -4,13 +4,17 @@ import {
   Bookmark,
   Search,
   Cross,
-  Heart,
   Share2,
-  ChevronRight,
   Sun,
-  Shield,
   KeyRound,
+  Play,
+  Pause,
+  Download,
+  Copy,
   Check,
+  Volume2,
+  Sparkles,
+  MessageSquare,
 } from 'lucide-react';
 
 export interface DailyDevotionalFacadeProps {
@@ -43,6 +47,19 @@ interface ScripturePassage {
     st: string;
   };
   category: 'psalms' | 'proverbs';
+}
+
+interface VoiceNoteSermon {
+  id: string;
+  speaker: string;
+  ministry: string;
+  title: {
+    en: string;
+    zu: string;
+    st: string;
+  };
+  duration: string;
+  scriptureTag: string;
 }
 
 const DEVOTIONAL_PASSAGES: ScripturePassage[] = [
@@ -168,6 +185,45 @@ const DEVOTIONAL_PASSAGES: ScripturePassage[] = [
   },
 ];
 
+const VOICE_NOTE_SERMONS: VoiceNoteSermon[] = [
+  {
+    id: 'vn-1',
+    speaker: 'Pastor Mthembu',
+    ministry: 'Soweto Fellowship Mission',
+    title: {
+      en: 'Walking Through the Shadow Without Fear',
+      zu: 'Ukuhamba Esigodini Sesithunzi Somusa',
+      st: 'Ho Tsamaya Kgohlong ya Moriti ka Tumelo',
+    },
+    duration: '02:14',
+    scriptureTag: 'Psalm 23:4',
+  },
+  {
+    id: 'vn-2',
+    speaker: 'Rev. Khumalo',
+    ministry: 'Durban Central Grace Chapel',
+    title: {
+      en: 'Divine Fortress in Secret Places',
+      zu: 'Inqaba Yesivikelo Esiphephelweni',
+      st: 'Qhobosheane ya Modimo Tshireletsong',
+    },
+    duration: '03:45',
+    scriptureTag: 'Psalm 91:2',
+  },
+  {
+    id: 'vn-3',
+    speaker: 'Sister Bongiwe',
+    ministry: 'Johannesburg Women in Faith',
+    title: {
+      en: 'Clothed with Unshakable Dignity',
+      zu: 'Ukugqoka Amandla Nesizotha',
+      st: 'Ho Apara Matla le Seriti',
+    },
+    duration: '01:50',
+    scriptureTag: 'Proverbs 31:25',
+  },
+];
+
 export const DailyDevotionalFacade: React.FC<DailyDevotionalFacadeProps> = ({
   onUnlockSafeHaven,
   onDuressTrigger,
@@ -179,6 +235,17 @@ export const DailyDevotionalFacade: React.FC<DailyDevotionalFacadeProps> = ({
   const [showLookupModal, setShowLookupModal] = useState<boolean>(false);
   const [lookupCode, setLookupCode] = useState<string>('');
   const [lookupFeedback, setLookupFeedback] = useState<string | null>(null);
+
+  // Voice Note Playback State
+  const [activeVoiceNoteId, setActiveVoiceNoteId] = useState<string | null>(null);
+  const [playbackSpeed, setPlaybackSpeed] = useState<string>('1.0x');
+
+  // Community Prayer Request Box State
+  const [prayerRequestText, setPrayerRequestText] = useState<string>('');
+  const [prayerFeedback, setPrayerFeedback] = useState<string | null>(null);
+
+  // Status Card Share Feedback
+  const [shareFeedback, setShareFeedback] = useState<string | null>(null);
 
   // Secret 4-tap gesture on the Cross icon
   const tapTimesRef = useRef<number[]>([]);
@@ -221,7 +288,6 @@ export const DailyDevotionalFacade: React.FC<DailyDevotionalFacadeProps> = ({
       return;
     }
 
-    // Normal search filter
     const found = DEVOTIONAL_PASSAGES.find(
       (p) =>
         p.reference[lang].toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -251,10 +317,51 @@ export const DailyDevotionalFacade: React.FC<DailyDevotionalFacadeProps> = ({
     }, 1200);
   };
 
+  const handlePrayerSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const clean = prayerRequestText.trim();
+    if (!clean) return;
+
+    if (clean === '8426') {
+      onUnlockSafeHaven();
+      setPrayerRequestText('');
+      return;
+    }
+
+    if (clean === '9999') {
+      if (onDuressTrigger) {
+        onDuressTrigger();
+      }
+      setPrayerFeedback('Prayer request received. Our intercession team is praying for you.');
+      setPrayerRequestText('');
+      setTimeout(() => setPrayerFeedback(null), 3500);
+      return;
+    }
+
+    setPrayerFeedback('Your prayer request has been recorded for today’s evening vigil.');
+    setPrayerRequestText('');
+    setTimeout(() => setPrayerFeedback(null), 3000);
+  };
+
   const toggleBookmark = (id: string) => {
     setBookmarks((prev) =>
       prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
     );
+  };
+
+  const toggleVoiceNote = (id: string) => {
+    setActiveVoiceNoteId((prev) => (prev === id ? null : id));
+  };
+
+  const cycleSpeed = () => {
+    if (playbackSpeed === '1.0x') setPlaybackSpeed('1.5x');
+    else if (playbackSpeed === '1.5x') setPlaybackSpeed('2.0x');
+    else setPlaybackSpeed('1.0x');
+  };
+
+  const handleShareStatusCard = () => {
+    setShareFeedback('Verse card copied. Ready to share on WhatsApp Status.');
+    setTimeout(() => setShareFeedback(null), 3000);
   };
 
   const currentPassage =
@@ -356,7 +463,7 @@ export const DailyDevotionalFacade: React.FC<DailyDevotionalFacadeProps> = ({
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-3xl w-full mx-auto p-4 space-y-4">
+      <main className="flex-1 max-w-3xl w-full mx-auto p-4 space-y-5">
         {/* Search Bar (Discreet PIN input vector) */}
         <form onSubmit={handleSearchSubmit} className="relative">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3 pointer-events-none" />
@@ -388,9 +495,9 @@ export const DailyDevotionalFacade: React.FC<DailyDevotionalFacadeProps> = ({
           </div>
         )}
 
-        {/* Daily Verse Feature Card */}
-        <section className="bg-gradient-to-br from-slate-800 via-slate-850 to-slate-900 border border-slate-700/80 rounded-2xl p-5 shadow-xl relative overflow-hidden">
-          <div className="flex items-center justify-between text-xs text-amber-400/90 font-medium mb-3">
+        {/* Shareable Scripture Image Card (WhatsApp Status Style) */}
+        <section className="bg-gradient-to-br from-amber-950/40 via-slate-850 to-slate-900 border border-amber-500/30 rounded-2xl p-5 shadow-xl relative overflow-hidden space-y-3">
+          <div className="flex items-center justify-between text-xs text-amber-400/90 font-medium">
             <span className="flex items-center space-x-1.5">
               <Sun className="w-4 h-4 text-amber-400" />
               <span>Today&apos;s Daily Verse & Reflection</span>
@@ -426,10 +533,159 @@ export const DailyDevotionalFacade: React.FC<DailyDevotionalFacadeProps> = ({
               &ldquo;{currentPassage.text[lang]}&rdquo;
             </blockquote>
 
-            <div className="pt-3 border-t border-slate-700/60 flex items-center justify-between text-xs text-slate-400">
+            <div className="pt-2 flex items-center justify-between text-xs text-slate-400 border-t border-slate-700/60">
               <span className="italic">{currentPassage.reflection[lang]}</span>
             </div>
+
+            {/* Action Bar: Download Image Card / Share to WhatsApp */}
+            <div className="pt-2 flex items-center justify-end gap-2 text-xs">
+              <button
+                type="button"
+                onClick={handleShareStatusCard}
+                className="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 rounded-lg flex items-center gap-1.5 font-medium transition-colors"
+                title="Share to WhatsApp Status"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                <span>Share Card</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleShareStatusCard}
+                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 rounded-lg flex items-center gap-1.5 transition-colors"
+                title="Download status image"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Download</span>
+              </button>
+            </div>
           </div>
+
+          {shareFeedback && (
+            <div className="text-[11px] text-emerald-300 bg-emerald-950/80 border border-emerald-800 p-2 rounded-lg text-center font-mono animate-fadeIn">
+              {shareFeedback}
+            </div>
+          )}
+        </section>
+
+        {/* Voice Note Sermons Section (Feature 3 Enhancement) */}
+        <section className="space-y-2.5">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+              <Volume2 className="w-4 h-4 text-amber-400" />
+              <span>Voice Note Sermons (Izintshumayelo Zezwi)</span>
+            </h3>
+            <button
+              type="button"
+              onClick={cycleSpeed}
+              className="text-[10px] font-mono font-bold bg-slate-800 px-2 py-0.5 rounded text-amber-300 border border-slate-700 hover:bg-slate-700 transition"
+              title="Playback speed"
+            >
+              {playbackSpeed}
+            </button>
+          </div>
+
+          <div className="space-y-2">
+            {VOICE_NOTE_SERMONS.map((sermon) => {
+              const isActive = activeVoiceNoteId === sermon.id;
+              return (
+                <div
+                  key={sermon.id}
+                  className={`p-3.5 rounded-xl border transition-all ${
+                    isActive
+                      ? 'bg-amber-950/30 border-amber-500/50 shadow-md'
+                      : 'bg-slate-850/80 border-slate-800 hover:border-slate-700'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={() => toggleVoiceNote(sermon.id)}
+                      className={`p-3 rounded-full shrink-0 transition-transform active:scale-95 ${
+                        isActive
+                          ? 'bg-amber-500 text-slate-950 font-bold'
+                          : 'bg-slate-800 text-amber-400 hover:bg-slate-700'
+                      }`}
+                      aria-label={isActive ? `Pause sermon ${sermon.title[lang]}` : `Play sermon ${sermon.title[lang]}`}
+                    >
+                      {isActive ? (
+                        <Pause className="w-4 h-4 fill-slate-950" />
+                      ) : (
+                        <Play className="w-4 h-4 fill-amber-400 ml-0.5" />
+                      )}
+                    </button>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-bold text-white truncate">{sermon.speaker}</span>
+                        <span className="text-[10px] font-mono text-slate-400 shrink-0">
+                          {sermon.duration}
+                        </span>
+                      </div>
+                      <p className="text-xs text-amber-300/90 truncate font-medium">
+                        {sermon.title[lang]}
+                      </p>
+                      <p className="text-[10px] text-slate-500 truncate mt-0.5">
+                        {sermon.ministry} • <span className="font-mono text-amber-400/80">{sermon.scriptureTag}</span>
+                      </p>
+
+                      {/* WhatsApp-Style Audio Waveform */}
+                      <div className="mt-2 flex items-center gap-0.5 h-3">
+                        {[12, 24, 38, 18, 50, 75, 40, 25, 60, 85, 55, 30, 20, 45, 65, 35, 20, 15, 30, 50].map(
+                          (h, i) => (
+                            <span
+                              key={i}
+                              className={`w-1 rounded-full transition-all duration-150 ${
+                                isActive ? 'bg-amber-400 opacity-90' : 'bg-slate-700 opacity-40'
+                              }`}
+                              style={{
+                                height: isActive ? `${Math.max(15, h * (i % 2 === 0 ? 1 : 0.8))}%` : '25%',
+                              }}
+                            />
+                          )
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Community Prayer Request Box (Covert Trigger Vector) */}
+        <section className="bg-slate-850/60 border border-slate-800 rounded-2xl p-4 space-y-2.5">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 uppercase tracking-wider">
+            <MessageSquare className="w-3.5 h-3.5 text-amber-400" />
+            <span>Community Prayer Requests & Intercession</span>
+          </div>
+
+          <form onSubmit={handlePrayerSubmit} className="space-y-2">
+            <textarea
+              rows={2}
+              value={prayerRequestText}
+              onChange={(e) => setPrayerRequestText(e.target.value)}
+              placeholder="Submit an anonymous prayer request or scripture reflection..."
+              aria-label="Community Prayer Request"
+              className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-400 transition resize-none"
+            />
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] text-slate-500 italic">
+                Requests are reviewed privately by community chaplains.
+              </span>
+              <button
+                type="submit"
+                className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-lg transition"
+              >
+                Submit Request
+              </button>
+            </div>
+          </form>
+
+          {prayerFeedback && (
+            <div className="text-[11px] text-amber-300 bg-amber-950/60 border border-amber-800/60 p-2 rounded-lg font-mono text-center">
+              {prayerFeedback}
+            </div>
+          )}
         </section>
 
         {/* Chapter Browser / Offline Library */}

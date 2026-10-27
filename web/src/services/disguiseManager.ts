@@ -19,6 +19,7 @@ export interface DisguiseMetadata {
   themeColor: string;
 }
 
+export const PUBLIC_FACING_DOMAIN = 'ishekomberera.vercel.app';
 export const DISGUISE_STORAGE_KEY = 'umkhuseli_active_disguise';
 export const DISGUISE_EVENT_NAME = 'umkhuseli_disguise_change';
 
