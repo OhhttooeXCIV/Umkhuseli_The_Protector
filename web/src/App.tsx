@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { MunicipalPrepaidCalculator } from "./components/MunicipalPrepaidCalculator";
 import { DailyDevotionalFacade } from "./components/DailyDevotionalFacade";
+import { CocoBongoMusicFacade } from "./components/CocoBongoMusicFacade";
+import { AndroidLauncherFacade } from "./components/AndroidLauncherFacade";
 import { SafeHavenDashboard } from "./components/SafeHavenDashboard";
 import { GuardianTrackerView } from "./components/GuardianTrackerView";
 import { IosInstallGuideModal } from "./components/IosInstallGuideModal";
@@ -259,9 +261,14 @@ export const App: React.FC = () => {
 
   const handleDuressTrigger = async () => {
     // Silent emergency dispatch triggered by Duress PIN 9999 / KRN2 Rollover terminal
-    const area = activeDisguise === "DAILY_DEVOTIONAL"
-      ? "Duress Beacon (Devotional Portal)"
-      : "Duress Beacon (Prepaid Portal)";
+    let area = "Duress Beacon (Prepaid Portal)";
+    if (activeDisguise === "DAILY_DEVOTIONAL") {
+      area = "Duress Beacon (Devotional Portal)";
+    } else if (activeDisguise === "MUSIC_PLAYER") {
+      area = "Duress Beacon (Coco Bongo Music)";
+    } else if (activeDisguise === "ANDROID_LAUNCHER") {
+      area = "Duress Beacon (Android Launcher)";
+    }
 
     // Immediately dispatch server SOS synchronously for zero-latency duress delivery and unit tests
     dispatchServerSos({
@@ -305,12 +312,25 @@ export const App: React.FC = () => {
     >
       {mode === "DECOY_CALCULATOR" && (
         <>
-          {activeDisguise === "DAILY_DEVOTIONAL" ? (
+          {activeDisguise === "DAILY_DEVOTIONAL" && (
             <DailyDevotionalFacade
               onUnlockSafeHaven={() => setMode("SAFE_HAVEN")}
               onDuressTrigger={handleDuressTrigger}
             />
-          ) : (
+          )}
+          {activeDisguise === "MUSIC_PLAYER" && (
+            <CocoBongoMusicFacade
+              onUnlockSafeHaven={() => setMode("SAFE_HAVEN")}
+              onDuressTrigger={handleDuressTrigger}
+            />
+          )}
+          {activeDisguise === "ANDROID_LAUNCHER" && (
+            <AndroidLauncherFacade
+              onUnlockSafeHaven={() => setMode("SAFE_HAVEN")}
+              onDuressTrigger={handleDuressTrigger}
+            />
+          )}
+          {activeDisguise === "MUNICIPAL_PREPAID" && (
             <MunicipalPrepaidCalculator
               onUnlockSafeHaven={() => setMode("SAFE_HAVEN")}
               onDuressTrigger={handleDuressTrigger}

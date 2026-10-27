@@ -1,10 +1,13 @@
 /**
  * Chameleon Disguise Architecture - Disguise Manager
- * Manages active facade configuration between Municipal Utility Calculator
- * and Authentic Daily Devotional Scripture Reader with persistent localStorage.
+ * Manages active facade configuration between:
+ * 1. PowerCalc SA (Municipal Prepaid Electricity Calculator)
+ * 2. Coco Bongo Beats (Music Player / Streaming Camouflage)
+ * 3. GraceShare Bible SA (Voice Note Sermons, Images & Devotionals)
+ * 4. Ipkiss Minimalist Launcher (Native Android Home Screen & Dialpad)
  */
 
-export type DisguiseType = 'MUNICIPAL_PREPAID' | 'DAILY_DEVOTIONAL';
+export type DisguiseType = 'MUNICIPAL_PREPAID' | 'MUSIC_PLAYER' | 'DAILY_DEVOTIONAL' | 'ANDROID_LAUNCHER';
 
 export interface DisguiseMetadata {
   id: DisguiseType;
@@ -16,6 +19,7 @@ export interface DisguiseMetadata {
   themeColor: string;
 }
 
+export const PUBLIC_FACING_DOMAIN = 'ishekomberera.vercel.app';
 export const DISGUISE_STORAGE_KEY = 'umkhuseli_active_disguise';
 export const DISGUISE_EVENT_NAME = 'umkhuseli_disguise_change';
 
@@ -29,16 +33,41 @@ export const DISGUISE_CATALOG: Record<DisguiseType, DisguiseMetadata> = {
     description: 'South African municipal prepaid electricity calculator & token manager.',
     themeColor: '#0F172A',
   },
+  MUSIC_PLAYER: {
+    id: 'MUSIC_PLAYER',
+    name: 'Coco Bongo Beats',
+    title: 'Edge City Audio & Music',
+    subtitle: 'Streaming South African Amapiano, Afro House & Gospel',
+    icon: 'Music',
+    description: 'South African music player with playlists, offline playback, and audio waveforms.',
+    themeColor: '#09090B',
+  },
   DAILY_DEVOTIONAL: {
     id: 'DAILY_DEVOTIONAL',
     name: 'Daily Verse SA',
     title: 'Daily Scripture & Devotional',
-    subtitle: 'IBhayibheli Elingcwele & Daily Reflections',
+    subtitle: 'Voice Note Sermons, Status Cards & Devotionals',
     icon: 'BookOpen',
-    description: 'Daily scripture reader featuring Psalms and Proverbs in English, isiZulu, and Sesotho.',
+    description: 'Faith-based Bible sharing app with voice note sermons, daily status cards, and reflections in English, isiZulu, and Sesotho.',
     themeColor: '#1E1B4B',
   },
+  ANDROID_LAUNCHER: {
+    id: 'ANDROID_LAUNCHER',
+    name: 'Ipkiss Launcher',
+    title: 'Minimalist Mobile Home',
+    subtitle: 'Clean Android Home Screen with Dialer & Quick Apps',
+    icon: 'LayoutGrid',
+    description: 'Minimalist Android launcher disguise featuring native dialpad, weather widget, and search.',
+    themeColor: '#18181B',
+  },
 };
+
+const VALID_DISGUISES: ReadonlySet<string> = new Set([
+  'MUNICIPAL_PREPAID',
+  'MUSIC_PLAYER',
+  'DAILY_DEVOTIONAL',
+  'ANDROID_LAUNCHER',
+]);
 
 /**
  * Retrieves the currently active disguise facade from storage or returns default.
@@ -47,8 +76,8 @@ export function getActiveDisguise(): DisguiseType {
   if (typeof window !== 'undefined' && window.localStorage) {
     try {
       const stored = window.localStorage.getItem(DISGUISE_STORAGE_KEY);
-      if (stored === 'MUNICIPAL_PREPAID' || stored === 'DAILY_DEVOTIONAL') {
-        return stored;
+      if (stored && VALID_DISGUISES.has(stored)) {
+        return stored as DisguiseType;
       }
     } catch {
       // Ignore private browsing / sandbox restrictions
